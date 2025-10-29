@@ -1,0 +1,80 @@
+﻿@using AgroForm.Model
+@model List<Campania>
+
+<div class="dropdown ms-3">
+    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center"
+            type="button" id="campañasDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-calendar-range me-2"></i>
+        <span id="campañaActualText">
+            @{
+                var campañaActual = Model?.FirstOrDefault(c => c.EstadosCamapaña == EnumClass.EstadosCamapaña.Iniciada);
+                var texto = campañaActual?.Nombre ?? "Seleccionar Campaña";
+            }
+            @texto
+        </span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="campañasDropdown">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var campaña in Model)
+            {
+                <li>
+                    <a class="dropdown-item d-flex justify-content-between align-items-center campaña-item @(campaña.EstadosCamapaña == EnumClass.EstadosCamapaña.Iniciada ? "active" : "")"
+                       href="#" data-campaña-id="@campaña.Id">
+                        <div>
+                            <div class="fw-semibold">@campaña.Nombre</div>
+                            <small class="text-muted">@campaña.FechaInicio.ToShortDateString()</small>
+                        </div>
+                        @if (campaña.EstadosCamapaña == EnumClass.EstadosCamapaña.Iniciada)
+                        {
+                            <i class="bi bi-check-lg text-primary"></i>
+                        }
+                    </a>
+                </li>
+            }
+            <li><hr class="dropdown-divider"></li>
+        }
+@*         <li>
+            <a class="dropdown-item" href="@Url.Action("Index", "Campañas")">
+                <i class="bi bi-gear me-2"></i>Gestionar Campañas
+            </a>
+        </li> *@
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Manejar cambio de campaña
+        document.querySelectorAll('.campaña-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const campañaId = this.getAttribute('data-campaña-id');
+
+                fetch('@Url.Action("SetCurrent", "Campañas")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ campañaId: parseInt(campañaId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar texto del botón
+                        document.getElementById('campañaActualText').textContent =
+                            this.querySelector('.fw-semibold').textContent;
+
+                        // Recargar la página para actualizar datos
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar campaña: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cambiar campaña');
+                });
+            });
+        });
+    });
+</script>
