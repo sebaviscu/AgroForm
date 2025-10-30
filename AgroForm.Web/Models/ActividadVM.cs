@@ -1,8 +1,7 @@
 ﻿namespace AgroForm.Web.Models
 {
-    public class ActividadVM
+    public class ActividadVM : EntityBaseWithLicenciaVM
     {
-        public int Id { get; set; }
         public string TipoActividad { get; set; } = string.Empty;
         public string Campo { get; set; } = string.Empty;
         public int CampoId { get; set; }

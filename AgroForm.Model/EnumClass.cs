@@ -16,8 +16,16 @@ namespace AgroForm.Model
         }
         public enum EstadosCamapaña
         {
-            Iniciada,
-            Finalizada
+            Planificada,
+            EnCurso,
+            Finalizada,
+            Cancelada
+        }
+
+        public enum TipoClima
+        {
+            Lluvia,
+            Granizo
         }
     }
 }

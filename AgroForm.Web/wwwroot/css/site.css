@@ -1,8 +1,8 @@
 /* Variables */
 :root {
-    --sidebar-width: 280px;
+    --sidebar-width: 230px;
     --sidebar-width-collapsed: 80px;
-    --top-navbar-height: 60px;
+    --top-navbar-height: 68px;
     --transition-speed: 0.3s;
 }
 
@@ -173,34 +173,6 @@
         left: 0 !important;
     }
 
-    .sidebar.active {
-        min-width: var(--sidebar-width);
-        max-width: var(--sidebar-width);
-        text-align: left;
-    }
-
-        .sidebar.active .sidebar-link span {
-            display: inline;
-        }
-
-        .sidebar.active .sidebar-link {
-            justify-content: flex-start;
-            padding: 12px 20px;
-        }
-
-            .sidebar.active .sidebar-link i {
-                margin-right: 15px;
-                font-size: 1.1em;
-            }
-
-        .sidebar.active .collapse {
-            display: block;
-        }
-
-        .sidebar.active .sidebar-subitem {
-            padding: 10px 15px 10px 50px;
-            text-align: left;
-        }
 }
 
 /* Dropdown Styles */

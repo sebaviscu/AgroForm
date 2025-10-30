@@ -5,9 +5,12 @@ CREATE TABLE Licencias (
     RazonSocial NVARCHAR(200) NOT NULL,
     NombreContacto NVARCHAR(100) NULL,
     NumeroContacto NVARCHAR(50) NULL,
-    RegistrationDate DATETIME NULL
+	RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL
 );
- 
+
 	
 CREATE TABLE Usuarios (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -43,6 +46,7 @@ CREATE TABLE Campos (
 CREATE TABLE Campanias (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
+	EstadosCamapaña INT NOT NULL
     Nombre NVARCHAR(150) NOT NULL,
     FechaInicio DATETIME NOT NULL,
     FechaFin DATETIME NULL,
@@ -103,12 +107,13 @@ CREATE TABLE Proveedores (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
-CREATE TABLE RegistrosLluvia (
+CREATE TABLE RegistrosClima (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Milimetros DECIMAL(10,2) NOT NULL,
     LoteId INT NOT NULL,
+	TipoClima INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -132,6 +137,7 @@ CREATE TABLE Actividades (
 	IdLicencia INT NOT NULL,
     Descripcion NVARCHAR(500) NOT NULL,
     Fecha DATETIME NOT NULL,
+	Observacion NVARCHAR(max) NULL,
     LoteId INT NOT NULL,
     TipoActividadId INT NOT NULL,
     UsuarioId INT NOT NULL,
@@ -157,6 +163,17 @@ CREATE TABLE Monedas (
     ModificationUser NVARCHAR(150) NULL
 );
 
+
+CREATE TABLE TiposInsumo (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL,
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL
+);
+
+
 CREATE TABLE Insumos (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
@@ -165,6 +182,7 @@ CREATE TABLE Insumos (
     UnidadMedida NVARCHAR(50) NULL,
 	MarcaId INT NULL,
     ProveedorId INT NULL,
+    TipoInsumoId INT NULL,
     StockActual DECIMAL(18,2) NULL,
     StockMinimo DECIMAL(18,2) NULL,
     Estado BIT NOT NULL DEFAULT 1,
@@ -174,13 +192,14 @@ CREATE TABLE Insumos (
     ModificationUser NVARCHAR(150) NULL,
 	FOREIGN KEY (MarcaId) REFERENCES Marcas(Id) ON DELETE NO ACTION,
     FOREIGN KEY (ProveedorId) REFERENCES Proveedores(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
+    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (TipoInsumoId) REFERENCES TiposInsumo(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE MovimientosInsumo (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
-    ActividadId INT NOT NULL,
+	ActividadId INT NOT NULL UNIQUE, 
     InsumoId INT NOT NULL,
     MonedaId INT NOT NULL,
     UsuarioId INT NOT NULL,
@@ -215,3 +234,4 @@ CREATE TABLE HistoricosPrecioInsumo (
     FOREIGN KEY (MonedaId) REFERENCES Monedas(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
+

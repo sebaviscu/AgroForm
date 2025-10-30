@@ -49,34 +49,6 @@ public class Program
 
             builder.Host.UseSerilog();
 
-            // ✅ CONFIGURACIÓN DE IDENTITY (COMPLETA)
-            //builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-            //{
-            //    // Configuración de password
-            //    options.Password.RequireDigit = true;
-            //    options.Password.RequiredLength = 6;
-            //    options.Password.RequireNonAlphanumeric = false;
-            //    options.Password.RequireUppercase = false;
-            //    options.Password.RequireLowercase = true;
-
-            //    // Configuración de usuario
-            //    options.User.RequireUniqueEmail = true;
-            //    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-
-            //    // Configuración de lockout
-            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-            //    options.Lockout.MaxFailedAccessAttempts = 5;
-            //    options.Lockout.AllowedForNewUsers = true;
-
-            //    // Configuración de sign-in
-            //    options.SignIn.RequireConfirmedEmail = false;
-            //    options.SignIn.RequireConfirmedPhoneNumber = false;
-            //    options.SignIn.RequireConfirmedAccount = false;
-            //})
-            //.AddEntityFrameworkStores<AppDbContext>()
-            //.AddDefaultTokenProviders()
-            //.AddErrorDescriber<IdentityErrorDescriber>();
-
             builder.Services.AddAuthentication("AgroFormAuth")
                 .AddCookie("AgroFormAuth", options =>
                 {
@@ -87,8 +59,8 @@ public class Program
                     options.SlidingExpiration = true;
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
                     options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
                 });
 
             // Configuración de servicios

@@ -1,14 +1,12 @@
-﻿@model ActividadesIndexVM
+﻿@using AgroForm.Web.Models.IndexVM
+@model ActividadesIndexVM
+
 @{
     ViewData["Title"] = "Actividades";
 }
-<head>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-</head>
 
 <div class="container-fluid">
-    <!-- Header Section -->
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">
@@ -18,7 +16,7 @@
         </div>
     </div>
 
-    <!-- Filtros Section -->
+    <!-- Filtros -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="row g-3 align-items-end">
@@ -40,7 +38,7 @@
         </div>
     </div>
 
-    <!-- Grilla de Actividades con DataTables -->
+    <!-- Tabla Actividades -->
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
@@ -62,9 +60,7 @@
                         @foreach (var actividad in Model.Actividades)
                         {
                             <tr>
-                                <td>
-                                    <span class="badge bg-primary">@actividad.TipoActividad</span>
-                                </td>
+                                <td><span class="badge bg-primary">@actividad.TipoActividad</span></td>
                                 <td>@actividad.Campo</td>
                                 <td data-order="@actividad.Fecha.ToString("yyyyMMdd")">
                                     @actividad.Fecha.ToString("dd/MM/yyyy")
@@ -114,13 +110,14 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary btn-view"
-                                                title="Ver detalles" data-id="@actividad.Id">
+                                        <button type="button" class="btn btn-outline-primary btn-view" data-id="@actividad.Id">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-edit"
-                                                title="Editar" data-id="@actividad.Id">
+                                        <button type="button" class="btn btn-outline-secondary btn-edit" data-id="@actividad.Id">
                                             <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-delete" data-id="@actividad.Id">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -134,165 +131,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
-            // Inicializar DataTable
-                    var table = $('#tblActividades').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                },
-                dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
-                buttons: {
-                    dom: {
-                        button: {
-                            className: 'btn'
-                        }
-                    },
-                    buttons: [
-                        {
-                            extend: 'excel',
-                            text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
-                            className: 'btn btn-outline-success btn-sm',
-                            title: 'Actividades_@DateTime.Now.ToString("yyyyMMdd")'
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="bi bi-file-earmark-pdf me-1"></i>PDF',
-                            className: 'btn btn-outline-danger btn-sm',
-                            title: 'Actividades_@DateTime.Now.ToString("yyyyMMdd")'
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="bi bi-printer me-1"></i>Imprimir',
-                            className: 'btn btn-outline-info btn-sm'
-                        }
-                    ]
-                },
-                columnDefs: [
-                    { orderable: false, targets: [8] },
-                    { searchable: false, targets: [5, 6, 8] },
-                    { width: '100px', targets: [0, 6, 8] },
-                    { className: 'dt-center', targets: [8] }
-                ],
-                order: [[2, 'desc']],
-                pageLength: 25,
-                responsive: true
-            });
-
-            // Filtrar por campo
-            $('#campoFilter').change(function () {
-                var campoId = $(this).val();
-
-                $.ajax({
-                    url: '@Url.Action("FiltrarPorCampo", "Actividad")',
-                    type: 'POST',
-                    data: { campoId: campoId },
-                    success: function (response) {
-                        if (response.success) {
-                            actualizarDataTable(response.data);
-                        } else {
-                            mostrarError('Error al filtrar actividades');
-                        }
-                    },
-                    error: function () {
-                        mostrarError('Error al conectar con el servidor');
-                    }
-                });
-            });
-
-            // Restablecer filtros
-            $('#btnResetFilters').click(function () {
-                $('#campoFilter').val('0');
-                table.search('').columns().search('').draw();
-            });
-
-            function actualizarDataTable(data) {
-                table.clear();
-
-                if (data && data.length > 0) {
-                    data.forEach(function (actividad) {
-                        var duracion = actividad.duracion ?
-                            '<span>' + actividad.duracion.replace(/^(\d{2}):(\d{2}):(\d{2}).*$/, '$1:$2') + 'h</span>' :
-                            '<span class="text-muted">-</span>';
-
-                        var costo = actividad.costo ?
-                            '<span class="fw-semibold">$' + parseFloat(actividad.costo).toFixed(2) + '</span>' :
-                            '<span class="text-muted">-</span>';
-
-                        var estadoBadge = getEstadoBadge(actividad.estado);
-                        var estadoOrder = getEstadoOrder(actividad.estado);
-
-                        table.row.add([
-                            '<span class="badge bg-primary">' + actividad.tipoActividad + '</span>',
-                            actividad.campo,
-                            '<span data-order="' + new Date(actividad.fecha).toISOString() + '">' +
-                                new Date(actividad.fecha).toLocaleDateString() + '</span>',
-                            actividad.descripcion,
-                            actividad.responsable,
-                            '<span data-order="' + (actividad.duracionMinutos || 0) + '">' + duracion + '</span>',
-                            '<span data-order="' + (actividad.costo || 0) + '">' + costo + '</span>',
-                            '<span class="badge ' + estadoBadge + '" data-order="' + estadoOrder + '">' + actividad.estado + '</span>',
-                            '<div class="btn-group btn-group-sm">' +
-                                '<button type="button" class="btn btn-outline-primary btn-view" title="Ver detalles" data-id="' + actividad.id + '">' +
-                                    '<i class="bi bi-eye"></i></button>' +
-                                '<button type="button" class="btn btn-outline-secondary btn-edit" title="Editar" data-id="' + actividad.id + '">' +
-                                    '<i class="bi bi-pencil"></i></button>' +
-                            '</div>'
-                        ]);
-                    });
-                }
-
-                table.draw();
-            }
-
-            function getEstadoBadge(estado) {
-                switch (estado) {
-                    case 'Completada': return 'bg-success';
-                    case 'En Progreso': return 'bg-warning';
-                    case 'Pendiente': return 'bg-secondary';
-                    case 'Cancelada': return 'bg-danger';
-                    default: return 'bg-secondary';
-                }
-            }
-
-            function getEstadoOrder(estado) {
-                switch (estado) {
-                    case 'Pendiente': return 1;
-                    case 'En Progreso': return 2;
-                    case 'Completada': return 3;
-                    case 'Cancelada': return 4;
-                    default: return 0;
-                }
-            }
-
-            function mostrarError(mensaje) {
-                // Puedes usar Toastr o SweetAlert2 aquí
-                alert(mensaje);
-            }
-
-            // Delegación de eventos para botones dinámicos
-            $('#tblActividades tbody').on('click', '.btn-view', function () {
-                var id = $(this).data('id');
-                // Implementar lógica para ver detalles
-                console.log('Ver actividad:', id);
-            });
-
-            $('#tblActividades tbody').on('click', '.btn-edit', function () {
-                var id = $(this).data('id');
-                // Implementar lógica para editar
-                console.log('Editar actividad:', id);
-            });
-        });
-    </script>
+    <script src="~/js/views/actividad.js" asp-append-version="true"></script>
 }
-
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>

@@ -1,0 +1,92 @@
+﻿@using AgroForm.Web.Models.IndexVM
+@model ActividadRapidaVM
+
+<!-- Modal -->
+<div class="modal fade" id="modalActividadRapida" tabindex="-1" aria-labelledby="modalActividadRapidaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalActividadRapidaLabel">
+                    <i class="bi bi-lightning-charge me-2"></i>Actividad Rápida
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formActividadRapida" method="post">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fecha" class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" id="fecha" name="Fecha"
+                                       value="@Model.Fecha.ToString("yyyy-MM-dd")" required>
+                                <div class="invalid-feedback">Por favor ingrese la fecha</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tipoActividadId" class="form-label">Tipo de Actividad *</label>
+                                <select class="form-select" id="tipoActividadId" name="TipoActividadId" required>
+                                    <option value="">Seleccione un tipo...</option>
+                                    @foreach (var tipo in Model.TiposActividad)
+                                    {
+                                        <option value="@tipo.Value">@tipo.Text</option>
+                                    }
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione un tipo de actividad</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Insumo (Opcional) - SOLO UNO -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-box-seam me-1"></i>Insumo (Opcional)
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="insumoId" class="form-label">Insumo</label>
+                                        <select class="form-select" id="insumoId" name="InsumoId">
+                                            <option value="">Seleccione un insumo (opcional)...</option>
+                                            @foreach (var insumo in Model.InsumosDisponibles)
+                                            {
+                                                <option value="@insumo.Value">@insumo.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="cantidad" class="form-label">Cantidad</label>
+                                        <input type="number" class="form-control" id="cantidad"
+                                               name="Cantidad" min="0.01" step="0.01"
+                                               placeholder="Cantidad utilizada">
+                                        <div class="form-text">Deje vacío si no usa insumos</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="mb-3">
+                        <label for="observacion" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observacion" name="Observacion"
+                                  rows="3" placeholder="Observaciones adicionales...">@Model.Observacion</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Guardar Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/views/actividadRapida.js" asp-append-version="true"></script>

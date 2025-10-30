@@ -3,9 +3,9 @@ using AgroForm.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-public class MenuOpcionesViewComponent : ViewComponent
+public class MenuLateralViewComponent : ViewComponent
 {
-    public MenuOpcionesViewComponent()
+    public MenuLateralViewComponent()
     {
     }
 

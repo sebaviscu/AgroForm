@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace AgroForm.Web.Controllers;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "AgroFormAuth")]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;

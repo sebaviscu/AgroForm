@@ -20,6 +20,9 @@ namespace AgroForm.Model
         public int? ProveedorId { get; set; }
         public Proveedor? Proveedor { get; set; }
 
+        public int? TipoInsumoId { get; set; }
+        public TipoInsumo? TipoInsumo{ get; set; }
+
         public bool Estado { get; set; } = true;
         public ICollection<MovimientoInsumo> MovimientosInsumo { get; set; } = new List<MovimientoInsumo>();
         public ICollection<HistoricoPrecioInsumo> HistoricoPrecios { get; set; } = new List<HistoricoPrecioInsumo>();

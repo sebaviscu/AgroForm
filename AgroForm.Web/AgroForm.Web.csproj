@@ -32,4 +32,10 @@
     <ProjectReference Include="..\AgroForm.Model\AgroForm.Model.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\js\views\actividad.js" />
+    <None Include="wwwroot\js\views\actividadRapida.js" />
+    <None Include="wwwroot\js\views\campania.js" />
+  </ItemGroup>
+
 </Project>

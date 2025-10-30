@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model
 {
-    public class Licencia
+    public class Licencia : EntityBase
     {
-        public int Id { get; set; }
-        public DateTime? RegistrationDate { get; set; }
 
         public string? RazonSocial { get; set; }
         public string? NombreContacto { get; set; }

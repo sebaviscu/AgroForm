@@ -20,10 +20,11 @@ namespace AgroForm.Business.Services
         {
         }
 
-        public Task<List<Lote>> GetByCampoIdAsync(int campoId)
+        public async Task<OperationResult<List<Lote>>> GetByCampoIdAsync(int campoId)
         {
             var query = GetQuery().AsQueryable().Where(_=>_.CampoId == campoId);
-            return query.ToListAsync();
+            var list = await query.ToListAsync();
+            return OperationResult<List<Lote>>.SuccessResult(list);
         }
     }
 }

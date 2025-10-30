@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 public class CampaniasViewComponent : ViewComponent
 {
-    private readonly ICamapaniaService _campañaService;
+    private readonly ICampaniaService _campañaService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CampaniasViewComponent(ICamapaniaService campañaService, IHttpContextAccessor httpContextAccessor)
+    public CampaniasViewComponent(ICampaniaService campañaService, IHttpContextAccessor httpContextAccessor)
     {
         _campañaService = campañaService;
         _httpContextAccessor = httpContextAccessor;

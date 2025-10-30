@@ -18,7 +18,7 @@ namespace AgroForm.Data.DBContext
         public DbSet<Campo> Campos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
         public DbSet<Campania> Campanias { get; set; }
-        public DbSet<RegistroLluvia> RegistrosLluvia { get; set; }
+        public DbSet<RegistroClima> RegistrosClima { get; set; }
         public DbSet<TipoActividad> TiposActividad { get; set; }
         public DbSet<Actividad> Actividades { get; set; }
         public DbSet<Insumo> Insumos { get; set; }
@@ -80,16 +80,16 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // RegistroLluvia
-            modelBuilder.Entity<RegistroLluvia>(entity =>
+            // RegistroClima
+            modelBuilder.Entity<RegistroClima>(entity =>
             {
-                entity.ToTable("RegistrosLluvia");
+                entity.ToTable("RegistrosClima");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Milimetros).HasColumnType("decimal(10,2)");
                 entity.HasIndex(e => e.IdLicencia);
 
                 entity.HasOne(r => r.Lote)
-                    .WithMany(l => l.RegistrosLluvia)
+                    .WithMany(l => l.RegistrosClima)
                     .HasForeignKey(r => r.LoteId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -108,7 +108,7 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(a => a.TipoActividad)
-                    .WithMany(t => t.Actividades)
+                    .WithMany()
                     .HasForeignKey(a => a.TipoActividadId)
                     .OnDelete(DeleteBehavior.Restrict);
 
@@ -128,8 +128,8 @@ namespace AgroForm.Data.DBContext
                 entity.HasIndex(e => e.IdLicencia);
 
                 entity.HasOne(m => m.Actividad)
-                    .WithMany(a => a.MovimientosInsumo)
-                    .HasForeignKey(m => m.ActividadId)
+                    .WithOne(a => a.MovimientoInsumo)
+                    .HasForeignKey<MovimientoInsumo>(m => m.ActividadId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(m => m.Insumo)
@@ -203,6 +203,19 @@ namespace AgroForm.Data.DBContext
                     .WithMany(p => p.Insumos)
                     .HasForeignKey(i => i.ProveedorId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+
+                entity.HasOne(i => i.TipoInsumo)
+                    .WithMany(t => t.Insumos)
+                    .HasForeignKey(i => i.TipoInsumoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<TipoInsumo>(entity =>
+            {
+                entity.ToTable("TiposInsumo");
+                entity.HasKey(e => e.Id);
+                
             });
         }
     }
