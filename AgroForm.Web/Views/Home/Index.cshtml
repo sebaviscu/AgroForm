@@ -4,7 +4,7 @@
 
 <div class="container-fluid">
     <!-- Welcome Section -->
-    <div class="welcome-section">
+@*     <div class="welcome-section">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="display-5 fw-bold mb-3">¡Bienvenido a AgroForm!</h1>
@@ -22,7 +22,7 @@
                 <i class="bi bi-tree-fill display-1 opacity-75"></i>
             </div>
         </div>
-    </div>
+    </div> *@
 
     <!-- Stats Section -->
     <div class="row g-4 mb-4">
@@ -82,7 +82,8 @@
 
     <!-- Quick Actions -->
     <div class="row">
-        <div class="col-md-8">
+
+        @*         <div class="col-md-8">
             <div class="dashboard-stats">
                 <h4 class="mb-4">
                     <i class="bi bi-lightning-fill text-warning me-2"></i>Acciones Rápidas
@@ -109,8 +110,12 @@
                 </div>
             </div>
         </div>
+ *@
+        <div class="col-md-6">
+            @await Component.InvokeAsync("CamposActividades")
+        </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="dashboard-stats">
                 <h4 class="mb-4">
                     <i class="bi bi-clock-history text-info me-2"></i>Actividad Reciente
@@ -130,6 +135,19 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-md-6">
+            @await Component.InvokeAsync("Lluvia")
+        </div>
+
+        <div class="col-md-6">
+            @await Component.InvokeAsync("Insumos")
         </div>
     </div>
 </div>

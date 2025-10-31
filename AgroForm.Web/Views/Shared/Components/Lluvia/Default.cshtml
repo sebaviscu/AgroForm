@@ -1,0 +1,299 @@
+﻿<!-- Gráfico de Lluvia - Componente -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-cloud-rain text-primary me-2"></i>Registro de Lluvias - Últimos 6 Meses
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-filter me-1"></i>Filtros
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item periodo-filter" href="#" data-period="6">Últimos 6 meses</a></li>
+                        <li><a class="dropdown-item periodo-filter" href="#" data-period="12">Últimos 12 meses</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalPeriodoCustom">Personalizado</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-container" style="position: relative; height: 300px;">
+                            <canvas id="lluviaChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="lluvia-stats">
+                            <h6 class="text-muted mb-3">Estadísticas</h6>
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="stat-item">
+                                        <div class="stat-value text-primary fw-bold" id="totalLluvia">0 mm</div>
+                                        <div class="stat-label small text-muted">Total Período</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="stat-item">
+                                        <div class="stat-value text-success fw-bold" id="promedioLluvia">0 mm</div>
+                                        <div class="stat-label small text-muted">Promedio Mensual</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="stat-item">
+                                        <div class="stat-value text-info fw-bold" id="maxLluvia">0 mm</div>
+                                        <div class="stat-label small text-muted">Máximo Mensual</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="stat-item">
+                                        <div class="stat-value text-warning fw-bold" id="minLluvia">0 mm</div>
+                                        <div class="stat-label small text-muted">Mínimo Mensual</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Datos basados en registros meteorológicos del sistema
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para período personalizado -->
+<div class="modal fade" id="modalPeriodoCustom" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Período Personalizado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Meses a mostrar:</label>
+                    <input type="number" class="form-control" id="mesesCustom" min="1" max="24" value="6">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="aplicarPeriodoCustom">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Datos de ejemplo para lluvias (reemplazar con API real)
+        const datosLluvia = [
+            { mes: 'Sep 2024', lluvia: 45, promedioHistorico: 38 },
+            { mes: 'Oct 2024', lluvia: 78, promedioHistorico: 65 },
+            { mes: 'Nov 2024', lluvia: 120, promedioHistorico: 95 },
+            { mes: 'Dic 2024', lluvia: 95, promedioHistorico: 85 },
+            { mes: 'Ene 2025', lluvia: 65, promedioHistorico: 72 },
+            { mes: 'Feb 2025', lluvia: 88, promedioHistorico: 78 }
+        ];
+
+        let lluviaChart = null;
+
+        // Inicializar gráfico
+        function inicializarGrafico(datos) {
+            const ctx = document.getElementById('lluviaChart').getContext('2d');
+
+            if (lluviaChart) {
+                lluviaChart.destroy();
+            }
+
+            lluviaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.map(d => d.mes),
+                    datasets: [
+                        {
+                            label: 'Lluvia Registrada (mm)',
+                            data: datos.map(d => d.lluvia),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            borderSkipped: false,
+                        },
+                        {
+                            label: 'Promedio Histórico (mm)',
+                            data: datos.map(d => d.promedioHistorico),
+                            type: 'line',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2,
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y + ' mm';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Milímetros (mm)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+            // Actualizar estadísticas
+            actualizarEstadisticas(datos);
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas(datos) {
+            const total = datos.reduce((sum, item) => sum + item.lluvia, 0);
+            const promedio = total / datos.length;
+            const maximo = Math.max(...datos.map(d => d.lluvia));
+            const minimo = Math.min(...datos.map(d => d.lluvia));
+
+            $('#totalLluvia').text(total.toFixed(0) + ' mm');
+            $('#promedioLluvia').text(promedio.toFixed(1) + ' mm');
+            $('#maxLluvia').text(maximo.toFixed(0) + ' mm');
+            $('#minLluvia').text(minimo.toFixed(0) + ' mm');
+        }
+
+        // Generar datos de ejemplo para diferentes períodos
+        function generarDatosLluvia(meses) {
+            const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const datos = [];
+            const fecha = new Date();
+
+            for (let i = meses - 1; i >= 0; i--) {
+                const fechaMes = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
+                const mes = mesesNombres[fechaMes.getMonth()] + ' ' + fechaMes.getFullYear();
+                const lluvia = Math.floor(Math.random() * 150) + 20; // 20-170 mm
+                const promedioHistorico = Math.floor(Math.random() * 100) + 40; // 40-140 mm
+
+                datos.push({
+                    mes: mes,
+                    lluvia: lluvia,
+                    promedioHistorico: promedioHistorico
+                });
+            }
+
+            return datos;
+        }
+
+        // Event Listeners
+        $('.periodo-filter').click(function(e) {
+            e.preventDefault();
+            const meses = parseInt($(this).data('period'));
+            const nuevosDatos = generarDatosLluvia(meses);
+            inicializarGrafico(nuevosDatos);
+
+            // Actualizar título
+            $('.card-header h5').html(`<i class="bi bi-cloud-rain text-primary me-2"></i>Registro de Lluvias - Últimos ${meses} Meses`);
+        });
+
+        $('#aplicarPeriodoCustom').click(function() {
+            const meses = parseInt($('#mesesCustom').val());
+            if (meses > 0 && meses <= 24) {
+                const nuevosDatos = generarDatosLluvia(meses);
+                inicializarGrafico(nuevosDatos);
+                $('.card-header h5').html(`<i class="bi bi-cloud-rain text-primary me-2"></i>Registro de Lluvias - Últimos ${meses} Meses`);
+                $('#modalPeriodoCustom').modal('hide');
+            }
+        });
+
+        // Inicializar con 6 meses
+        inicializarGrafico(datosLluvia);
+    });
+</script>
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    .lluvia-stats {
+        border-left: 2px solid #e9ecef;
+        padding-left: 1.5rem;
+    }
+
+    .stat-item {
+        padding: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+
+    @@media (max-width: 768px) {
+        .lluvia-stats
+
+    {
+        border-left: none;
+        border-top: 2px solid #e9ecef;
+        padding-left: 0;
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    }
+</style>

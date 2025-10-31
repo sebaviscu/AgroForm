@@ -1,0 +1,304 @@
+﻿
+<div class="dashboard-stats">
+    <h4 class="mb-4">
+        <i class="bi bi-map text-success me-2"></i>Campos y Lotes
+    </h4>
+
+    <!-- Selector de Campos -->
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Seleccionar Campo:</label>
+        <select id="campoSelector" class="form-select">
+            <option value="">Todos los campos</option>
+            <!-- Se llenará dinámicamente -->
+        </select>
+    </div>
+
+    <!-- Lista de Lotes -->
+    <div class="lotes-container">
+        <div class="list-group list-group-flush" id="lotesList">
+            <!-- Se llenará dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Detalles del Lote (se muestra al seleccionar) -->
+    <div id="loteDetalles" class="mt-3" style="display: none;">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0" id="loteTitulo">Detalles del Lote</h6>
+                <button type="button" class="btn-close" id="cerrarDetalles"></button>
+            </div>
+            <div class="card-body p-0">
+                <div class="detalles-content" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Contenido dinámico -->
+                    <div id="loteContenido"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Datos de ejemplo (reemplazar con llamadas API reales)
+            const campos = [
+                { id: 1, nombre: "Campo Norte", hectáreas: 50 },
+                { id: 2, nombre: "Campo Sur", hectáreas: 35 },
+                { id: 3, nombre: "Campo Este", hectáreas: 42 }
+            ];
+
+            const lotes = [
+                {
+                    id: 1, campoId: 1, nombre: "Lote A1", hectáreas: 10,
+                    sembrado: "Soja", fechaSiembra: "2024-03-15",
+                    actividades: [
+                        { tipo: "Siembra", fecha: "2024-03-15", estado: "Completada" },
+                        { tipo: "Fertilización", fecha: "2024-03-20", estado: "Completada" },
+                        { tipo: "Riego", fecha: "2024-03-25", estado: "Pendiente" }
+                    ]
+                },
+                {
+                    id: 2, campoId: 1, nombre: "Lote A2", hectáreas: 8,
+                    sembrado: "Maíz", fechaSiembra: "2024-03-10",
+                    actividades: [
+                        { tipo: "Siembra", fecha: "2024-03-10", estado: "Completada" },
+                        { tipo: "Pulverización", fecha: "2024-03-18", estado: "Completada" }
+                    ]
+                },
+                {
+                    id: 3, campoId: 2, nombre: "Lote B1", hectáreas: 12,
+                    sembrado: "Trigo", fechaSiembra: "2024-03-05",
+                    actividades: [
+                        { tipo: "Siembra", fecha: "2024-03-05", estado: "Completada" },
+                        { tipo: "Fertilización", fecha: "2024-03-12", estado: "Completada" },
+                        { tipo: "Monitoreo", fecha: "2024-03-22", estado: "En Progreso" }
+                    ]
+                },
+                {
+                    id: 4, campoId: 3, nombre: "Lote C1", hectáreas: 15,
+                    sembrado: "Girasol", fechaSiembra: "2024-03-08",
+                    actividades: [
+                        { tipo: "Siembra", fecha: "2024-03-08", estado: "Completada" }
+                    ]
+                }
+            ];
+
+            // Llenar selector de campos
+            function cargarCampos() {
+                const selector = $('#campoSelector');
+                selector.empty();
+                selector.append('<option value="">Todos los campos</option>');
+
+                campos.forEach(campo => {
+                    selector.append(`<option value="${campo.id}">${campo.nombre} (${campo.hectáreas} ha)</option>`);
+                });
+            }
+
+            // Llenar lista de lotes
+            function cargarLotes(campoId = '') {
+                const lotesList = $('#lotesList');
+                lotesList.empty();
+
+                let lotesFiltrados = lotes;
+                if (campoId) {
+                    lotesFiltrados = lotes.filter(lote => lote.campoId == campoId);
+                }
+
+                if (lotesFiltrados.length === 0) {
+                    lotesList.append(`
+                        <div class="text-center py-3 text-muted">
+                            <i class="bi bi-inbox display-6"></i>
+                            <p class="mt-2">No hay lotes disponibles</p>
+                        </div>
+                    `);
+                    return;
+                }
+
+                lotesFiltrados.forEach(lote => {
+                    const campo = campos.find(c => c.id === lote.campoId);
+                    const actividadesCount = lote.actividades.length;
+                    const actividadesPendientes = lote.actividades.filter(a => a.estado === 'Pendiente').length;
+
+                    const loteItem = `
+                        <div class="list-group-item px-0 lote-item" data-lote-id="${lote.id}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${lote.nombre}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>${campo.nombre}
+                                    </small>
+                                    <div class="mt-1">
+                                        <span class="badge bg-primary me-1">${lote.sembrado}</span>
+                                        <span class="badge bg-secondary">${lote.hectáreas} ha</span>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block">${actividadesCount} actividades</small>
+                                    ${actividadesPendientes > 0 ?
+                                        `<span class="badge bg-warning">${actividadesPendientes} pendientes</span>` :
+                                        `<span class="badge bg-success">Al día</span>`}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    lotesList.append(loteItem);
+                });
+
+                // Agregar event listeners a los lotes
+                $('.lote-item').click(function() {
+                    const loteId = $(this).data('lote-id');
+                    mostrarDetallesLote(loteId);
+                });
+            }
+
+            // Mostrar detalles del lote
+            function mostrarDetallesLote(loteId) {
+                const lote = lotes.find(l => l.id === loteId);
+                const campo = campos.find(c => c.id === lote.campoId);
+
+                if (!lote) return;
+
+                // Actualizar título
+                $('#loteTitulo').text(`Detalles - ${lote.nombre}`);
+
+                // Construir contenido
+                let contenido = `
+                    <div class="p-3">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Campo:</strong><br>
+                                <span class="text-muted">${campo.nombre}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Hectáreas:</strong><br>
+                                <span class="text-muted">${lote.hectáreas} ha</span>
+                            </div>
+                        </div>
+
+                        <!-- Cultivo sembrado -->
+                        <div class="mb-3">
+                            <strong>Cultivo:</strong><br>
+                            <span class="badge bg-primary">${lote.sembrado}</span>
+                            <small class="text-muted ms-2">Sembrado: ${new Date(lote.fechaSiembra).toLocaleDateString()}</small>
+                        </div>
+
+                        <!-- Actividades -->
+                        <div>
+                            <strong>Actividades:</strong>
+                            <div class="mt-2">
+                `;
+
+                lote.actividades.forEach(actividad => {
+                    const estadoBadge = actividad.estado === 'Completada' ? 'bg-success' :
+                                      actividad.estado === 'En Progreso' ? 'bg-warning' : 'bg-secondary';
+
+                    contenido += `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <span class="fw-semibold">${actividad.tipo}</span>
+                                <br>
+                                <small class="text-muted">${new Date(actividad.fecha).toLocaleDateString()}</small>
+                            </div>
+                            <span class="badge ${estadoBadge}">${actividad.estado}</span>
+                        </div>
+                    `;
+                });
+
+                contenido += `
+                            </div>
+                        </div>
+
+                        <!-- Acciones rápidas -->
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="btn-group w-100">
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-plus-circle"></i> Nueva Actividad
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                $('#loteContenido').html(contenido);
+                $('#loteDetalles').show();
+
+                // Scroll suave al panel de detalles
+                $('html, body').animate({
+                    scrollTop: $('#loteDetalles').offset().top - 20
+                }, 500);
+            }
+
+            // Event Listeners
+            $('#campoSelector').change(function() {
+                const campoId = $(this).val();
+                cargarLotes(campoId);
+                $('#loteDetalles').hide(); // Ocultar detalles al cambiar campo
+            });
+
+            $('#cerrarDetalles').click(function() {
+                $('#loteDetalles').hide();
+            });
+
+            // Inicializar
+            cargarCampos();
+            cargarLotes();
+        });
+    </script>
+
+    <style>
+        .lote-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+            .lote-item:hover {
+                background-color: #f8f9fa;
+                border-color: #dee2e6;
+                transform: translateY(-1px);
+            }
+
+            .lote-item.active {
+                background-color: #e3f2fd;
+                border-color: #2196f3;
+            }
+
+        .detalles-content {
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
+
+            .detalles-content::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .detalles-content::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 3px;
+            }
+
+            .detalles-content::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 3px;
+            }
+
+                .detalles-content::-webkit-scrollbar-thumb:hover {
+                    background: #a8a8a8;
+                }
+
+        .dashboard-stats {
+            height: 100%;
+        }
+
+        .lotes-container {
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+}
