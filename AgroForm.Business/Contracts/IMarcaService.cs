@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Business.Contracts
 {
-    public interface ICamapaniaService : IServiceBase<Campania>
+    public interface IMarcaService : IServiceBase<Marca>
     {
     }
 }

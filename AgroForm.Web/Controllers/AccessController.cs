@@ -41,17 +41,26 @@ namespace AgroForm.Web.Controllers
             //    return View();
             //}
 
-            var user = await _authService.GetUserByEmailAsync(email);
+            //var user = await _authService.GetUserByEmailAsync(email);
+
+            //var claims = new List<Claim>
+            //    {
+            //        new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
+            //        new Claim(ClaimTypes.Name, user.Nombre),
+            //        new Claim("Licencia", user.IdLicencia.ToString()),
+            //        new Claim(ClaimTypes.Role, user.Rol.ToString())
+            //    };
+
 
             var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Nombre),
-                    new Claim("Licencia", user.IdLicencia.ToString()),
-                    new Claim(ClaimTypes.Role, user.Rol.ToString())
+                    new Claim(ClaimTypes.NameIdentifier, "1"),
+                    new Claim(ClaimTypes.Name, "seba"),
+                    new Claim("Licencia", "1"),
+                    new Claim(ClaimTypes.Role, "0")
                 };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsIdentity = new ClaimsIdentity(claims, "AgroFormAuth");
 
             await HttpContext.SignInAsync(
                 "AgroFormAuth",

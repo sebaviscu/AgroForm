@@ -10,6 +10,7 @@ namespace AgroForm.Model
     {
         public string Descripcion { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }
+        public string Observacion { get; set; } = string.Empty;
 
         public int LoteId { get; set; }
         public Lote Lote { get; set; } = null!;
@@ -20,7 +21,7 @@ namespace AgroForm.Model
         public int UsuarioId { get; set; }
         public Usuario Usuario { get; set; } = null!;
 
-        public ICollection<MovimientoInsumo> MovimientosInsumo { get; set; } = new List<MovimientoInsumo>();
+        public MovimientoInsumo? MovimientoInsumo { get; set; }
 
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace AgroForm.Web.Models
+namespace AgroForm.Web.Models.IndexVM
 {
     public class ActividadesIndexVM
     {

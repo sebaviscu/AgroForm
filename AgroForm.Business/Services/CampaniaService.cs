@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Business.Services
 {
-    internal class CamapaniaService : ServiceBase<Campania>, ICamapaniaService
+    internal class CampaniaService : ServiceBase<Campania>, ICampaniaService
     {
-        public CamapaniaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Campania>> logger, IHttpContextAccessor httpContextAccessor)
+        public CampaniaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Campania>> logger, IHttpContextAccessor httpContextAccessor)
             : base(contextFactory, logger, httpContextAccessor)
         {
 

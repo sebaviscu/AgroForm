@@ -18,6 +18,6 @@ namespace AgroForm.Model
         public Campania Campania { get; set; } = null!;
 
         public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
-        public ICollection<RegistroLluvia> RegistrosLluvia { get; set; } = new List<RegistroLluvia>();
+        public ICollection<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
     }
 }

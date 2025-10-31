@@ -1,4 +1,5 @@
 ﻿using AgroForm.Model;
+using AlbaServicios.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface ILoteService : IServiceBase<Lote>
     {
-        Task<List<Lote>> GetByCampoIdAsync(int campoId);
+        Task<OperationResult<List<Lote>>> GetByCampoIdAsync(int campoId);
     }
 }

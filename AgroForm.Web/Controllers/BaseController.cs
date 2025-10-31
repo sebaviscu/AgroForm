@@ -1,4 +1,5 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Utilities;
 using AutoMapper;
@@ -10,17 +11,21 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
-    public abstract class BaseController<TObject> : Controller
+    public abstract class BaseController<TEntity, TService> : Controller
+        where TEntity : EntityBase
+        where TService : IServiceBase<TEntity>
     {
         protected readonly ILogger _logger;
-        private readonly IMapper _mapper;
-        protected readonly GenericResponse<TObject> gResponse = new GenericResponse<TObject>();
+        protected readonly IMapper _mapper;
+        protected readonly TService _service;
+        protected readonly GenericResponse<TEntity> gResponse = new GenericResponse<TEntity>();
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public BaseController(ILogger logger, IMapper mapper)
+        public BaseController(ILogger logger, IMapper mapper, TService service)
         {
             _logger = logger;
             _mapper = mapper;
+            _service = service;
         }
 
         protected TDest Map<TSource, TDest>(TSource source)
