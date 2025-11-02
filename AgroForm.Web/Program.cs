@@ -258,6 +258,8 @@ public class Program
             // Endpoint de health check básico
             app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
+            app.UseHttpsRedirection();
+
             Log.Information("Aplicación iniciándose...");
             app.Run();
         }

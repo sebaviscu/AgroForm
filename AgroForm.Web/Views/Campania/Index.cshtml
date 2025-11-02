@@ -4,36 +4,11 @@
     ViewData["Title"] = "Campañas";
 }
 
-<style>
-    .lote-card {
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-    
-    .lote-card:hover {
-        border-color: #0d6efd;
-    }
-    
-    .lote-card .form-check-input:checked ~ .card-body {
-        background-color: #e7f1ff;
-    }
-    
-    .lote-card .form-check-input:checked ~ .card-body .card-title {
-        color: #0d6efd;
-    }
-    
-    .nav-tabs .nav-link:not(.active) {
-        color: #6c757d;
-    }
-
-</style>
-
 <!-- Filtros y botón nueva campaña -->
 <div class="row mb-3">
     <div class="col-md-4">
         <select id="estadoFilter" class="form-select">
             <option value="">Todos los estados</option>
-            <option value="Planificada">Planificada</option>
             <option value="EnCurso">En curso</option>
             <option value="Finalizada">Finalizada</option>
             <option value="Cancelada">Cancelada</option>
@@ -41,12 +16,12 @@
     </div>
     <div class="col-md-2">
         <button id="btnResetFilters" class="btn btn-secondary btn-sm w-100">
-            <i class="bi bi-arrow-counterclockwise"></i> Resetear
+            <i class="ph ph-arrow-counter-clockwise"></i> Resetear
         </button>
     </div>
     <div class="col-md-3 offset-md-3 text-end">
         <button id="btnNuevaCampania" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle me-1"></i> Nueva Campaña
+            <i class="ph ph-plus-circle me-1"></i> Nueva Campaña
         </button>
     </div>
 </div>
@@ -60,7 +35,6 @@
             <th>Nombre</th>
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
-            <th>Campo</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -76,23 +50,48 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                     <!-- Tabs -->
                     <ul class="nav nav-tabs" id="campaniaTabs">
-                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#campos">Campos</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#lotes" disabled>Lotes</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#resumen" disabled>Resumen</button></li>
+                        <li class="nav-item">
+                            <button class="nav-link active" id="campos-tab" data-bs-toggle="tab" data-bs-target="#campos-pane" type="button">
+                                Información Básica
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="lotes-tab" data-bs-toggle="tab" data-bs-target="#lotes-pane" type="button">
+                                Campos y Lotes
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="resumen-tab" data-bs-toggle="tab" data-bs-target="#resumen-pane" type="button">
+                                Resumen
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="tab-content pt-3">
-                        <!-- TAB CAMPOS -->
-                        <div class="tab-pane fade show active" id="campos">
-                            <div class="mb-3">
-                                <label for="nombre" class="form-label">Nombre de Campaña</label>
-                                <input type="text" class="form-control" id="nombre" required>
+                        <!-- TAB INFORMACIÓN BÁSICA -->
+                        <div class="tab-pane fade show active" id="campos-pane">
+                            <div class="row mb-3">
+                                <div class="col-md-9">
+                                    <label for="nombre" class="form-label">Nombre de Campaña <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nombre" required>
+                                    <div class="invalid-feedback">Por favor ingrese el nombre de la campaña</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                                    <select id="estado" class="form-select" required>
+                                        @* <option value="">Seleccione...</option> *@
+                                        <option value="0">En curso</option>
+@*                                         <option value="1">Finalizada</option>
+                                        <option value="2">Cancelada</option> *@
+                                    </select>
+                                    <div class="invalid-feedback">Por favor seleccione un estado</div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="estado" class="form-label">Estado</label>
+@*                             <div class="mb-3">
+                                <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
                                 <select id="estado" class="form-select" required>
                                     <option value="">Seleccione...</option>
                                     <option value="Planificada">Planificada</option>
@@ -100,93 +99,193 @@
                                     <option value="Finalizada">Finalizada</option>
                                     <option value="Cancelada">Cancelada</option>
                                 </select>
-                            </div>
+                                <div class="invalid-feedback">Por favor seleccione un estado</div>
+                            </div> *@
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                                    <label for="fechaInicio" class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="fechaInicio" required>
+                                    <div class="invalid-feedback">Por favor ingrese la fecha de inicio</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="fechaFin" class="form-label">Fecha Fin</label>
                                     <input type="date" class="form-control" id="fechaFin">
                                 </div>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="campoSeleccionado" class="form-label">Campo</label>
-                                <select id="campoSeleccionado" class="form-select" required></select>
-                            </div>
-
-                            <div id="infoCampo" class="alert alert-light border d-none">
-                                <div id="campoDetalles"></div>
-                            </div>
                         </div>
 
-                        <!-- TAB LOTES -->
-                        <div class="tab-pane fade" id="lotes">
-                            <h6 id="nombreCampoSeleccionado" class="mb-3"></h6>
+                        <!-- TAB CAMPOS Y LOTES -->
+                        <div class="tab-pane fade" id="lotes-pane">
+                            <h6 class="mb-3">Selección de Campos y Lotes</h6>
 
-                            <!-- Resumen del campo -->
-                            <div class="alert alert-light border mb-3" id="infoCampoLotes">
-                                <strong>Superficie del Campo:</strong> <span id="campoSuperficieTotal">0</span> Ha<br>
-                                <strong>Superficie Asignada:</strong> <span id="superficieAsignada">0</span> Ha<br>
-                                <strong>Superficie Disponible:</strong> <span id="superficieDisponible">0</span> Ha
-                            </div>
-
-                            <!-- Agregar lote -->
+                            <!-- Selección de Campo -->
                             <div class="card mb-3">
-                                <div class="card-body p-3">
-                                    <h6>Agregar Lote</h6>
+                                <div class="card-body">
+                                    <h6>Seleccionar Campo</h6>
                                     <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <input type="text" id="nuevoLoteNombre" class="form-control" placeholder="Nombre del lote">
+                                        <div class="col-md-8">
+                                            <select id="campoSeleccionadoLotes" class="form-select">
+                                                <option value="">Seleccione un campo...</option>
+                                            </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="number" id="nuevoLoteSuperficie" class="form-control" placeholder="Superficie (Ha)" step="0.01">
+                                            <button type="button" id="btnAgregarCampo" class="btn btn-outline-primary w-100">
+                                                <i class="ph ph-plus-circle"></i> Agregar Campo
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Información de superficie del campo seleccionado -->
+                                    <div id="infoSuperficieCampo" class="mt-1 p-1 bg-light rounded" style="display:none;">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <strong id="campoSuperficieTotal">0.00</strong><br>
+                                                <small class="text-muted">Superficie Total</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <strong id="campoSuperficieDisponible">0.00</strong><br>
+                                                <small class="text-muted">Superficie Disponible</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Agregar lote al campo seleccionado -->
+                            <div class="card mb-3" id="formAgregarLote" style="display: none;">
+                                <div class="card-body p-3">
+                                    <h6>Agregar Lote al Campo: <span id="nombreCampoSeleccionado"></span></h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <input type="text" id="nuevoLoteNombre" class="form-control" placeholder="Nombre del lote" maxlength="100">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="number" id="nuevoLoteSuperficie" class="form-control" placeholder="Superficie (Ha)" step="0.01" min="0.01">
                                         </div>
                                         <div class="col-md-2">
                                             <button id="btnAgregarLote" type="button" class="btn btn-success w-100">
-                                                <i class="bi bi-plus-circle"></i> Agregar
+                                                <i class="ph ph-plus-circle"></i> Agregar
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Lista de lotes -->
-                            <div id="contenedorLotes" class="row g-2"></div>
+                            <!-- Campos y sus lotes agregados -->
+                            <div id="camposConLotes" class="">
+                                <div class="text-center py-2 text-muted">
+                                    <i class="ph ph-tray display-4"></i>
+                                    <p class="mt-2">No hay campos agregados</p>
+                                </div>
+                            </div>
 
-                            <div class="mt-2 text-end">
-                                <small>
-                                    <strong>Total Lotes:</strong> <span id="totalLotesSeleccionados">0</span> |
-                                    <strong>Superficie:</strong> <span id="totalSuperficieSeleccionada">0.00</span> Ha
-                                </small>
+                            <!-- Resumen general -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Resumen General</h6>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <strong id="totalCamposAgregados">0</strong><br>
+                                            <small class="text-muted">Campos</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong id="totalLotesAgregados">0</strong><br>
+                                            <small class="text-muted">Lotes</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong id="totalSuperficieAgregada">0.00</strong><br>
+                                            <small class="text-muted">Hectáreas</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-
                         <!-- TAB RESUMEN -->
-                        <div class="tab-pane fade" id="resumen">
+                        <div class="tab-pane fade" id="resumen-pane">
                             <h5>Resumen de la Campaña</h5>
                             <ul class="list-group mb-3">
                                 <li class="list-group-item"><strong>Nombre:</strong> <span id="resumenNombre"></span></li>
                                 <li class="list-group-item"><strong>Estado:</strong> <span id="resumenEstado"></span></li>
                                 <li class="list-group-item"><strong>Fecha Inicio:</strong> <span id="resumenFechaInicio"></span></li>
                                 <li class="list-group-item"><strong>Fecha Fin:</strong> <span id="resumenFechaFin"></span></li>
-                                <li class="list-group-item"><strong>Campo:</strong> <span id="resumenCampo"></span></li>
-                                <li class="list-group-item"><strong>Lotes:</strong> <span id="resumenTotalLotes"></span></li>
+                                <li class="list-group-item"><strong>Total Campos:</strong> <span id="resumenTotalCampos"></span></li>
+                                <li class="list-group-item"><strong>Total Lotes:</strong> <span id="resumenTotalLotes"></span></li>
                                 <li class="list-group-item"><strong>Superficie Total:</strong> <span id="resumenTotalSuperficie"></span> Ha</li>
                             </ul>
-                            <div id="listaResumenLotes"></div>
+
+                            <h6>Detalle por Campo:</h6>
+                            <div id="listaResumenCampos" class="mb-3"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" id="btnGuardarCampania" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnAnteriorCampos" class="btn btn-outline-secondary" style="display: none;">
+                        <i class="ph ph-arrow-left"></i> Anterior
+                    </button>
+                    <button type="button" id="btnSiguienteLotes" class="btn btn-primary">
+                        Siguiente <i class="ph ph-arrow-right"></i>
+                    </button>
+                    <button type="button" id="btnAnteriorLotes" class="btn btn-outline-secondary" style="display: none;">
+                        <i class="ph ph-arrow-left"></i> Anterior
+                    </button>
+                    <button type="button" id="btnSiguienteResumen" class="btn btn-primary" style="display: none;">
+                        Siguiente <i class="ph ph-arrow-right"></i>
+                    </button>
+                    <button type="submit" id="btnGuardarCampania" class="btn btn-success" style="display: none;">
+                        <i class="ph ph-check-circle"></i> Guardar Campaña
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Template para campo con lotes -->
+<div id="templateCampoConLotes" class="d-none">
+    <div class="card mb-3 campo-lotes-card" data-campo-id="{{idCampo}}">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-around">
+                <h6 class="mb-0 me-3">{{campoNombre}}</h6>
+                <i class="ph ph-map-pin"></i> {{campoUbicacion}}
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-campo" data-campo-id="{{idCampo}}">
+                <i class="ph ph-trash"></i> Eliminar Campo
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="lotes-container" id="lotes-{{idCampo}}">
+                <!-- Lotes se agregarán aquí -->
+            </div>
+            <div class="mt-2 text-end">
+                <small>
+                    <strong>Lotes:</strong> <span class="lotes-count-{{idCampo}}">0</span> |
+                    <strong>Superficie:</strong> <span class="superficie-total-{{idCampo}}">0.00</span> Ha |
+                    <strong>Disponible:</strong> <span class="superficie-disponible-{{idCampo}}">0.00</span> Ha
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para lote -->
+<div id="templateLote" class="d-none">
+    <div class="card mb-0 lote-card">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{nombre}}</strong>
+                    <br>
+                    <small class="text-muted">
+                        <span class="badge bg-primary">{{superficie}} Ha</span>
+                    </small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-lote" data-campo-id="{{idCampo}}" data-lote-id="{{IdLote}}">
+                    <i class="ph ph-trash"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>

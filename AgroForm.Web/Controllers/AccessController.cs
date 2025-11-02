@@ -12,10 +12,11 @@ namespace AgroForm.Web.Controllers
     public class AccessController : Controller
     {
         private readonly IAuthService _authService;
-
-        public AccessController(IAuthService authService)
+        private readonly ICampaniaService _campaniaService;
+        public AccessController(IAuthService authService, ICampaniaService campaniaService)
         {
             _authService = authService;
+            _campaniaService = campaniaService;
         }
 
         [HttpGet]
@@ -41,6 +42,8 @@ namespace AgroForm.Web.Controllers
             //    return View();
             //}
 
+            var campania = await _campaniaService.GetCurrent();
+
             //var user = await _authService.GetUserByEmailAsync(email);
 
             //var claims = new List<Claim>
@@ -57,6 +60,7 @@ namespace AgroForm.Web.Controllers
                     new Claim(ClaimTypes.NameIdentifier, "1"),
                     new Claim(ClaimTypes.Name, "seba"),
                     new Claim("Licencia", "1"),
+                    new Claim("Campania", campania.Data != null ? campania.Data.Id.ToString() : "1"),
                     new Claim(ClaimTypes.Role, "0")
                 };
 

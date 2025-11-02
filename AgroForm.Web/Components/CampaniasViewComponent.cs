@@ -25,12 +25,10 @@ public class CampaniasViewComponent : ViewComponent
                 return View(campañasResponse.Data);
             }
 
-            // Si hay error, retornar lista vacía
             return View(new List<Campania>());
         }
         catch (Exception)
         {
-            // En caso de error, retornar lista vacía
             return View(new List<Campania>());
         }
     }

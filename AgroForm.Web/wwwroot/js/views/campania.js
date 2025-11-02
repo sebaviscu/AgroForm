@@ -1,7 +1,7 @@
 ﻿// Variables globales
-var lotesDisponibles = [];
-var lotesSeleccionados = [];
-var table; // DataTable
+var camposConLotes = []; // Array de objetos: { campo, lotes: [] }
+var campoSeleccionadoActual = null;
+var table;
 
 $(document).ready(function () {
     inicializarDataTable();
@@ -24,47 +24,95 @@ function inicializarDataTable() {
             buttons: [
                 {
                     extend: 'excel',
-                    text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
+                    text: '<i class="ph ph-file-xls me-1"></i>Excel',
                     className: 'btn btn-outline-success btn-sm',
                     title: 'Campanias_' + new Date().toISOString().slice(0, 10).replace(/-/g, '')
                 },
                 {
                     extend: 'pdf',
-                    text: '<i class="bi bi-file-earmark-pdf me-1"></i>PDF',
+                    text: '<i class="ph ph-file-pdf me-1"></i>PDF',
                     className: 'btn btn-outline-danger btn-sm',
                     title: 'Campanias_' + new Date().toISOString().slice(0, 10).replace(/-/g, '')
                 },
                 {
                     extend: 'print',
-                    text: '<i class="bi bi-printer me-1"></i>Imprimir',
+                    text: '<i class="ph ph-printer me-1"></i>Imprimir',
                     className: 'btn btn-outline-info btn-sm'
                 }
             ]
         },
-        columnDefs: [
-            { orderable: false, targets: [6] },
-            { searchable: false, targets: [4, 6] },
-            { width: '120px', targets: [1, 4, 6] },
-            { className: 'dt-center', targets: [4, 6] }
+        ajax: {
+            url: '/Campania/GetAllDataTable',
+            type: 'GET',
+            dataType: 'json',
+            dataSrc: function (response) {
+                return response.success ? response.data : [];
+            }
+        },
+        columns: [
+            { data: 'id', width: '80px' },
+            {
+                data: 'estadoDisplay',
+                render: function (data, type, row) {
+                    const estadoColors = {
+                        'En Curso': 'info',
+                        'Finalizada': 'success',
+                        'Cancelada': 'danger'
+                    };
+                    return renderEnumBadge(data, estadoColors);
+                }
+            },
+            { data: 'nombre' },
+            {
+                data: 'fechaInicio',
+                render: function (data) {
+                    return data ? new Date(data).toLocaleDateString() : '-';
+                }
+            },
+            {
+                data: 'fechaFin',
+                render: function (data) {
+                    return data ? new Date(data).toLocaleDateString() : '-';
+                }
+            },
+            {
+                data: 'id',
+                className: 'text-center',
+                orderable: false,
+                render: function (data, type, row) {
+                    return `
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-info btn-view"
+                                    title="Ver campaña" data-id="${data}">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-delete" 
+                                    title="Eliminar campaña" data-id="${data}">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
         ],
-        order: [[2, 'desc']],
+        order: [[0, 'desc']],
         pageLength: 25,
         responsive: true
     });
+    function renderEnumBadge(data, colorMap) {
+        const color = colorMap[data] || 'secondary';
+        return `<span class="badge bg-${color}">${data}</span>`;
+    }
 
     // Filtrar por estado
     $('#estadoFilter').change(function () {
         var estado = $(this).val();
-        if (estado === '0') {
-            table.columns(1).search('').draw();
-        } else {
-            table.columns(1).search(estado).draw();
-        }
+        table.columns(1).search(estado).draw();
     });
 
     // Restablecer filtros
     $('#btnResetFilters').click(function () {
-        $('#estadoFilter').val('0');
+        $('#estadoFilter').val('');
         table.search('').columns().search('').draw();
     });
 }
@@ -77,14 +125,14 @@ function configurarEventosGrilla() {
     });
 
     // Delegación de eventos para botones dinámicos
-    $('#tblCampanias tbody').on('click', '.btn-view', function () {
-        var id = $(this).data('id');
-        abrirModalCampania(id, 'ver');
-    });
-
     $('#tblCampanias tbody').on('click', '.btn-edit', function () {
         var id = $(this).data('id');
         abrirModalCampania(id, 'editar');
+    });
+
+    $('#tblCampanias tbody').on('click', '.btn-view', function () {
+        var id = $(this).data('id');
+        abrirModalCampania(id, 'ver');
     });
 
     $('#tblCampanias tbody').on('click', '.btn-delete', function () {
@@ -101,15 +149,16 @@ function abrirModalCampania(id, accion) {
     // Configurar según la acción
     switch (accion) {
         case 'ver':
-            titulo.html('<i class="bi bi-eye me-2"></i>Detalles de Campaña');
+            titulo.html('<i class="ph ph-eye me-2"></i>Detalles de Campaña');
             btnGuardar.hide();
             break;
         case 'editar':
-            titulo.html('<i class="bi bi-pencil me-2"></i>Editar Campaña');
+            titulo.html('<i class="ph ph-pencil me-2"></i>Editar Campaña');
             btnGuardar.show();
+            // TODO: Cargar datos existentes
             break;
         case 'crear':
-            titulo.html('<i class="bi bi-plus-circle me-2"></i>Nueva Campaña');
+            titulo.html('<i class="ph ph-plus-circle me-2"></i>Nueva Campaña');
             btnGuardar.show();
             inicializarModalCreacion();
             break;
@@ -119,359 +168,558 @@ function abrirModalCampania(id, accion) {
 }
 
 function eliminarCampania(id) {
-    if (!confirm('¿Está seguro de que desea eliminar esta campaña?')) {
-        return;
-    }
+    mostrarConfirmacion(
+        '¿Está seguro de que desea eliminar esta campaña? Esta acción no se puede deshacer.',
+        'Eliminar Campaña'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            mostrarLoading('Eliminando campaña...');
 
-    $.ajax({
-        url: '/Campania/Eliminar/' + id,
-        type: 'DELETE',
-        success: function (response) {
-            if (response.success) {
-                mostrarExito(response.message || 'Campaña eliminada correctamente');
-                table.ajax.reload();
-            } else {
-                mostrarError(response.message || 'Error al eliminar campaña');
-            }
-        },
-        error: function () {
-            mostrarError('Error al conectar con el servidor');
+            $.ajax({
+                url: '/Campania/Delete/' + id,
+                type: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    cerrarAlertas();
+                    if (response.success) {
+                        mostrarExito(response.message || 'Campaña eliminada correctamente');
+                        table.ajax.reload();
+                    } else {
+                        mostrarError(response.message || 'Error al eliminar campaña');
+                    }
+                },
+                error: function () {
+                    cerrarAlertas();
+                    mostrarError('Error al conectar con el servidor');
+                }
+            });
         }
     });
 }
 
 // ========== FUNCIONES DEL MODAL DE CREACIÓN ==========
 function inicializarModalCreacion() {
-    var form = $('#formCampania');
-    var campoSelect = $('#campoSeleccionado');
+    // Resetear variables
+    camposConLotes = [];
+    campoSeleccionadoActual = null;
 
-    // Elementos de tabs
-    var tabs = {
-        campos: $('#campos-tab'),
-        lotes: $('#lotes-tab'),
-        resumen: $('#resumen-tab')
-    };
+    // Limpiar formulario
+    $('#formCampania')[0].reset();
+    $('#formCampania').removeClass('was-validated');
 
-    // Botones de navegación
-    var btnSiguienteLotes = $('#btnSiguienteLotes');
-    var btnAnteriorCampos = $('#btnAnteriorCampos');
-    var btnSiguienteResumen = $('#btnSiguienteResumen');
-    var btnAnteriorLotes = $('#btnAnteriorLotes');
-    var seleccionarTodos = $('#seleccionarTodos');
+    // Resetear tabs
+    activarTab('campos');
 
-    // Inicializar
+    // Cargar datos iniciales
     cargarCampos();
+    configurarEventosModal();
+}
 
+function configurarEventosModal() {
     // Navegación entre tabs
-    btnSiguienteLotes.off('click').on('click', function () {
+    $('#btnSiguienteLotes').off('click').on('click', function () {
         if (validarTabCampos()) {
             activarTab('lotes');
-            cargarLotesDelCampo();
         }
     });
 
-    btnAnteriorCampos.off('click').on('click', function () {
+    $('#btnAnteriorCampos').off('click').on('click', function () {
         activarTab('campos');
     });
 
-    btnSiguienteResumen.off('click').on('click', function () {
+    $('#btnSiguienteResumen').off('click').on('click', function () {
         if (validarTabLotes()) {
             activarTab('resumen');
             actualizarResumen();
         }
     });
 
-    btnAnteriorLotes.off('click').on('click', function () {
+    $('#btnAnteriorLotes').off('click').on('click', function () {
         activarTab('lotes');
     });
 
-    // Seleccionar todos los lotes
-    seleccionarTodos.off('change').on('change', function () {
-        $('.lote-checkbox').prop('checked', this.checked);
-        actualizarResumenLotes();
+    // Agregar campo
+    $('#btnAgregarCampo').off('click').on('click', function () {
+        agregarCampo();
+    });
+
+    // Agregar lote
+    $('#btnAgregarLote').off('click').on('click', function () {
+        agregarLote();
+    });
+
+    // Enter en los campos de nuevo lote
+    $('#nuevoLoteNombre, #nuevoLoteSuperficie').off('keypress').on('keypress', function (e) {
+        if (e.which === 13) {
+            agregarLote();
+        }
     });
 
     // Cuando cambia el campo seleccionado
-    campoSelect.off('change').on('change', function () {
-        mostrarInfoCampo($(this).val());
+    $('#campoSeleccionadoLotes').off('change').on('change', function () {
+        var idCampo = $(this).val();
+        campoSeleccionadoActual = idCampo;
+        mostrarInfoCampoLotes(idCampo);
     });
 
-    // Delegación de eventos para checkboxes de lotes
-    $('#contenedorLotes').off('change').on('change', '.lote-checkbox', function () {
-        actualizarResumenLotes();
+    $(document).off('click', '.btn-eliminar-campo').on('click', '.btn-eliminar-campo', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var idCampo = $(this).data('campo-id');
+        console.log('Eliminar campo clickeado:', idCampo); // Para debug
+        eliminarCampo(idCampo);
+    });
+
+    // Eliminar lote (delegación de eventos)
+    $(document).off('click', '.btn-eliminar-lote').on('click', '.btn-eliminar-lote', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var idCampo = $(this).data('campo-id');
+        var IdLote = $(this).data('lote-id');
+        console.log('Eliminar lote clickeado:', idCampo, IdLote); // Para debug
+        eliminarLote(idCampo, IdLote);
     });
 
     // Validación del formulario
-    form.off('submit').on('submit', function (e) {
+    $('#formCampania').off('submit').on('submit', function (e) {
         e.preventDefault();
-
-        if (!validarFormularioCompleto()) {
-            return;
-        }
-
         guardarCampania();
     });
+}
 
-    function activarTab(tabNombre) {
-        // Desactivar todos los tabs
-        $.each(tabs, function (key, tab) {
-            tab.removeClass('active').attr('aria-selected', 'false');
-            if (key !== 'campos') {
-                tab.prop('disabled', true);
+function activarTab(tabNombre) {
+    // Desactivar todos los tabs
+    $('.nav-tabs .nav-link').removeClass('active').attr('aria-selected', 'false');
+    $('.tab-pane').removeClass('show active');
+
+    // Activar tab seleccionado
+    $(`#${tabNombre}-tab`).addClass('active').attr('aria-selected', 'true');
+    $(`#${tabNombre}-pane`).addClass('show active');
+
+    // Mostrar/ocultar botones según el tab activo
+    $('#btnAnteriorCampos').hide();
+    $('#btnSiguienteLotes').hide();
+    $('#btnAnteriorLotes').hide();
+    $('#btnSiguienteResumen').hide();
+    $('#btnGuardarCampania').hide();
+
+    switch (tabNombre) {
+        case 'campos':
+            $('#btnSiguienteLotes').show();
+            break;
+        case 'lotes':
+            $('#btnAnteriorCampos').show();
+            $('#btnSiguienteResumen').show();
+            break;
+        case 'resumen':
+            $('#btnAnteriorLotes').show();
+            $('#btnGuardarCampania').show();
+            break;
+    }
+}
+
+function cargarCampos() {
+    $.get('/Campo/GetAll')
+        .done(function (response) {
+            if (response.success) {
+                var campoSelect = $('#campoSeleccionadoLotes');
+                campoSelect.empty().append('<option value="">Seleccione un campo...</option>');
+                var campos = response.listObject || response.data || [];
+
+                campos.forEach(function (campo) {
+                    campoSelect.append(
+                        $('<option></option>')
+                            .val(campo.id)
+                            .text(campo.nombre)
+                            .attr('data-ubicacion', campo.ubicacion || 'No especificada')
+                            .attr('data-superficie', campo.superficieHectareas || '0')
+                    );
+                });
             }
+        })
+        .fail(function (error) {
+            console.error('Error al cargar campos:', error);
+            mostrarError('Error al cargar los campos');
         });
+}
 
-        // Activar el tab solicitado y habilitar los anteriores
-        tabs[tabNombre].addClass('active').attr('aria-selected', 'true').prop('disabled', false);
+function mostrarInfoCampoLotes(idCampo) {
+    var infoSuperficieCampo = $('#infoSuperficieCampo');
+    var formAgregarLote = $('#formAgregarLote');
 
-        // Habilitar tabs anteriores
-        var tabOrder = ['campos', 'lotes', 'resumen'];
-        var currentIndex = tabOrder.indexOf(tabNombre);
-        for (var i = 0; i <= currentIndex; i++) {
-            tabs[tabOrder[i]].prop('disabled', false);
+    if (!idCampo) {
+        infoSuperficieCampo.hide();
+        formAgregarLote.hide();
+        return;
+    }
+
+    var option = $('#campoSeleccionadoLotes').find('option[value="' + idCampo + '"]');
+    if (option.length) {
+        var superficieTotal = parseFloat(option.data('superficie') || '0');
+
+        // Calcular superficie disponible
+        var campoExistente = camposConLotes.find(item => item.campo.id == idCampo);
+        var superficieUsada = campoExistente ? campoExistente.lotes.reduce((total, lote) => total + lote.superficie, 0) : 0;
+        var superficieDisponible = superficieTotal - superficieUsada;
+
+        // Actualizar información de superficie
+        $('#campoSuperficieTotal').text(superficieTotal.toFixed(2));
+        $('#campoSuperficieDisponible').text(superficieDisponible.toFixed(2));
+
+        // Colorear según disponibilidad
+        var disponibleElement = $('#campoSuperficieDisponible');
+        if (superficieDisponible <= 0) {
+            disponibleElement.addClass('text-danger').removeClass('text-success');
+        } else {
+            disponibleElement.addClass('text-success').removeClass('text-danger');
         }
 
-        // Mostrar el contenido del tab
-        $('.tab-pane').removeClass('show active');
-        $('#' + tabNombre).addClass('show active');
+        $('#nombreCampoSeleccionado').text(option.text());
+        infoSuperficieCampo.show();
+        formAgregarLote.show();
+    }
+}
+
+function agregarCampo() {
+    var idCampo = $('#campoSeleccionadoLotes').val();
+    if (!idCampo) {
+        mostrarError('Por favor seleccione un campo');
+        return;
     }
 
-    function cargarCampos() {
-        $.get('/Campania/ObtenerCampos')
-            .done(function (data) {
-                if (data.success) {
-                    campoSelect.empty().append('<option value="">Seleccione un campo...</option>');
-                    $.each(data.data, function (index, campo) {
-                        campoSelect.append(
-                            $('<option></option>')
-                                .val(campo.id)
-                                .text(campo.nombre)
-                                .attr('data-ubicacion', campo.ubicacion || '')
-                                .attr('data-superficie', campo.superficieHectareas || '0')
-                        );
-                    });
+    // Verificar si el campo ya fue agregado
+    if (camposConLotes.some(item => item.campo.id == idCampo)) {
+        mostrarError('Este campo ya ha sido agregado a la campaña');
+        return;
+    }
+
+    var option = $('#campoSeleccionadoLotes').find('option[value="' + idCampo + '"]');
+    var campo = {
+        id: idCampo,
+        nombre: option.text(),
+        ubicacion: option.data('ubicacion'),
+        superficieTotal: parseFloat(option.data('superficie') || '0')
+    };
+
+    camposConLotes.push({
+        campo: campo,
+        lotes: []
+    });
+
+    renderizarCamposConLotes();
+    $('#campoSeleccionadoLotes').val('');
+    $('#infoSuperficieCampo').hide();
+    $('#formAgregarLote').hide();
+    campoSeleccionadoActual = null;
+}
+
+function eliminarCampo(idCampo) {
+    mostrarConfirmacion('¿Está seguro de que desea eliminar este campo y todos sus lotes?', 'Eliminar Campo')
+        .then((result) => {
+            if (result.isConfirmed) {
+                camposConLotes = camposConLotes.filter(item => item.campo.id != idCampo);
+                renderizarCamposConLotes();
+
+                // Si el campo eliminado era el seleccionado, limpiar la selección
+                if (campoSeleccionadoActual == idCampo) {
+                    $('#campoSeleccionadoLotes').val('');
+                    $('#infoSuperficieCampo').hide();
+                    $('#formAgregarLote').hide();
+                    campoSeleccionadoActual = null;
                 }
-            })
-            .fail(function (error) {
-                console.error('Error al cargar campos:', error);
-                mostrarError('Error al cargar los campos');
-            });
+            }
+        });
+}
+
+function agregarLote() {
+    var idCampo = $('#campoSeleccionadoLotes').val();
+    if (!idCampo) {
+        mostrarError('Por favor seleccione un campo primero');
+        return;
     }
 
-    function mostrarInfoCampo(campoId) {
-        var infoCampo = $('#infoCampo');
-        var campoDetalles = $('#campoDetalles');
+    var nombre = $('#nuevoLoteNombre').val().trim();
+    var superficie = parseFloat($('#nuevoLoteSuperficie').val());
 
-        if (!campoId) {
-            infoCampo.hide();
+    // Validaciones
+    if (!nombre) {
+        mostrarError('Por favor ingrese el nombre del lote');
+        $('#nuevoLoteNombre').focus();
+        return;
+    }
+
+    if (!superficie || superficie <= 0) {
+        mostrarError('Por favor ingrese una superficie válida');
+        $('#nuevoLoteSuperficie').focus();
+        return;
+    }
+
+    // Encontrar el campo
+    var campoIndex = camposConLotes.findIndex(item => item.campo.id == idCampo);
+    if (campoIndex === -1) {
+        // Si el campo no está en la campaña, agregarlo automáticamente
+        var option = $('#campoSeleccionadoLotes').find('option[value="' + idCampo + '"]');
+        if (option.length) {
+            var campo = {
+                id: idCampo,
+                nombre: option.text(),
+                ubicacion: option.data('ubicacion'),
+                superficieTotal: parseFloat(option.data('superficie') || '0')
+            };
+
+            camposConLotes.push({
+                campo: campo,
+                lotes: []
+            });
+            campoIndex = camposConLotes.length - 1;
+        } else {
+            mostrarError('Campo no encontrado');
             return;
         }
-
-        var option = campoSelect.find('option[value="' + campoId + '"]');
-        if (option.length) {
-            var ubicacion = option.data('ubicacion') || 'No especificada';
-            var superficie = option.data('superficie') || '0';
-
-            campoDetalles.html(
-                '<p class="mb-1"><strong>Ubicación:</strong> ' + ubicacion + '</p>' +
-                '<p class="mb-0"><strong>Superficie total:</strong> ' + parseFloat(superficie).toFixed(2) + ' Ha</p>'
-            );
-            infoCampo.show();
-        }
     }
 
-    function cargarLotesDelCampo() {
-        var campoId = campoSelect.val();
-        if (!campoId) return;
+    // Verificar superficie disponible
+    var superficieUsada = camposConLotes[campoIndex].lotes.reduce((total, lote) => total + lote.superficie, 0);
+    var superficieDisponible = camposConLotes[campoIndex].campo.superficieTotal - superficieUsada;
 
-        $('#nombreCampoSeleccionado').text(campoSelect.find('option:selected').text());
+    if (superficie > superficieDisponible) {
+        mostrarError(`Superficie insuficiente. Disponible: ${superficieDisponible.toFixed(2)} Ha, Intenta: ${superficie.toFixed(2)} Ha`);
+        return;
+    }
 
-        $.get('/Campania/ObtenerLotesPorCampo', { campoId: campoId })
-            .done(function (data) {
-                if (data.success) {
-                    lotesDisponibles = data.data;
-                    renderizarLotes();
+    // Crear nuevo lote
+    var nuevoLote = {
+        id: Date.now(), // ID temporal
+        nombre: nombre,
+        superficie: superficie,
+        idCampo: idCampo
+    };
+
+    camposConLotes[campoIndex].lotes.push(nuevoLote);
+    renderizarCamposConLotes();
+
+    // Limpiar campos y actualizar superficie
+    $('#nuevoLoteNombre').val('');
+    $('#nuevoLoteSuperficie').val('');
+    $('#nuevoLoteNombre').focus();
+
+    // Actualizar información de superficie del campo seleccionado
+    mostrarInfoCampoLotes(idCampo);
+}
+
+function eliminarLote(idCampo, IdLote) {
+    mostrarConfirmacion('¿Está seguro de que desea eliminar este lote?', 'Eliminar Lote')
+        .then((result) => {
+            if (result.isConfirmed) {
+                var campoIndex = camposConLotes.findIndex(item => item.campo.id == idCampo);
+                if (campoIndex !== -1) {
+                    camposConLotes[campoIndex].lotes = camposConLotes[campoIndex].lotes.filter(lote => lote.id != IdLote);
+                    renderizarCamposConLotes();
+
+                    // Actualizar información de superficie si este campo está seleccionado
+                    if (campoSeleccionadoActual == idCampo) {
+                        mostrarInfoCampoLotes(idCampo);
+                    }
                 }
-            })
-            .fail(function (error) {
-                console.error('Error al cargar lotes:', error);
-                mostrarError('Error al cargar los lotes');
-            });
-    }
-
-    function renderizarLotes() {
-        var contenedor = $('#contenedorLotes');
-        var template = $('#templateLote').html();
-
-        contenedor.empty();
-
-        $.each(lotesDisponibles, function (index, lote) {
-            var loteHtml = template
-                .replace(/{{id}}/g, lote.id)
-                .replace(/{{nombre}}/g, lote.nombre)
-                .replace(/{{campoNombre}}/g, lote.campoNombre)
-                .replace(/{{superficie}}/g, lote.superficie.toFixed(2));
-
-            contenedor.append(loteHtml);
-        });
-
-        actualizarResumenLotes();
-    }
-
-    function actualizarResumenLotes() {
-        var checkboxes = $('.lote-checkbox:checked');
-        var totalLotes = checkboxes.length;
-        var totalSuperficie = 0;
-
-        checkboxes.each(function () {
-            var loteId = $(this).val();
-            var lote = lotesDisponibles.find(function (l) { return l.id == loteId; });
-            if (lote) {
-                totalSuperficie += lote.superficie;
             }
         });
+}
 
-        $('#totalLotesSeleccionados').text(totalLotes);
-        $('#totalSuperficieSeleccionada').text(totalSuperficie.toFixed(2));
+function renderizarCamposConLotes() {
+    var contenedor = $('#camposConLotes');
+    var templateCampo = $('#templateCampoConLotes').html();
+    var templateLote = $('#templateLote').html();
 
-        // Actualizar selección de "todos"
-        var todosCheckboxes = $('.lote-checkbox');
-        seleccionarTodos.prop('checked', totalLotes === todosCheckboxes.length && totalLotes > 0);
-        seleccionarTodos.prop('indeterminate', totalLotes > 0 && totalLotes < todosCheckboxes.length);
-    }
+    contenedor.empty();
 
-    function actualizarResumen() {
-        $('#resumenNombre').text($('#nombre').val());
-        $('#resumenEstado').text($('#estado option:selected').text());
-        $('#resumenFechaInicio').text($('#fechaInicio').val());
-        $('#resumenFechaFin').text($('#fechaFin').val() || '-');
-        $('#resumenCampo').text(campoSelect.find('option:selected').text());
+    if (camposConLotes.length === 0) {
+        contenedor.html(`
+            <div class="text-center py-4 text-muted">
+                <i class="ph ph-tray display-4"></i>
+                <p class="mt-2">No hay campos agregados</p>
+            </div>
+        `);
+    } else {
+        camposConLotes.forEach(function (item) {
+            var superficieUsada = item.lotes.reduce((total, lote) => total + lote.superficie, 0);
+            var superficieDisponible = item.campo.superficieTotal - superficieUsada;
 
-        var totalLotes = $('#totalLotesSeleccionados').text();
-        var totalSuperficie = $('#totalSuperficieSeleccionada').text();
+            var campoHtml = templateCampo
+                .replace(/{{idCampo}}/g, item.campo.id)
+                .replace(/{{campoNombre}}/g, item.campo.nombre)
+                .replace(/{{campoUbicacion}}/g, item.campo.ubicacion)
+/*                .replace(/{{campoSuperficieTotal}}/g, item.campo.superficieTotal.toFixed(2))*/
+                ;
 
-        $('#resumenTotalLotes').text(totalLotes);
-        $('#resumenTotalSuperficie').text(totalSuperficie);
+            contenedor.append(campoHtml);
 
-        // Lista de lotes seleccionados
-        var listaResumen = $('#listaResumenLotes');
-        var checkboxes = $('.lote-checkbox:checked');
+            // Renderizar lotes de este campo
+            var lotesContainer = $(`#lotes-${item.campo.id}`);
+            if (item.lotes.length === 0) {
+                lotesContainer.html('<div class="text-center py-2 text-muted"><small>No hay lotes agregados</small></div>');
+            } else {
+                item.lotes.forEach(function (lote) {
+                    var loteHtml = templateLote
+                        .replace(/{{IdLote}}/g, lote.id)
+                        .replace(/{{idCampo}}/g, item.campo.id)
+                        .replace(/{{nombre}}/g, lote.nombre)
+                        .replace(/{{superficie}}/g, lote.superficie.toFixed(2));
 
-        if (checkboxes.length > 0) {
-            var html = '<h6>Lotes incluidos:</h6><ul class="list-group">';
-            checkboxes.each(function () {
-                var loteId = $(this).val();
-                var lote = lotesDisponibles.find(function (l) { return l.id == loteId; });
-                if (lote) {
-                    html += '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                        lote.nombre +
-                        '<span class="badge bg-primary rounded-pill">' + lote.superficie.toFixed(2) + ' Ha</span>' +
-                        '</li>';
-                }
-            });
-            html += '</ul>';
-            listaResumen.html(html);
-        } else {
-            listaResumen.html('<div class="alert alert-warning">No se han seleccionado lotes</div>');
-        }
-    }
+                    lotesContainer.append(loteHtml);
+                });
+            }
 
-    function validarTabCampos() {
-        if (!campoSelect.val()) {
-            campoSelect.focus();
-            mostrarError('Por favor seleccione un campo');
-            return false;
-        }
-        return true;
-    }
+            // Actualizar contadores del campo
+            $(`.lotes-count-${item.campo.id}`).text(item.lotes.length);
+            $(`.superficie-total-${item.campo.id}`).text(superficieUsada.toFixed(2));
+            $(`.superficie-disponible-${item.campo.id}`).text(superficieDisponible.toFixed(2));
 
-    function validarTabLotes() {
-        if ($('.lote-checkbox:checked').length === 0) {
-            mostrarError('Por favor seleccione al menos un lote');
-            return false;
-        }
-        return true;
-    }
-
-    function validarFormularioCompleto() {
-        // Validar información básica
-        if (form[0].checkValidity() === false) {
-            form.addClass('was-validated');
-            activarTab('campos');
-            return false;
-        }
-
-        // Validar campos y lotes
-        if (!validarTabCampos() || !validarTabLotes()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    function guardarCampania() {
-        var formData = form.serializeArray();
-        var data = {
-            Id: parseInt($('#campaniaId').val() || '0'),
-            Nombre: $('#nombre').val(),
-            Estado: parseInt($('#estado').val()),
-            FechaInicio: $('#fechaInicio').val(),
-            FechaFin: $('#fechaFin').val() || null,
-            CampoId: parseInt(campoSelect.val()),
-            LotesSeleccionados: $('.lote-checkbox:checked').map(function () {
-                return parseInt($(this).val());
-            }).get()
-        };
-
-        // Mostrar loading
-        var submitBtn = form.find('button[type="submit"]');
-        var originalText = submitBtn.html();
-        submitBtn.html('<i class="bi bi-hourglass-split me-1"></i>Creando...').prop('disabled', true);
-
-        // Enviar al servidor
-        $.ajax({
-            url: '/Campania/Crear',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
-            success: function (result) {
-                if (result.success) {
-                    mostrarExito('Campaña creada correctamente');
-                    var modal = bootstrap.Modal.getInstance($('#modalCampania')[0]);
-                    modal.hide();
-                    // Recargar la tabla
-                    table.ajax.reload();
-                } else {
-                    mostrarError(result.message || 'Error al crear campaña');
-                }
-            },
-            error: function (error) {
-                console.error('Error:', error);
-                mostrarError('Error al conectar con el servidor');
-            },
-            complete: function () {
-                submitBtn.html(originalText).prop('disabled', false);
+            // Colorear según disponibilidad
+            var disponibleElement = $(`.superficie-disponible-${item.campo.id}`);
+            if (superficieDisponible <= 0) {
+                disponibleElement.addClass('text-danger').removeClass('text-success');
+            } else {
+                disponibleElement.addClass('text-success').removeClass('text-danger');
             }
         });
     }
+
+    actualizarResumenGeneral();
 }
 
-// ========== FUNCIONES DE UTILIDAD ==========
-function mostrarError(mensaje) {
-    if (typeof toastr !== 'undefined') {
-        toastr.error(mensaje);
+function actualizarResumenGeneral() {
+    var totalCampos = camposConLotes.length;
+    var totalLotes = camposConLotes.reduce((total, item) => total + item.lotes.length, 0);
+    var totalSuperficie = camposConLotes.reduce((total, item) => {
+        return total + item.lotes.reduce((subTotal, lote) => subTotal + lote.superficie, 0);
+    }, 0);
+
+    $('#totalCamposAgregados').text(totalCampos);
+    $('#totalLotesAgregados').text(totalLotes);
+    $('#totalSuperficieAgregada').text(totalSuperficie.toFixed(2));
+}
+
+function actualizarResumen() {
+    $('#resumenNombre').text($('#nombre').val());
+    $('#resumenEstado').text($('#estado option:selected').text());
+    $('#resumenFechaInicio').text($('#fechaInicio').val());
+    $('#resumenFechaFin').text($('#fechaFin').val() || '-');
+    $('#resumenTotalCampos').text(camposConLotes.length);
+    $('#resumenTotalLotes').text(camposConLotes.reduce((total, item) => total + item.lotes.length, 0));
+    $('#resumenTotalSuperficie').text(camposConLotes.reduce((total, item) => {
+        return total + item.lotes.reduce((subTotal, lote) => subTotal + lote.superficie, 0);
+    }, 0).toFixed(2));
+
+    // Detalle por campo
+    var listaCampos = $('#listaResumenCampos');
+    if (camposConLotes.length > 0) {
+        var html = '';
+        camposConLotes.forEach(function (item) {
+            var superficieCampo = item.lotes.reduce((total, lote) => total + lote.superficie, 0);
+            var superficieDisponible = item.campo.superficieTotal - superficieCampo;
+            html += `
+                <div class="card mb-2">
+                    <div class="card-body py-2">
+                        <h6 class="mb-1">${item.campo.nombre}</h6>
+                        <div class="row small">
+                            <div class="col-3"><strong>Lotes:</strong> ${item.lotes.length}</div>
+                            <div class="col-3"><strong>Usado:</strong> ${superficieCampo.toFixed(2)} Ha</div>
+                            <div class="col-3"><strong>Disponible:</strong> ${superficieDisponible.toFixed(2)} Ha</div>
+                            <div class="col-3"><strong>Total:</strong> ${item.campo.superficieTotal.toFixed(2)} Ha</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        listaCampos.html(html);
     } else {
-        alert(mensaje);
+        listaCampos.html('<div class="alert alert-warning">No se han agregado campos</div>');
     }
 }
 
-function mostrarExito(mensaje) {
-    if (typeof toastr !== 'undefined') {
-        toastr.success(mensaje);
-    } else {
-        alert(mensaje);
+function validarTabCampos() {
+    var nombre = $('#nombre').val().trim();
+    var estado = $('#estado').val();
+    var fechaInicio = $('#fechaInicio').val();
+
+    if (!nombre) {
+        mostrarError('Por favor ingrese el nombre de la campaña');
+        $('#nombre').focus();
+        return false;
     }
+
+    if (!estado) {
+        mostrarError('Por favor seleccione un estado');
+        $('#estado').focus();
+        return false;
+    }
+
+    if (!fechaInicio) {
+        mostrarError('Por favor ingrese la fecha de inicio');
+        $('#fechaInicio').focus();
+        return false;
+    }
+
+    return true;
+}
+
+function validarTabLotes() {
+    if (camposConLotes.length === 0) {
+        mostrarError('Por favor agregue al menos un campo a la campaña');
+        return false;
+    }
+
+    // Verificar que cada campo tenga al menos un lote
+    var camposSinLotes = camposConLotes.filter(item => item.lotes.length === 0);
+    if (camposSinLotes.length > 0) {
+        mostrarError('Todos los campos agregados deben tener al menos un lote');
+        return false;
+    }
+
+    return true;
+}
+
+function guardarCampania() {
+    var data = {
+        Nombre: $('#nombre').val(),
+        Estado: $('#estado').val(),
+        FechaInicio: $('#fechaInicio').val(),
+        FechaFin: $('#fechaFin').val() || null,
+        Lotes: camposConLotes.flatMap(item =>
+            item.lotes.map(lote => ({
+                idCampo: parseInt(item.campo.id),
+                Nombre: lote.nombre,
+                SuperficieHectareas: lote.superficie
+            }))
+        )
+    };
+
+    mostrarLoading('Creando campaña...');
+
+    $.ajax({
+        url: '/Campania/Create',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        headers: {
+            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        success: function (response) {
+            cerrarAlertas();
+            if (response.success) {
+                mostrarExito(response.message || 'Campaña creada correctamente');
+                $('#modalCampania').modal('hide');
+                table.ajax.reload();
+            } else {
+                mostrarError(response.message || 'Error al crear campaña');
+            }
+        },
+        error: function (error) {
+            cerrarAlertas();
+            console.error('Error:', error);
+            mostrarError('Error al conectar con el servidor');
+        }
+    });
 }

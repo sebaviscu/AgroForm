@@ -1,4 +1,5 @@
 ﻿using AgroForm.Model;
+using AlbaServicios.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface ICampoService : IServiceBase<Campo>
     {
+        Task<OperationResult<List<Campo>>> GetCamposConLotesYActividades();
     }
 }

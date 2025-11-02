@@ -1,0 +1,265 @@
+﻿<div class="dashboard-stats">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">
+            <i class="ph ph-clock-counter-clockwise text-info me-2"></i>Actividad Reciente
+        </h4>
+
+        <!-- Filtros rápidos -->
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-secondary active" data-filter="all">Todas</button>
+            <button type="button" class="btn btn-outline-secondary" data-filter="today">Hoy</button>
+            <button type="button" class="btn btn-outline-secondary" data-filter="week">Esta semana</button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingActividades" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-info" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <small class="text-muted ms-2">Cargando actividades...</small>
+    </div>
+
+    <!-- Lista de actividades con scroll -->
+    <div id="listaActividades" class="list-group list-group-flush actividad-scroll-container" style="display: none;">
+        <!-- Las actividades se cargarán aquí dinámicamente -->
+    </div>
+
+    <!-- Mensaje cuando no hay actividades -->
+    <div id="sinActividades" class="text-center py-4" style="display: none;">
+        <i class="ph ph-tray display-6 text-muted mb-2"></i>
+        <p class="text-muted mb-0">No hay actividades recientes</p>
+    </div>
+</div>
+
+<style>
+    .actividad-scroll-container {
+        max-height: 400px; /* Altura máxima */
+        overflow-y: auto; /* Scroll vertical */
+        overflow-x: hidden; /* Sin scroll horizontal */
+        border: 1px solid #e9ecef; /* Borde sutil */
+        border-radius: 0.375rem; /* Bordes redondeados */
+    }
+
+        /* Personalizar scrollbar */
+        .actividad-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .actividad-scroll-container::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .actividad-scroll-container::-webkit-scrollbar-thumb {
+            background: #ced4da;
+            border-radius: 3px;
+        }
+
+            .actividad-scroll-container::-webkit-scrollbar-thumb:hover {
+                background: #adb5bd;
+            }
+
+        /* Asegurar que los items se vean bien */
+        .actividad-scroll-container .list-group-item {
+            border-left: none;
+            border-right: none;
+        }
+
+            .actividad-scroll-container .list-group-item:first-child {
+                border-top: none;
+            }
+
+            .actividad-scroll-container .list-group-item:last-child {
+                border-bottom: none;
+            }
+
+    .actividad-item {
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.25rem;
+        border-radius: 0.375rem;
+    }
+
+        .actividad-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: #0d6efd;
+        }
+
+    .actividad-icono {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        font-size: 0.875rem;
+    }
+
+    .actividad-contenido {
+        flex: 1;
+        min-width: 0; /* Para que el texto no desborde */
+    }
+
+    .actividad-texto {
+        font-size: 0.875rem;
+        line-height: 1.3;
+        margin-bottom: 0.125rem;
+    }
+
+    .actividad-meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .actividad-fecha {
+        font-size: 0.7rem;
+        color: #8b9ab0;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+    }
+
+    /* Estados de filtro */
+    .actividad-item[data-filter="today"] .actividad-fecha {
+        color: #198754;
+        font-weight: 500;
+    }
+
+    .actividad-item[data-filter="week"] .actividad-fecha {
+        color: #fd7e14;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        cargarActividadesRecientes();
+
+        // Manejar filtros
+        $('[data-filter]').on('click', function() {
+            var filtro = $(this).data('filter');
+
+            // Actualizar botones activos
+            $('[data-filter]').removeClass('active');
+            $(this).addClass('active');
+
+            // Aplicar filtro
+            aplicarFiltro(filtro);
+        });
+
+        function cargarActividadesRecientes() {
+            $.ajax({
+                url: '@Url.Action("GetRecent", "Actividad")',
+                type: 'GET',
+                success: function(result) {
+                    $('#loadingActividades').hide();
+
+                    if (result.success && result.listObject.length > 0) {
+                        mostrarActividades(result.listObject);
+                        $('#listaActividades').show();
+                    } else {
+                        $('#sinActividades').show();
+                    }
+                },
+                error: function(error) {
+                    console.error('Error al cargar actividades:', error);
+                    $('#loadingActividades').hide();
+                    $('#sinActividades').show();
+                    $('#sinActividades').html('<p class="text-danger">Error al cargar actividades</p>');
+                }
+            });
+        }
+
+        function mostrarActividades(actividades) {
+            var lista = $('#listaActividades');
+            lista.empty();
+
+            actividades.forEach(function(actividad) {
+                var item = crearItemActividad(actividad);
+                lista.append(item);
+            });
+        }
+
+        function crearItemActividad(actividad) {
+            var filtroClase = actividad.filtroTiempo || '';
+
+                return `
+                    <div class="list-group-item px-0 actividad-item" data-filter="${filtroClase}">
+                        <div class="d-flex align-items-start ms-2 me-2">
+
+                            <!-- Icono -->
+                            <div class="actividad-icono me-2 flex-shrink-0">
+                                <i class="ph ${actividad.iconoTipoActividad || 'ph ph-activity'}" style="color: ${actividad.iconoColorTipoActividad || '#000'}"></i>
+                            </div>
+
+                            <!-- Contenido -->
+                            <div class="actividad-contenido">
+
+                                <!-- Fila 1: Tipo de actividad y tipo de insumo -->
+                                <div class="d-flex align-items-baseline">
+                                    <div class="actividad-texto fw-semibold me-2">
+                                        <strong class="text-dark">${actividad.tipoActividad || 'Actividad'}</strong>
+                                    </div>
+                                    <div class="actividad-insumo text-muted small">
+                                        ${actividad.insumo
+                                            ? actividad.insumo + ': ' + actividad.cantidadInsumo + (actividad.unidadMedida ? ' ' + actividad.unidadMedida : '')
+                                            : ''}
+                                    </div>
+                                </div>
+
+                                <!-- Fila 2: Responsable, Lote y Observación -->
+                                <div class="actividad-meta d-flex align-items-center">
+                                    <span class="text-primary">${actividad.responsable || 'Sin responsable'}</span>
+                                    <span class="text-muted mx-1">•</span>
+                                    <span>${actividad.lote || 'Sin lote'}</span>
+                                    ${actividad.observacion ? `
+                                        <span class="actividad-observacion text-muted small ms-2" style="cursor: crosshair;"
+                                              data-bs-toggle="tooltip"
+                                              data-bs-placement="top"
+                                              title="${actividad.observacion}">
+                                            - ${actividad.observacionCortada}
+                                        </span>
+                                    ` : ''}
+                                </div>
+
+                            </div>
+
+                            <!-- Fecha relativa -->
+                            <div class="actividad-fecha flex-shrink-0">
+                                ${actividad.fechaRelativa || ''}
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+
+        }
+
+    function aplicarFiltro(filtro) {
+        $('.actividad-item').each(function() {
+            var item = $(this);
+            var itemFiltro = item.data('filter');
+
+            switch(filtro) {
+                case 'all':
+                    item.show();
+                    break;
+                case 'today':
+                    item.toggle(itemFiltro === 'today');
+                    break;
+                case 'week':
+                    item.toggle(itemFiltro === 'today' || itemFiltro === 'week');
+                    break;
+                default:
+                    item.show();
+            }
+        });
+    }
+
+        // Recargar actividades cada 2 minutos
+        setInterval(function() {
+            cargarActividadesRecientes();
+        }, 120000);
+    });
+</script>

@@ -9,5 +9,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface IRegistroClimaService : IServiceBase<RegistroClima>
     {
+        Task<List<RegistroClima>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0);
     }
 }

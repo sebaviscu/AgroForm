@@ -8,10 +8,10 @@ namespace AgroForm.Model
 {
     public class HistoricoPrecioInsumo : EntityBaseWithLicencia
     {
-        public int InsumoId { get; set; }
+        public int IdInsumo { get; set; }
         public Insumo Insumo { get; set; } = null!;
 
-        public int MonedaId { get; set; }
+        public int IdMoneda { get; set; }
         public Moneda Moneda { get; set; } = null!;
 
         public decimal Precio { get; set; }

@@ -5,11 +5,7 @@ using AlbaServicios.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
@@ -18,7 +14,38 @@ namespace AgroForm.Business.Services
         public RegistroClimaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<RegistroClima>> logger, IHttpContextAccessor httpContextAccessor)
             : base(contextFactory, logger, httpContextAccessor)
         {
-
         }
+
+        public async Task<List<RegistroClima>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0)
+        {
+            try
+            {
+                var fechaInicio = TimeHelper.GetArgentinaTime().AddMonths(-meses);
+
+                using var context = await _contextFactory.CreateDbContextAsync();
+
+                var query = context.RegistrosClima
+                    .Where(rc => rc.IdLicencia == _userAuth.IdLicencia)
+                    .Where(rc => rc.Fecha >= fechaInicio)
+                    .Where(rc => rc.TipoClima == TipoClima.Lluvia || rc.TipoClima == TipoClima.Granizo)
+                    .Include(rc => rc.Lote)
+                        .ThenInclude(l => l.Campo)
+
+                    .AsNoTracking();
+
+                if (idCampo > 0)
+                {
+                    query = query.Where(rc => rc.Lote.IdCampo == idCampo);
+                }
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)    
+            {
+                _logger.LogError(ex, "Error al obtener Registro de lluvia {meses}, {idCampo}", meses, idCampo);
+                throw;
+            }
+        }
+
     }
 }

@@ -20,9 +20,29 @@ namespace AgroForm.Business.Services
         {
         }
 
-        public async Task<OperationResult<List<Lote>>> GetByCampoIdAsync(int campoId)
+        public async override Task<OperationResult<List<Lote>>> GetAllWithDetailsAsync()
         {
-            var query = GetQuery().AsQueryable().Where(_=>_.CampoId == campoId);
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                IQueryable<Lote> query = context.Lotes.AsNoTracking();
+
+                query = query.Where(e => e.IdLicencia == _userAuth.IdLicencia);
+                var list = await query.Include(_=>_.Campo).ToListAsync();
+
+                return OperationResult<List<Lote>>.SuccessResult(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer todos los registros con detalles de Lotes");
+                return OperationResult<List<Lote>>.Failure($"Ocurrió un problema al leer los registros: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
+        public async Task<OperationResult<List<Lote>>> GetByidCampoAsync(int idCampo)
+        {
+            var query = GetQuery().Include(_=>_.Campo).AsQueryable().Where(_=>_.IdCampo == idCampo && _.IdCampania == _userAuth.IdCampaña);
             var list = await query.ToListAsync();
             return OperationResult<List<Lote>>.SuccessResult(list);
         }

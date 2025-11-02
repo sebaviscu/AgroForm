@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-12 mb-4">
             <h1 class="h2 fw-bold">
-                <i class="bi bi-sliders me-2"></i>Configuración del Sistema
+                <i class="ph ph-sliders me-2"></i>Configuración del Sistema
             </h1>
             <p class="text-muted mb-0">Administre los maestros y parámetros del sistema</p>
         </div>
@@ -17,16 +17,16 @@
         <div class="col-md-3 col-lg-2">
             <div class="nav flex-column nav-pills me-3" id="configTabs" role="tablist" aria-orientation="vertical">
                 <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab">
-                    <i class="bi bi-house-gear me-2"></i>General
+                    <i class="ph ph-house-line me-2"></i>General
                 </button>
                 <button class="nav-link" id="campos-tab" data-bs-toggle="pill" data-bs-target="#campos" type="button" role="tab">
-                    <i class="bi bi-building me-2"></i>Campos
+                    <i class="ph ph-building me-2"></i>Campos
                 </button>
                 <button class="nav-link" id="proveedores-tab" data-bs-toggle="pill" data-bs-target="#proveedores" type="button" role="tab">
-                    <i class="bi bi-truck me-2"></i>Proveedores
+                    <i class="ph ph-truck me-2"></i>Proveedores
                 </button>
                 <button class="nav-link" id="marcas-tab" data-bs-toggle="pill" data-bs-target="#marcas" type="button" role="tab">
-                    <i class="bi bi-tags me-2"></i>Marcas
+                    <i class="ph ph-tags me-2"></i>Marcas
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-info-circle me-2"></i>Información General del Sistema
+                                <i class="ph ph-info me-2"></i>Información General del Sistema
                             </h5>
                         </div>
                         <div class="card-body">
@@ -48,7 +48,7 @@
                                 <div class="col-md-6">
                                     <div class="card bg-light">
                                         <div class="card-body text-center">
-                                            <i class="bi bi-building display-4 text-primary mb-3"></i>
+                                            <i class="ph ph-building display-4 text-primary mb-3"></i>
                                             <h4 id="totalCampos">0</h4>
                                             <p class="text-muted mb-0">Campos Registrados</p>
                                         </div>
@@ -57,7 +57,7 @@
                                 <div class="col-md-6">
                                     <div class="card bg-light">
                                         <div class="card-body text-center">
-                                            <i class="bi bi-truck display-4 text-success mb-3"></i>
+                                            <i class="ph ph-truck display-4 text-success mb-3"></i>
                                             <h4 id="totalProveedores">0</h4>
                                             <p class="text-muted mb-0">Proveedores Activos</p>
                                         </div>
@@ -94,10 +94,10 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-building me-2"></i>Gestión de Campos
+                                <i class="ph ph-building me-2"></i>Gestión de Campos
                             </h5>
                             <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalCampo()">
-                                <i class="bi bi-plus-circle me-1"></i>Nuevo Campo
+                                <i class="ph ph-plus-circle me-1"></i>Nuevo Campo
                             </button>
                         </div>
                         <div class="card-body">
@@ -127,10 +127,10 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-truck me-2"></i>Gestión de Proveedores
+                                <i class="ph ph-truck me-2"></i>Gestión de Proveedores
                             </h5>
                             <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalProveedor()">
-                                <i class="bi bi-plus-circle me-1"></i>Nuevo Proveedor
+                                <i class="ph ph-plus-circle me-1"></i>Nuevo Proveedor
                             </button>
                         </div>
                         <div class="card-body">
@@ -161,10 +161,10 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-tags me-2"></i>Gestión de Marcas
+                                <i class="ph ph-tags me-2"></i>Gestión de Marcas
                             </h5>
                             <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalMarca()">
-                                <i class="bi bi-plus-circle me-1"></i>Nueva Marca
+                                <i class="ph ph-plus-circle me-1"></i>Nueva Marca
                             </button>
                         </div>
                         <div class="card-body">
@@ -199,13 +199,13 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="modalCampoLabel">
-                    <i class="bi bi-building me-2"></i>Nuevo Campo
+                    <i class="ph ph-building me-2"></i>Nuevo Campo
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formCampo">
                 <div class="modal-body">
-                    <input type="hidden" id="campoId" name="Id" value="0">
+                    <input type="hidden" id="idCampo" name="Id" value="0">
                     <div class="mb-3">
                         <label for="campoNombre" class="form-label">Nombre *</label>
                         <input type="text" class="form-control" id="campoNombre" name="Nombre" required>
@@ -234,13 +234,13 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="modalProveedorLabel">
-                    <i class="bi bi-truck me-2"></i>Nuevo Proveedor
+                    <i class="ph ph-truck me-2"></i>Nuevo Proveedor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formProveedor">
                 <div class="modal-body">
-                    <input type="hidden" id="proveedorId" name="Id" value="0">
+                    <input type="hidden" id="idProveedor" name="Id" value="0">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -309,13 +309,13 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="modalMarcaLavel">
-                    <i class="bi bi-tags me-2"></i>Nueva Marca
+                    <i class="ph ph-tags me-2"></i>Nueva Marca
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formMarca">
                 <div class="modal-body">
-                    <input type="hidden" id="marcaId" name="Id" value="0">
+                    <input type="hidden" id="idMarca" name="Id" value="0">
                     <div class="mb-3">
                         <label for="marcaCodigo" class="form-label">Código *</label>
                         <input type="text" class="form-control" id="marcaCodigo" name="Codigo" required>
@@ -461,10 +461,10 @@
                             return `
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary btn-editar-campo" data-id="${data}" title="Editar">
-                                        <i class="bi bi-pencil"></i>
+                                        <i class="ph ph-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-eliminar-campo" data-id="${data}" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="ph ph-trash"></i>
                                     </button>
                                 </div>
                             `;
@@ -490,10 +490,10 @@
         }
 
         function abrirModalCampo(id = 0) {
-            $('#campoId').val(id);
+            $('#idCampo').val(id);
             $('#modalCampoLabel').html(id === 0 ?
-                '<i class="bi bi-building me-2"></i>Nuevo Campo' :
-                '<i class="bi bi-building me-2"></i>Editar Campo');
+                '<i class="ph ph-building me-2"></i>Nuevo Campo' :
+                '<i class="ph ph-building me-2"></i>Editar Campo');
 
             if (id === 0) {
                 $('#formCampo')[0].reset();
@@ -576,10 +576,10 @@
                             return `
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary btn-editar-proveedor" data-id="${data}" title="Editar">
-                                        <i class="bi bi-pencil"></i>
+                                        <i class="ph ph-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-eliminar-proveedor" data-id="${data}" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="ph ph-trash"></i>
                                     </button>
                                 </div>
                             `;
@@ -605,10 +605,10 @@
         }
 
         function abrirModalProveedor(id = 0) {
-            $('#proveedorId').val(id);
+            $('#idProveedor').val(id);
             $('#modalProveedorLabel').html(id === 0 ?
-                '<i class="bi bi-truck me-2"></i>Nuevo Proveedor' :
-                '<i class="bi bi-truck me-2"></i>Editar Proveedor');
+                '<i class="ph ph-truck me-2"></i>Nuevo Proveedor' :
+                '<i class="ph ph-truck me-2"></i>Editar Proveedor');
 
             if (id === 0) {
                 $('#formProveedor')[0].reset();
@@ -703,10 +703,10 @@
                             return `
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary btn-editar-marca" data-id="${data}" title="Editar">
-                                        <i class="bi bi-pencil"></i>
+                                        <i class="ph ph-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-eliminar-marca" data-id="${data}" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
+                                        <i class="ph ph-trash"></i>
                                     </button>
                                 </div>
                             `;
@@ -732,10 +732,10 @@
         }
 
         function abrirModalMarca(id = 0) {
-            $('#marcaId').val(id);
+            $('#idMarca').val(id);
             $('#modalMarcaLavel').html(id === 0 ?
-                '<i class="bi bi-tags me-2"></i>Nueva Marca' :
-                '<i class="bi bi-tags me-2"></i>Editar Marca');
+                '<i class="ph ph-tags me-2"></i>Nueva Marca' :
+                '<i class="ph ph-tags me-2"></i>Editar Marca');
 
             if (id === 0) {
                 $('#formMarca')[0].reset();
@@ -800,7 +800,7 @@
 
         function guardarCampo() {
             var formData = {
-                Id: $('#campoId').val(),
+                Id: $('#idCampo').val(),
                 Nombre: $('#campoNombre').val(),
                 Ubicacion: $('#campoUbicacion').val(),
                 SuperficieHectareas: $('#campoSuperficie').val() || null
@@ -828,7 +828,7 @@
 
         function guardarProveedor() {
             var formData = {
-                Id: $('#proveedorId').val(),
+                Id: $('#idProveedor').val(),
                 RazonSocial: $('#proveedorRazonSocial').val(),
                 NombreFantasia: $('#proveedorNombreFantasia').val(),
                 CUIT: $('#proveedorCUIT').val(),
@@ -863,7 +863,7 @@
 
         function guardarMarca() {
             var formData = {
-                Id: $('#marcaId').val(),
+                Id: $('#idMarca').val(),
                 Codigo: $('#marcaCodigo').val(),
                 Descripcion: $('#marcaDescripcion').val(),
                 Activo: $('#marcaActivo').is(':checked')

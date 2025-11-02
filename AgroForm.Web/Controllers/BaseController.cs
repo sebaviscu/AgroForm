@@ -11,14 +11,15 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
-    public abstract class BaseController<TEntity, TService> : Controller
-        where TEntity : EntityBase
-        where TService : IServiceBase<TEntity>
+    [Route("[controller]/[action]")]
+    public abstract class BaseController<TEntity, TDto, TService> : Controller
+    where TEntity : EntityBase
+    where TService : IServiceBase<TEntity>
     {
         protected readonly ILogger _logger;
         protected readonly IMapper _mapper;
         protected readonly TService _service;
-        protected readonly GenericResponse<TEntity> gResponse = new GenericResponse<TEntity>();
+        protected readonly GenericResponse<TDto> gResponse = new GenericResponse<TDto>();
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
         public BaseController(ILogger logger, IMapper mapper, TService service)
@@ -32,6 +33,114 @@ namespace AgroForm.Web.Controllers
         {
             return _mapper.Map<TDest>(source);
         }
+
+        [HttpGet]
+        public virtual async Task<IActionResult> GetAllDataTable()
+        {
+            var result = await _service.GetAllAsync();
+            if (!result.Success)
+                return BadRequest(result.ErrorMessage);
+
+            var dataVM = Map<List<TEntity>, List<TDto>>(result.Data);
+
+            return Json(new
+            {
+                success = true,
+                data = dataVM
+            });
+        }
+
+        [HttpGet]
+        public virtual async Task<IActionResult> GetAll()
+        {
+            var result = await _service.GetAllAsync();
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.ListObject = Map<List<TEntity>, List<TDto>>(result.Data);
+            gResponse.Message = "Datos obtenidos correctamente";
+            return Ok(gResponse);
+        }
+
+
+        [HttpGet("{id}")]
+        public virtual async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return NotFound(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = Map<TEntity, TDto>(result.Data);
+            gResponse.Message = "Registro encontrado";
+            return Ok(gResponse);
+        }
+
+        [HttpPost]
+        public virtual async Task<IActionResult> Create([FromBody] TDto dto)
+        {
+            var entity = Map<TDto, TEntity>(dto);
+            var result = await _service.CreateAsync(entity);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = Map<TEntity, TDto>(result.Data);
+            gResponse.Message = "Registro creado correctamente";
+            return Ok(gResponse);
+        }
+
+        [HttpPut("{id}")]
+        public virtual async Task<IActionResult> Update([FromBody] TDto dto)
+        {
+            var entity = Map<TDto, TEntity>(dto);
+            var result = await _service.UpdateAsync(entity);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = Map<TEntity, TDto>(result.Data);
+            gResponse.Message = "Registro actualizado correctamente";
+            return Ok(gResponse);
+        }
+
+        [HttpDelete("{id}")]
+        public virtual async Task<IActionResult> Delete(int id)
+        {
+            var result = await _service.DeleteAsync(id);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Message = "Registro eliminado correctamente";
+            return Ok(gResponse);
+        }
+
+
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
@@ -119,7 +228,7 @@ namespace AgroForm.Web.Controllers
 
             var gResponse = new GenericResponse<object>
             {
-                State = false,
+                Success = false,
                 Message = ex == null ? errorMessage : $"{errorMessage}\n {ex.InnerException?.Message ?? ex.Message}"
             };
 

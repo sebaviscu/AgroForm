@@ -283,3 +283,25 @@
     color: #6c757d;
     font-size: 0.9rem;
 }
+
+
+.lote-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+    .lote-card:hover {
+        border-color: #0d6efd;
+    }
+
+    .lote-card .form-check-input:checked ~ .card-body {
+        background-color: #e7f1ff;
+    }
+
+        .lote-card .form-check-input:checked ~ .card-body .card-title {
+            color: #0d6efd;
+        }
+
+.nav-tabs .nav-link:not(.active) {
+    color: #6c757d;
+}

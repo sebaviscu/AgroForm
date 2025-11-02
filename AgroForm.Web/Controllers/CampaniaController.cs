@@ -11,7 +11,7 @@ using static AgroForm.Model.EnumClass;
 namespace AgroForm.Web.Controllers
 {
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
-    public class CampaniaController : BaseController<Campania, ICampaniaService>
+    public class CampaniaController : BaseController<Campania, CampaniaVM, ICampaniaService>
     {
         public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service)
             : base(logger, mapper, service)
@@ -36,7 +36,6 @@ namespace AgroForm.Web.Controllers
                     Campanias = Map<List<Campania>, List<CampaniaVM>>(campanias.Data),
                     Estados = new List<SelectListItem>
                 {
-                    new SelectListItem { Value = "Planificada", Text = "Planificada" },
                     new SelectListItem { Value = "EnCurso", Text = "En Curso" },
                     new SelectListItem { Value = "Finalizada", Text = "Finalizada" },
                     new SelectListItem { Value = "Cancelada", Text = "Cancelada" }

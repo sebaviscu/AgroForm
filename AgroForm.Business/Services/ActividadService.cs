@@ -12,13 +12,13 @@ namespace AgroForm.Business.Services
 {
     public class ActividadService : ServiceBase<Actividad>, IActividadService
     {
-        public ActividadService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Actividad>> logger, IHttpContextAccessor httpContextAccessor) 
+        public ActividadService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ActividadService> logger, IHttpContextAccessor httpContextAccessor) 
             : base(contextFactory, logger, httpContextAccessor)
         {
             
         }
 
-        public async Task<List<Actividad>> GetByCampoIdAsync(List<int> lotesId)
+        public async Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace AgroForm.Business.Services
 
                 if (lotesId.Any())
                 {
-                    query = query.Where(_ => lotesId.Contains(_.LoteId));
+                    query = query.Where(_ => lotesId.Contains(_.IdLote));
                 }
 
                 return await query.ToListAsync();
@@ -83,6 +83,35 @@ namespace AgroForm.Business.Services
             {
                 _logger.LogError(ex, "Error al obtener actividad con id {Id}", id);
                 return OperationResult<Actividad>.Failure("Error al obtener actividad");
+            }
+        }
+        public async Task<OperationResult<List<Actividad>>> GetRecentAsync()
+        {
+            try
+            {
+                var fechaLimite = TimeHelper.GetArgentinaTime(); // Últimos 7 días
+
+                using var context = await _contextFactory.CreateDbContextAsync();
+
+                var actividades = await context.Actividades
+                    .Where(a => a.IdLicencia == _userAuth.IdLicencia)
+                    .Include(a => a.Lote)
+                        .ThenInclude(l => l.Campo)
+                    .Include(a => a.TipoActividad)
+                    .Include(a => a.Usuario)
+                    .Include(a => a.Insumo)
+                    .OrderByDescending(a => a.Fecha)
+                    .Take(15)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+
+                return OperationResult<List<Actividad>>.SuccessResult(actividades);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener actividades recientes para licencia {IdLicencia}", _userAuth.IdLicencia);
+                return OperationResult<List<Actividad>>.Failure("Error al obtener actividades recientes");
             }
         }
 

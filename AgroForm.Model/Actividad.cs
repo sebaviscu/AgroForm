@@ -8,20 +8,21 @@ namespace AgroForm.Model
 {
     public class Actividad : EntityBaseWithLicencia
     {
-        public string Descripcion { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; } = string.Empty;
+        public decimal? Cantidad { get; set; }
 
-        public int LoteId { get; set; }
+        public int IdLote { get; set; }
         public Lote Lote { get; set; } = null!;
 
-        public int TipoActividadId { get; set; }
+        public int IdTipoActividad { get; set; }
         public TipoActividad TipoActividad { get; set; } = null!;
 
-        public int UsuarioId { get; set; }
+        public int IdUsuario { get; set; }
         public Usuario Usuario { get; set; } = null!;
 
-        public MovimientoInsumo? MovimientoInsumo { get; set; }
+        public int? IdInsumo { get; set; }
+        public Insumo? Insumo { get; set; }
 
     }
 }

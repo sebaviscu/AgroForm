@@ -13,7 +13,7 @@ namespace AgroForm.Web.Utilities
 
         public AutoMapperProfile()
         {
-            CreateMap<Actividad, ActividadVM>().ReverseMap();
+            CreateMap<ActividadVM, Actividad>();
             CreateMap<Campania, CampaniaVM>().ReverseMap();
             CreateMap<Campo, CampoVM>().ReverseMap();
             CreateMap<HistoricoPrecioInsumo, HistoricoPrecioInsumoVM>().ReverseMap();
@@ -22,7 +22,6 @@ namespace AgroForm.Web.Utilities
             CreateMap<Lote, LoteVM>().ReverseMap();
             CreateMap<Marca, MarcaVM>().ReverseMap();
             CreateMap<Moneda, MonedaVM>().ReverseMap();
-            CreateMap<MovimientoInsumo, MovimientoInsumoVM>().ReverseMap();
             CreateMap<Proveedor, ProveedorVM>().ReverseMap();
             CreateMap<RegistroClima, RegistroClimaVM>().ReverseMap();
             CreateMap<TipoActividad, TipoActividadVM>().ReverseMap();
@@ -30,6 +29,34 @@ namespace AgroForm.Web.Utilities
             CreateMap<Usuario, UsuarioVM>().ReverseMap();
             CreateMap<Ajuste, AjusteVM>().ReverseMap();
 
+
+            CreateMap<Actividad, ActividadVM>()
+                .ForMember(dest => dest.TipoActividad, opt => opt.MapFrom(src =>
+                    src.TipoActividad != null ? src.TipoActividad.Nombre : string.Empty))
+                .ForMember(dest => dest.IconoColorTipoActividad, opt => opt.MapFrom(src =>
+                    src.TipoActividad != null ? src.TipoActividad.ColorIcono : string.Empty))
+                .ForMember(dest => dest.IconoTipoActividad, opt => opt.MapFrom(src =>
+                    src.TipoActividad != null ? src.TipoActividad.Icono : string.Empty))
+                .ForMember(dest => dest.Responsable, opt => opt.MapFrom(src =>
+                    src.RegistrationUser != null ? src.RegistrationUser : string.Empty))
+                .ForMember(dest => dest.Lote, opt => opt.MapFrom(src =>
+                    src.Lote != null ? src.Lote.Nombre : string.Empty))
+                .ForMember(dest => dest.Campo, opt => opt.MapFrom(src =>
+                    src.Lote != null && src.Lote.Campo != null ? src.Lote.Campo.Nombre : string.Empty))
+                .ForMember(dest => dest.idCampo, opt => opt.MapFrom(src =>
+                    src.Lote != null ? src.Lote.IdCampo : 0))
+                // Datos del insumo
+                .ForMember(dest => dest.Insumo, opt => opt.MapFrom(src =>
+                    src.Insumo != null ? src.Insumo.Nombre : string.Empty))
+                .ForMember(dest => dest.UnidadMedida, opt => opt.MapFrom(src =>
+                    src.Insumo != null ? src.Insumo.UnidadMedida : string.Empty))
+                .ForMember(dest => dest.CantidadInsumo, opt => opt.MapFrom(src => src.Cantidad))
+                .ForMember(dest => dest.PrecioInsumo, opt => opt.MapFrom(src =>
+                    src.Insumo != null ? src.Insumo.PrecioActual : 0))
+                .ForMember(dest => dest.Costo, opt => opt.MapFrom(src =>
+                    src.Cantidad.HasValue && src.Insumo != null && src.Insumo.PrecioActual.HasValue
+                        ? src.Cantidad.Value * src.Insumo.PrecioActual.Value
+                        : 0));
         }
     }
 }

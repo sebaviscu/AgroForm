@@ -10,6 +10,8 @@ namespace AgroForm.Business.Contracts
 {
     public interface IActividadService : IServiceBase<Actividad>
     {
-        Task<List<Actividad>> GetByCampoIdAsync(List<int> lotesId);
+        Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId);
+
+        Task<OperationResult<List<Actividad>>> GetRecentAsync();
     }
 }

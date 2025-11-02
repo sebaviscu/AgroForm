@@ -13,7 +13,6 @@ namespace AgroForm.Model
         public string? Simbolo { get; set; } // "$", "U$S"
         public decimal? TipoCambioReferencia { get; set; } // tipo de cambio actual (opcional)
 
-        public ICollection<MovimientoInsumo> MovimientosInsumo { get; set; } = new List<MovimientoInsumo>();
         public ICollection<HistoricoPrecioInsumo> HistoricoPrecios { get; set; } = new List<HistoricoPrecioInsumo>();
 
     }

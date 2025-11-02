@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-AgroForm.Web-b1ce66d4-7d1a-464c-a509-796049b13551</UserSecretsId>
+  	<SatelliteResourceLanguages>es</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,6 +37,10 @@
     <None Include="wwwroot\js\views\actividad.js" />
     <None Include="wwwroot\js\views\actividadRapida.js" />
     <None Include="wwwroot\js\views\campania.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs\" />
   </ItemGroup>
 
 </Project>

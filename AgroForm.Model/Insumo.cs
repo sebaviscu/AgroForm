@@ -13,18 +13,20 @@ namespace AgroForm.Model
         public string? UnidadMedida { get; set; }
         public decimal? StockActual { get; set; }
         public decimal? StockMinimo { get; set; }
+        public decimal? PrecioActual { get; set; }
+        public bool Activo { get; set; } = true;
+        public int IdMoneda { get; set; }
+        public Moneda? Moneda { get; set; }
 
-        public int? MarcaId { get; set; }
+        public int? IdMarca { get; set; }
         public Marca? Marca { get; set; }
 
-        public int? ProveedorId { get; set; }
+        public int? IdProveedor { get; set; }
         public Proveedor? Proveedor { get; set; }
 
-        public int? TipoInsumoId { get; set; }
+        public int? IdTipoInsumo { get; set; }
         public TipoInsumo? TipoInsumo{ get; set; }
 
-        public bool Estado { get; set; } = true;
-        public ICollection<MovimientoInsumo> MovimientosInsumo { get; set; } = new List<MovimientoInsumo>();
         public ICollection<HistoricoPrecioInsumo> HistoricoPrecios { get; set; } = new List<HistoricoPrecioInsumo>();
 
     }

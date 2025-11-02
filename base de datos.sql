@@ -1,5 +1,8 @@
 CREATE DATABASE AgroForm;
 
+USE AgroForm;
+GO
+
 CREATE TABLE Licencias (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     RazonSocial NVARCHAR(200) NOT NULL,
@@ -46,7 +49,7 @@ CREATE TABLE Campos (
 CREATE TABLE Campanias (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
-	EstadosCamapaña INT NOT NULL
+	EstadosCamapaña INT NOT NULL,
     Nombre NVARCHAR(150) NOT NULL,
     FechaInicio DATETIME NOT NULL,
     FechaFin DATETIME NULL,
@@ -62,14 +65,14 @@ CREATE TABLE Lotes (
 	IdLicencia INT NOT NULL,
     Nombre NVARCHAR(150) NOT NULL,
     SuperficieHectareas DECIMAL(10,2) NULL,
-    CampoId INT NOT NULL,
-    CampaniaId INT NOT NULL,
+    IdCampo INT NOT NULL,
+    IdCampania INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (CampoId) REFERENCES Campos(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (CampaniaId) REFERENCES Campanias(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
@@ -112,44 +115,17 @@ CREATE TABLE RegistrosClima (
 	IdLicencia INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Milimetros DECIMAL(10,2) NOT NULL,
-    LoteId INT NOT NULL,
+    IdLote INT NOT NULL,
 	TipoClima INT NOT NULL,
+	Observaciones NVARCHAR(max) NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (LoteId) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
-CREATE TABLE TiposActividad (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    Nombre NVARCHAR(100) NOT NULL,
-    Icono NVARCHAR(150) NULL,
-    RegistrationDate DATETIME NULL,
-    RegistrationUser NVARCHAR(150) NULL,
-    ModificationDate DATETIME NULL,
-    ModificationUser NVARCHAR(150) NULL
-);
-
-CREATE TABLE Actividades (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-	IdLicencia INT NOT NULL,
-    Descripcion NVARCHAR(500) NOT NULL,
-    Fecha DATETIME NOT NULL,
-	Observacion NVARCHAR(max) NULL,
-    LoteId INT NOT NULL,
-    TipoActividadId INT NOT NULL,
-    UsuarioId INT NOT NULL,
-    RegistrationDate DATETIME NULL,
-    RegistrationUser NVARCHAR(150) NULL,
-    ModificationDate DATETIME NULL,
-    ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (LoteId) REFERENCES Lotes(Id) ON DELETE CASCADE,
-    FOREIGN KEY (TipoActividadId) REFERENCES TiposActividad(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
-);
 
 CREATE TABLE Monedas (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -163,7 +139,6 @@ CREATE TABLE Monedas (
     ModificationUser NVARCHAR(150) NULL
 );
 
-
 CREATE TABLE TiposInsumo (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Nombre NVARCHAR(100) NOT NULL,
@@ -173,6 +148,19 @@ CREATE TABLE TiposInsumo (
     ModificationUser NVARCHAR(150) NULL
 );
 
+CREATE TABLE TiposActividad (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL,
+    Icono NVARCHAR(50) NOT NULL,
+    ColorIcono NVARCHAR(20),
+    IdTipoInsumo INT NULL,
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL,
+    CONSTRAINT FK_TipoInsumo FOREIGN KEY (IdTipoInsumo)
+        REFERENCES TiposInsumo(Id)
+);
 
 CREATE TABLE Insumos (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -180,48 +168,51 @@ CREATE TABLE Insumos (
     Nombre NVARCHAR(150) NOT NULL,
     Descripcion NVARCHAR(500) NULL,
     UnidadMedida NVARCHAR(50) NULL,
-	MarcaId INT NULL,
-    ProveedorId INT NULL,
-    TipoInsumoId INT NULL,
+	IdMarca INT NULL,
+    IdProveedor INT NULL,
+    IdTipoInsumo INT NULL,
     StockActual DECIMAL(18,2) NULL,
     StockMinimo DECIMAL(18,2) NULL,
-    Estado BIT NOT NULL DEFAULT 1,
+    PrecioActual DECIMAL(18,2) NULL,
+    Activo BIT NOT NULL DEFAULT 1,
+    IdMoneda INT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-	FOREIGN KEY (MarcaId) REFERENCES Marcas(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (ProveedorId) REFERENCES Proveedores(Id) ON DELETE NO ACTION,
+	FOREIGN KEY (IdMarca) REFERENCES Marcas(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdProveedor) REFERENCES Proveedores(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (TipoInsumoId) REFERENCES TiposInsumo(Id) ON DELETE NO ACTION
+    FOREIGN KEY (IdTipoInsumo) REFERENCES TiposInsumo(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
-CREATE TABLE MovimientosInsumo (
+CREATE TABLE Actividades (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
-	ActividadId INT NOT NULL UNIQUE, 
-    InsumoId INT NOT NULL,
-    MonedaId INT NOT NULL,
-    UsuarioId INT NOT NULL,
-    Cantidad DECIMAL(18,2) NOT NULL,
-    CostoUnitario DECIMAL(18,2) NOT NULL,
-    EsEntrada BIT NOT NULL,
+    Fecha DATETIME NOT NULL,
+	Observacion NVARCHAR(max) NULL,
+	Cantidad DECIMAL(18,2) NULL,
+    IdLote INT NOT NULL,
+    IdTipoActividad INT NOT NULL,
+    IdUsuario INT NOT NULL,
+	IdInsumo INT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (ActividadId) REFERENCES Actividades(Id) ON DELETE CASCADE,
-    FOREIGN KEY (InsumoId) REFERENCES Insumos(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (MonedaId) REFERENCES Monedas(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdTipoActividad) REFERENCES TiposActividad(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION,
+	FOREIGN KEY (IdInsumo) REFERENCES Insumos(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE HistoricosPrecioInsumo (
     Id INT IDENTITY(1,1) PRIMARY KEY,
 	IdLicencia INT NOT NULL,
-    InsumoId INT NOT NULL,
-    MonedaId INT NOT NULL,
+    IdInsumo INT NOT NULL,
+    IdMoneda INT NOT NULL,
     Precio DECIMAL(18,2) NOT NULL,
     FechaDesde DATETIME NOT NULL,
     FechaHasta DATETIME NULL,
@@ -230,8 +221,26 @@ CREATE TABLE HistoricosPrecioInsumo (
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (InsumoId) REFERENCES Insumos(Id) ON DELETE CASCADE,
-    FOREIGN KEY (MonedaId) REFERENCES Monedas(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdInsumo) REFERENCES Insumos(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
+
+
+
+
+
+
+
+-- Primero, cambiar a otra base de datos
+USE master;
+GO
+
+-- Cerrar todas las conexiones a la base de datos AgroForm
+ALTER DATABASE AgroForm SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+GO
+
+-- Ahora eliminar la base de datos
+DROP DATABASE AgroForm;
+GO

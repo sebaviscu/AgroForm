@@ -11,10 +11,10 @@ namespace AgroForm.Model
         public string Nombre { get; set; } = string.Empty;
         public decimal? SuperficieHectareas { get; set; }
 
-        public int CampoId { get; set; }
+        public int IdCampo { get; set; }
         public Campo Campo { get; set; } = null!;
 
-        public int CampaniaId { get; set; }
+        public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;
 
         public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();

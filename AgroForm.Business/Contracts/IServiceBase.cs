@@ -14,10 +14,10 @@ namespace AgroForm.Business.Contracts
         Task<OperationResult<List<T>>> GetAllWithDetailsAsync();
         Task<OperationResult<T>> GetByIdAsync(long id);
         Task<OperationResult<T>> GetByIdWithDetailsAsync(long id);
-        Task<OperationResult> CreateAsync(T entity);
-        Task<OperationResult> CreateRangeAsync(List<T> entityList);
-        Task<OperationResult> UpdateAsync(T entity);
-        Task<OperationResult> UpdateRangeAsync(List<T> entityList);
+        Task<OperationResult<T>> CreateAsync(T entity);
+        Task<OperationResult<List<T>>> CreateRangeAsync(List<T> entityList);
+        Task<OperationResult<T>> UpdateAsync(T entity);
+        Task<OperationResult<List<T>>> UpdateRangeAsync(List<T> entityList);
         Task<OperationResult> DeleteAsync(long id);
         Task<OperationResult> DeleteRangeAsync(List<long> ids);
         Task<bool> ExistsAsync(long id);

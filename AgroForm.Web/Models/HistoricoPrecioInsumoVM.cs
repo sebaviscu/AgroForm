@@ -4,9 +4,9 @@ namespace AgroForm.Web.Models
 {
     public class HistoricoPrecioInsumoVM : EntityBaseWithLicenciaVM
     {
-        public int InsumoId { get; set; }
+        public int idInsumo { get; set; }
 
-        public int MonedaId { get; set; }
+        public int idMoneda { get; set; }
 
         public decimal Precio { get; set; }
         public DateTime FechaDesde { get; set; }

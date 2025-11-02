@@ -1,20 +1,54 @@
 ﻿@using AgroForm.Web.Models.IndexVM
 @model ActividadRapidaVM
 
+<style>
+    /* En tu archivo CSS */
+    .select-with-icons option {
+        padding-left: 30px;
+    }
+
+        .select-with-icons option::before {
+            font-family: "bootstrap-icons";
+            content: attr(data-icon);
+            position: absolute;
+            left: 10px;
+        }
+
+    /*     .input-group-text {
+                min-width: 80px;
+            } */
+
+    /* Asegurar que los iconos se vean bien en Select2 */
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #e9ecef;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    /* Ajustar el alto del Select2 para que coincida con otros inputs */
+    .select2-container .select2-selection--single {
+        height: 38px;
+        padding: 6px 12px;
+    }
+</style>
+
 <!-- Modal -->
 <div class="modal fade" id="modalActividadRapida" tabindex="-1" aria-labelledby="modalActividadRapidaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="modalActividadRapidaLabel">
-                    <i class="bi bi-lightning-charge me-2"></i>Actividad Rápida
+                    <i class="ph ph-tractor me-2"></i>Labor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formActividadRapida" method="post">
+            <form id="formActividadRapida" method="post" novalidate>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="fecha" class="form-label">Fecha *</label>
                                 <input type="date" class="form-control" id="fecha" name="Fecha"
@@ -22,14 +56,29 @@
                                 <div class="invalid-feedback">Por favor ingrese la fecha</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <div class="mb-3">
-                                <label for="tipoActividadId" class="form-label">Tipo de Actividad *</label>
-                                <select class="form-select" id="tipoActividadId" name="TipoActividadId" required>
-                                    <option value="">Seleccione un tipo...</option>
+                                <label for="IdLote" class="form-label">Lotes *</label>
+                                <select class="form-select" id="IdLote" name="IdLote" multiple required>
+                                    @foreach (var tipo in Model.Lotes)
+                                    {
+                                        <option value="@tipo.Value">
+                                            @tipo.Text
+                                        </option>
+                                    }
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione al menos un lote</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tipoidActividad" class="form-label">Tipo de Labor *</label>
+                                <select class="form-select" id="tipoidActividad" name="TipoidActividad" required>
                                     @foreach (var tipo in Model.TiposActividad)
                                     {
-                                        <option value="@tipo.Value">@tipo.Text</option>
+                                        <option value="@tipo.Value" data-icono="ph @tipo.Group?.Name">
+                                            @tipo.Text
+                                        </option>
                                     }
                                 </select>
                                 <div class="invalid-feedback">Por favor seleccione un tipo de actividad</div>
@@ -37,34 +86,47 @@
                         </div>
                     </div>
 
-                    <!-- Sección de Insumo (Opcional) - SOLO UNO -->
+                    <!-- Sección de Insumo (Opcional) -->
                     <div class="card mb-3">
                         <div class="card-header bg-light">
                             <h6 class="card-title mb-0">
-                                <i class="bi bi-box-seam me-1"></i>Insumo (Opcional)
+                                <i class="ph ph-package me-1"></i>Insumo
                             </h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-5">
                                     <div class="mb-3">
-                                        <label for="insumoId" class="form-label">Insumo</label>
-                                        <select class="form-select" id="insumoId" name="InsumoId">
-                                            <option value="">Seleccione un insumo (opcional)...</option>
+                                        <label for="idInsumo" class="form-label">Insumo</label>
+                                        <select class="form-select" id="idInsumo" name="idInsumo">
                                             @foreach (var insumo in Model.InsumosDisponibles)
                                             {
-                                                <option value="@insumo.Value">@insumo.Text</option>
+                                                <option value="@insumo.Value" data-unidad="@insumo.Group?.Name">
+                                                    @insumo.Text
+                                                </option>
                                             }
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="cantidad" class="form-label">Cantidad</label>
-                                        <input type="number" class="form-control" id="cantidad"
-                                               name="Cantidad" min="0.01" step="0.01"
-                                               placeholder="Cantidad utilizada">
-                                        <div class="form-text">Deje vacío si no usa insumos</div>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="cantidad"
+                                                   name="Cantidad" min="0.01" step="0.01" disabled>
+                                            <span class="input-group-text text-muted" id="unidadMedidaText">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="costoTotal" class="form-label">Costo</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text text-muted">$</span>
+                                            <input type="number" class="form-control" id="costoTotal"
+                                                   name="Costo" min="0.01" step="0.01"
+                                                   placeholder="Costo">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -80,8 +142,78 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle me-1"></i>Guardar Actividad
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-check-circle me-1"></i>Guardar Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Clima -->
+<div class="modal fade" id="modalClima" tabindex="-1" aria-labelledby="modalClimaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalClimaLabel">
+                    <i class="ph ph-cloud-rain me-2"></i>Registrar Clima
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formClima" method="post" novalidate>
+                <div class="modal-body">
+                    <!-- Selector de Campo (Lote) -->
+                    <div class="row">
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label for="fechaClima" class="form-label">Fecha *</label>
+                                    <input type="date" class="form-control" id="fechaClima" name="Fecha"
+                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                    <div class="invalid-feedback">Por favor ingrese la fecha.</div>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="mb-3">
+                                    <label for="campoClima" class="form-label">Campo *</label>
+                                    <select class="form-select" id="campoClima" name="idCampo" required>
+                                        <option value="" selected disabled>Seleccione un campo...</option>
+                                        <!-- Aquí se cargarán los lotes/campos -->
+                                    </select>
+                                    <div class="invalid-feedback">Por favor seleccione un campo.</div>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Fila para Tipo de Clima y Milímetros -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tipoClima" class="form-label">Tipo *</label>
+                                <select class="form-select" id="tipoClima" name="TipoClima" required>
+                                    <option value="0" selected>Lluvia</option>
+                                    <option value="1">Granizo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="milimetros" class="form-label">Milímetros (mm)</label>
+                                <input type="number" class="form-control" id="milimetros" name="Milimetros" step="0.1" min="0" placeholder="mm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="mb-3">
+                        <label for="observacionesClima" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observacionesClima" name="Observaciones" rows="3" placeholder="Observaciones..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-check-circle me-1"></i>Guardar
                     </button>
                 </div>
             </form>

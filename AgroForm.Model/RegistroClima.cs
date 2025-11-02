@@ -12,8 +12,8 @@ namespace AgroForm.Model
         public DateTime Fecha { get; set; }
         public decimal Milimetros { get; set; }
         public TipoClima TipoClima { get; set; }
-
-        public int LoteId { get; set; }
+        public string? Observaciones { get; set; }
+        public int IdLote { get; set; }
         public Lote Lote { get; set; } = null!;
     }
 }

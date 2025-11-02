@@ -129,4 +129,74 @@
 
     // Inicializar estado al cargar
     initializeSidebar();
+
 });
+
+// ========== FUNCIONES DE UTILIDAD MEJORADAS ==========
+function mostrarConfirmacion(mensaje, titulo = 'Confirmar') {
+    return Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="ph ph-check-circle me-1"></i> Sí, confirmar',
+        cancelButtonText: '<i class="ph ph-x-circle me-1"></i> Cancelar',
+        reverseButtons: true,
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        }
+    });
+}
+
+function mostrarExito(mensaje, titulo = 'Éxito') {
+    Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: 'success',
+        confirmButtonColor: '#198754',
+        confirmButtonText: '<i class="ph ph-check-circle me-1"></i> Aceptar',
+        timer: 2000,
+        timerProgressBar: true
+    });
+}
+
+function mostrarError(mensaje, titulo = 'Error') {
+    Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: 'error',
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: '<i class="ph ph-warning me-1"></i> Entendido'
+    });
+}
+
+function mostrarInfo(mensaje, titulo = 'Información') {
+    Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: 'info',
+        confirmButtonColor: '#0dcaf0',
+        confirmButtonText: '<i class="ph ph-info me-1"></i> Entendido'
+    });
+}
+
+// Función de loading
+function mostrarLoading(mensaje = 'Procesando...') {
+    Swal.fire({
+        title: mensaje,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+
+// Cerrar cualquier SweetAlert abierto
+function cerrarAlertas() {
+    Swal.close();
+}

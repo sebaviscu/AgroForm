@@ -1,7 +1,6 @@
-﻿
-<div class="dashboard-stats">
+﻿<div class="dashboard-stats">
     <h4 class="mb-4">
-        <i class="bi bi-map text-success me-2"></i>Campos y Lotes
+        <i class="ph ph-map text-success me-2"></i>Campos y Lotes
     </h4>
 
     <!-- Selector de Campos -->
@@ -9,296 +8,306 @@
         <label class="form-label fw-semibold">Seleccionar Campo:</label>
         <select id="campoSelector" class="form-select">
             <option value="">Todos los campos</option>
-            <!-- Se llenará dinámicamente -->
         </select>
     </div>
 
-    <!-- Lista de Lotes -->
-    <div class="lotes-container">
-        <div class="list-group list-group-flush" id="lotesList">
-            <!-- Se llenará dinámicamente -->
+    <!-- Loading -->
+    <div id="loadingCamposActividades" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-info" role="status">
+            <span class="visually-hidden">Cargando...</span>
         </div>
+        <small class="text-muted ms-2">Cargando Campos y Lotes...</small>
     </div>
 
-    <!-- Detalles del Lote (se muestra al seleccionar) -->
-    <div id="loteDetalles" class="mt-3" style="display: none;">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h6 class="mb-0" id="loteTitulo">Detalles del Lote</h6>
-                <button type="button" class="btn-close" id="cerrarDetalles"></button>
-            </div>
-            <div class="card-body p-0">
-                <div class="detalles-content" style="max-height: 400px; overflow-y: auto;">
-                    <!-- Contenido dinámico -->
-                    <div id="loteContenido"></div>
-                </div>
-            </div>
-        </div>
+    <!-- Lista de Campos y Lotes -->
+    <div class="campos-lotes-container" id="camposLotesList">
+        <!-- Se llenará dinámicamente -->
     </div>
 </div>
 
+<script>
+        $(document).ready(function() {
+        // Cargar campos en el selector
+        cargarCamposActividades();
 
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            // Datos de ejemplo (reemplazar con llamadas API reales)
-            const campos = [
-                { id: 1, nombre: "Campo Norte", hectáreas: 50 },
-                { id: 2, nombre: "Campo Sur", hectáreas: 35 },
-                { id: 3, nombre: "Campo Este", hectáreas: 42 }
-            ];
+        // Cargar campos y lotes con actividades al iniciar
+        cargarCamposYLotes();
 
-            const lotes = [
-                {
-                    id: 1, campoId: 1, nombre: "Lote A1", hectáreas: 10,
-                    sembrado: "Soja", fechaSiembra: "2024-03-15",
-                    actividades: [
-                        { tipo: "Siembra", fecha: "2024-03-15", estado: "Completada" },
-                        { tipo: "Fertilización", fecha: "2024-03-20", estado: "Completada" },
-                        { tipo: "Riego", fecha: "2024-03-25", estado: "Pendiente" }
-                    ]
-                },
-                {
-                    id: 2, campoId: 1, nombre: "Lote A2", hectáreas: 8,
-                    sembrado: "Maíz", fechaSiembra: "2024-03-10",
-                    actividades: [
-                        { tipo: "Siembra", fecha: "2024-03-10", estado: "Completada" },
-                        { tipo: "Pulverización", fecha: "2024-03-18", estado: "Completada" }
-                    ]
-                },
-                {
-                    id: 3, campoId: 2, nombre: "Lote B1", hectáreas: 12,
-                    sembrado: "Trigo", fechaSiembra: "2024-03-05",
-                    actividades: [
-                        { tipo: "Siembra", fecha: "2024-03-05", estado: "Completada" },
-                        { tipo: "Fertilización", fecha: "2024-03-12", estado: "Completada" },
-                        { tipo: "Monitoreo", fecha: "2024-03-22", estado: "En Progreso" }
-                    ]
-                },
-                {
-                    id: 4, campoId: 3, nombre: "Lote C1", hectáreas: 15,
-                    sembrado: "Girasol", fechaSiembra: "2024-03-08",
-                    actividades: [
-                        { tipo: "Siembra", fecha: "2024-03-08", estado: "Completada" }
-                    ]
-                }
-            ];
-
-            // Llenar selector de campos
-            function cargarCampos() {
-                const selector = $('#campoSelector');
-                selector.empty();
-                selector.append('<option value="">Todos los campos</option>');
-
-                campos.forEach(campo => {
-                    selector.append(`<option value="${campo.id}">${campo.nombre} (${campo.hectáreas} ha)</option>`);
-                });
-            }
-
-            // Llenar lista de lotes
-            function cargarLotes(campoId = '') {
-                const lotesList = $('#lotesList');
-                lotesList.empty();
-
-                let lotesFiltrados = lotes;
-                if (campoId) {
-                    lotesFiltrados = lotes.filter(lote => lote.campoId == campoId);
-                }
-
-                if (lotesFiltrados.length === 0) {
-                    lotesList.append(`
-                        <div class="text-center py-3 text-muted">
-                            <i class="bi bi-inbox display-6"></i>
-                            <p class="mt-2">No hay lotes disponibles</p>
-                        </div>
-                    `);
-                    return;
-                }
-
-                lotesFiltrados.forEach(lote => {
-                    const campo = campos.find(c => c.id === lote.campoId);
-                    const actividadesCount = lote.actividades.length;
-                    const actividadesPendientes = lote.actividades.filter(a => a.estado === 'Pendiente').length;
-
-                    const loteItem = `
-                        <div class="list-group-item px-0 lote-item" data-lote-id="${lote.id}">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">${lote.nombre}</h6>
-                                    <small class="text-muted">
-                                        <i class="bi bi-geo-alt me-1"></i>${campo.nombre}
-                                    </small>
-                                    <div class="mt-1">
-                                        <span class="badge bg-primary me-1">${lote.sembrado}</span>
-                                        <span class="badge bg-secondary">${lote.hectáreas} ha</span>
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted d-block">${actividadesCount} actividades</small>
-                                    ${actividadesPendientes > 0 ?
-                                        `<span class="badge bg-warning">${actividadesPendientes} pendientes</span>` :
-                                        `<span class="badge bg-success">Al día</span>`}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    lotesList.append(loteItem);
-                });
-
-                // Agregar event listeners a los lotes
-                $('.lote-item').click(function() {
-                    const loteId = $(this).data('lote-id');
-                    mostrarDetallesLote(loteId);
-                });
-            }
-
-            // Mostrar detalles del lote
-            function mostrarDetallesLote(loteId) {
-                const lote = lotes.find(l => l.id === loteId);
-                const campo = campos.find(c => c.id === lote.campoId);
-
-                if (!lote) return;
-
-                // Actualizar título
-                $('#loteTitulo').text(`Detalles - ${lote.nombre}`);
-
-                // Construir contenido
-                let contenido = `
-                    <div class="p-3">
-                        <!-- Información básica -->
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <strong>Campo:</strong><br>
-                                <span class="text-muted">${campo.nombre}</span>
-                            </div>
-                            <div class="col-6">
-                                <strong>Hectáreas:</strong><br>
-                                <span class="text-muted">${lote.hectáreas} ha</span>
-                            </div>
-                        </div>
-
-                        <!-- Cultivo sembrado -->
-                        <div class="mb-3">
-                            <strong>Cultivo:</strong><br>
-                            <span class="badge bg-primary">${lote.sembrado}</span>
-                            <small class="text-muted ms-2">Sembrado: ${new Date(lote.fechaSiembra).toLocaleDateString()}</small>
-                        </div>
-
-                        <!-- Actividades -->
-                        <div>
-                            <strong>Actividades:</strong>
-                            <div class="mt-2">
-                `;
-
-                lote.actividades.forEach(actividad => {
-                    const estadoBadge = actividad.estado === 'Completada' ? 'bg-success' :
-                                      actividad.estado === 'En Progreso' ? 'bg-warning' : 'bg-secondary';
-
-                    contenido += `
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div>
-                                <span class="fw-semibold">${actividad.tipo}</span>
-                                <br>
-                                <small class="text-muted">${new Date(actividad.fecha).toLocaleDateString()}</small>
-                            </div>
-                            <span class="badge ${estadoBadge}">${actividad.estado}</span>
-                        </div>
-                    `;
-                });
-
-                contenido += `
-                            </div>
-                        </div>
-
-                        <!-- Acciones rápidas -->
-                        <div class="mt-3 pt-3 border-top">
-                            <div class="btn-group w-100">
-                                <button class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-plus-circle"></i> Nueva Actividad
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-eye"></i> Ver Detalles
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                $('#loteContenido').html(contenido);
-                $('#loteDetalles').show();
-
-                // Scroll suave al panel de detalles
-                $('html, body').animate({
-                    scrollTop: $('#loteDetalles').offset().top - 20
-                }, 500);
-            }
-
-            // Event Listeners
-            $('#campoSelector').change(function() {
-                const campoId = $(this).val();
-                cargarLotes(campoId);
-                $('#loteDetalles').hide(); // Ocultar detalles al cambiar campo
-            });
-
-            $('#cerrarDetalles').click(function() {
-                $('#loteDetalles').hide();
-            });
-
-            // Inicializar
-            cargarCampos();
-            cargarLotes();
+        // Filtrar por campo seleccionado
+        $('#campoSelector').change(function() {
+            filtrarPorCampo($(this).val());
         });
-    </script>
+    });
 
-    <style>
-        .lote-item {
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
+    // Función para cargar campos en el selector
+    function cargarCamposActividades() {
+        $.ajax({
+            url: '@Url.Action("GetAll", "Campo")',
+            type: 'GET',
+            success: function(result) {
+                if (result.success && result.listObject) {
+                    var $selector = $('#campoSelector');
+                    $selector.empty().append('<option value="">Todos los campos</option>');
 
-            .lote-item:hover {
-                background-color: #f8f9fa;
-                border-color: #dee2e6;
-                transform: translateY(-1px);
-            }
-
-            .lote-item.active {
-                background-color: #e3f2fd;
-                border-color: #2196f3;
-            }
-
-        .detalles-content {
-            scrollbar-width: thin;
-            scrollbar-color: #c1c1c1 #f1f1f1;
-        }
-
-            .detalles-content::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            .detalles-content::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 3px;
-            }
-
-            .detalles-content::-webkit-scrollbar-thumb {
-                background: #c1c1c1;
-                border-radius: 3px;
-            }
-
-                .detalles-content::-webkit-scrollbar-thumb:hover {
-                    background: #a8a8a8;
+                    result.listObject.forEach(function(campo) {
+                        $selector.append($('<option>', {
+                            value: campo.id,
+                            text: campo.nombre
+                        }));
+                    });
                 }
+            },
+            error: function(error) {
+                console.error('Error al cargar campos:', error);
+            }
+        });
+    }
 
-        .dashboard-stats {
-            height: 100%;
+    // Función para cargar campos, lotes y actividades
+    function cargarCamposYLotes() {
+        $.ajax({
+            url: '/Campo/GetCamposConLotesYActividades',
+            type: 'GET',
+            success: function(result) {
+                    $('#loadingCamposActividades').hide();
+                if (result.success && result.listObject) {
+                    renderizarCamposYLotes(result.listObject);
+                } else {
+                    $('#camposLotesList').html('<div class="alert alert-warning">No se pudieron cargar los datos</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                    $('#loadingCamposActividades').hide();
+                console.error('Error cargando campos y lotes:', error);
+                $('#camposLotesList').html('<div class="alert alert-danger">Error al cargar los datos</div>');
+            }
+        });
+    }
+
+    // Función para renderizar campos y lotes
+    function renderizarCamposYLotes(campos) {
+        var $container = $('#camposLotesList');
+        $container.empty();
+
+        if (!campos || campos.length === 0) {
+            $container.html('<div class="alert alert-info">No se encontraron campos con actividades</div>');
+            return;
         }
 
-        .lotes-container {
-            min-height: 200px;
-            max-height: 300px;
-            overflow-y: auto;
+        $.each(campos, function(index, campo) {
+            var $campoElement = crearCampoElement(campo);
+            $container.append($campoElement);
+        });
+    }
+
+    // Función para crear elemento de campo
+    function crearCampoElement(campo) {
+        var superficieText = campo.superficieHectareas ?
+            '<small class="text-muted">(' + campo.superficieHectareas + ' ha)</small>' : '';
+
+        var $campoDiv = $('<div>', {
+            class: 'card mb-3 campo-item',
+            'data-campo-id': campo.id
+        });
+
+        var $cardHeader = $('<div>', {
+            class: 'card-header bg-light d-flex justify-content-between align-items-center'
+        }).html(
+            '<h6 class="mb-0">' +
+            '<i class="ph ph-map-pin text-primary me-2"></i>' +
+            campo.nombre +
+            (campo.ubicacion ? ' - ' + campo.ubicacion : '') +
+            ' ' + superficieText +
+            '</h6>' +
+            '<span class="badge bg-secondary">' + (campo.lotes ? campo.lotes.length : 0) + ' lote(s)</span>'
+        );
+
+        var $cardBody = $('<div>', {
+            class: 'card-body p-2'
+        });
+
+        var $lotesList = $('<div>', {
+            class: 'lotes-list'
+        });
+
+        if (campo.lotes && campo.lotes.length > 0) {
+            $.each(campo.lotes, function(index, lote) {
+                var $loteElement = crearLoteElement(lote);
+                $lotesList.append($loteElement);
+            });
+        } else {
+            $lotesList.append(
+                $('<p>', {
+                    class: 'text-muted text-center',
+                    text: 'No hay lotes en este campo'
+                })
+            );
         }
-    </style>
-}
+
+        $cardBody.append($lotesList);
+        $campoDiv.append($cardHeader, $cardBody);
+
+        return $campoDiv;
+    }
+
+    // Función para crear elemento de lote
+    function crearLoteElement(lote) {
+        var superficieText = lote.superficieHectareas ?
+            '<small class="text-muted">(' + lote.superficieHectareas + ' ha)</small>' : '';
+
+        var $loteDiv = $('<div>', {
+            class: 'lote-item border rounded p-2 mb-2'
+        });
+
+        var $loteHeader = $('<div>', {
+            class: 'd-flex justify-content-between align-items-center mb-2'
+        }).html(
+            '<h6 class="mb-0">' +
+            // '<i class="ph ph-square text-success me-2"></i>' +
+            lote.nombre +
+            ' ' + superficieText +
+            '</h6>' +
+            '<span class="badge bg-info">' + (lote.actividades ? lote.actividades.length : 0) + ' actividad(es)</span>'
+        );
+
+        $loteDiv.append($loteHeader);
+
+        if (lote.actividades && lote.actividades.length > 0) {
+            // var $actividadesTitle = $('<h6>', {
+            //     class: 'text-muted mb-2',
+            //     text: 'Actividades:'
+            // });
+
+            var $actividadesList = $('<div>', {
+                class: 'actividades-list'
+            });
+
+            // Ordenar actividades por fecha (más reciente primero)
+            var actividadesOrdenadas = lote.actividades.sort(function(a, b) {
+                return new Date(b.fecha) - new Date(a.fecha);
+            });
+
+            $.each(actividadesOrdenadas, function(index, actividad) {
+                var $actividadElement = crearActividadElement(actividad);
+                $actividadesList.append($actividadElement);
+            });
+
+            // $loteDiv.append($actividadesTitle, $actividadesList);
+            $loteDiv.append($actividadesList);
+        } else {
+            $loteDiv.append(
+                $('<p>', {
+                    class: 'text-muted mb-0',
+                    text: 'No hay actividades registradas'
+                })
+            );
+        }
+
+        return $loteDiv;
+    }
+
+    // Función para crear elemento de actividad
+            function crearActividadElement(actividad) {
+        var fecha = new Date(actividad.fecha).toLocaleDateString();
+        var tieneInsumo = actividad.insumo && actividad.cantidadInsumo;
+        var icono = actividad.iconoTipoActividad || 'ph ph-activity';
+
+        var $actividadDiv = $('<div>', {
+            class: 'actividad-item border-start border-3 border-primary ps-2 py-1 mb-2'
+        });
+
+        var $flexContainer = $('<div>', {
+            class: 'd-flex align-items-start'
+        });
+
+        // Icono
+        var $iconContainer = $('<div>', {
+            class: 'me-2 flex-shrink-0'
+        }).html('<i class="' + icono + ' text-primary"></i>');
+
+        // Contenedor principal del contenido
+        var $contentContainer = $('<div>', {
+            class: 'flex-grow-1'
+        });
+
+        // Fila 1: Tipo de actividad + Insumo
+        var fila1Html = '<div class="d-flex align-items-baseline">' +
+            '<strong class="text-dark me-2">' + (actividad.tipoActividad || 'Actividad') + '</strong>';
+
+        if (tieneInsumo) {
+            fila1Html += '<small class="text-muted">' +
+                actividad.insumo + ': ' + actividad.cantidadInsumo + (actividad.unidadMedida ? ' ' + actividad.unidadMedida : '') +
+                '</small>';
+        }
+
+        fila1Html += '</div>';
+        $contentContainer.append(fila1Html);
+
+        // Fila 2: Responsable y Lote
+        var fila2Html = '<div class="d-flex align-items-center text-muted small mt-1">' +
+            '<span class="text-primary me-2">' + (actividad.registrationUser || 'Sin responsable') + '</span>' +
+            '<span>' + (actividad.lote || 'Sin lote') + '</span>' +
+            '</div>';
+        $contentContainer.append(fila2Html);
+
+        // Fila 3: Observación corta
+        if (actividad.observacionCortada) {
+            var fila3Html = '<div class="actividad-observacion text-muted small mt-1" style="cursor: crosshair;" ' +
+                'data-bs-toggle="tooltip" data-bs-placement="top" title="' + (actividad.observacion || '') + '">' +
+                '- ' + actividad.observacionCortada +
+                '</div>';
+            $contentContainer.append(fila3Html);
+        }
+
+        // Fecha (puede ir en la esquina derecha del header si querés)
+        var $fechaContainer = $('<div>', {
+            class: 'actividad-fecha flex-shrink-0 ms-2 small text-muted'
+        }).text(fecha);
+
+        $flexContainer.append($iconContainer, $contentContainer, $fechaContainer);
+        $actividadDiv.append($flexContainer);
+
+        return $actividadDiv;
+    }
+
+
+    // Función para filtrar por campo
+    function filtrarPorCampo(campoId) {
+        $('.campo-item').each(function() {
+            var $campo = $(this);
+            if (!campoId || $campo.data('campo-id') == campoId) {
+                $campo.show();
+            } else {
+                $campo.hide();
+            }
+        });
+    }
+</script>
+
+<style>
+    .campo-item {
+        transition: all 0.3s ease;
+    }
+
+    .lote-item {
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+    }
+
+        .lote-item:hover {
+            background-color: #e9ecef;
+        }
+
+    .actividad-item {
+        background-color: white;
+        border-radius: 0.25rem;
+    }
+
+        .actividad-item:hover {
+            background-color: #f8f9fa;
+        }
+
+    .badge {
+        font-size: 0.7rem;
+    }
+</style>

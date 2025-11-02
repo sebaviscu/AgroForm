@@ -7,8 +7,11 @@ namespace AgroForm.Web.Models
         public string Nombre { get; set; } = string.Empty;
         public decimal? SuperficieHectareas { get; set; }
 
-        public int CampoId { get; set; }
+        public int idCampo { get; set; }
 
-        public int CampaniaId { get; set; }
+        public int idCampania { get; set; }
+
+        public ICollection<ActividadVM> Actividades { get; set; } = new List<ActividadVM>();
+
     }
 }

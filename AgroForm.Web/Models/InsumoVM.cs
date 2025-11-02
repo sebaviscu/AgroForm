@@ -10,11 +10,11 @@ namespace AgroForm.Web.Models
         public decimal? StockActual { get; set; }
         public decimal? StockMinimo { get; set; }
 
-        public int? MarcaId { get; set; }
+        public int? idMarca { get; set; }
 
-        public int? ProveedorId { get; set; }
+        public int? idProveedor { get; set; }
 
-        public int? TipoInsumoId { get; set; }
+        public int? TipoidInsumo { get; set; }
 
         public bool Estado { get; set; } = true;
     }

@@ -1,4 +1,5 @@
-﻿using static AgroForm.Model.EnumClass;
+﻿using AgroForm.Model;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Models
 {
@@ -8,5 +9,7 @@ namespace AgroForm.Web.Models
         public EstadosCamapaña EstadosCamapaña { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
+        public ICollection<LoteVM> Lotes { get; set; } = new List<LoteVM>();
+        public string EstadoDisplay => EstadosCamapaña.GetDisplayName();
     }
 }

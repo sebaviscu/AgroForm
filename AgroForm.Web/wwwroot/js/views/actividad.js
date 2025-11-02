@@ -6,9 +6,9 @@
         },
         dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
         buttons: [
-            { extend: 'excel', text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel', className: 'btn btn-outline-success btn-sm', title: 'Actividades_' + new Date().toISOString().slice(0, 10) },
-            { extend: 'pdf', text: '<i class="bi bi-file-earmark-pdf me-1"></i>PDF', className: 'btn btn-outline-danger btn-sm', title: 'Actividades_' + new Date().toISOString().slice(0, 10) },
-            { extend: 'print', text: '<i class="bi bi-printer me-1"></i>Imprimir', className: 'btn btn-outline-info btn-sm' }
+            { extend: 'excel', text: '<i class="ph ph-file-xls me-1"></i>Excel', className: 'btn btn-outline-success btn-sm', title: 'Actividades_' + new Date().toISOString().slice(0, 10) },
+            { extend: 'pdf', text: '<i class="ph ph-file-pdf me-1"></i>PDF', className: 'btn btn-outline-danger btn-sm', title: 'Actividades_' + new Date().toISOString().slice(0, 10) },
+            { extend: 'print', text: '<i class="ph ph-printer me-1"></i>Imprimir', className: 'btn btn-outline-info btn-sm' }
         ],
         columnDefs: [
             { orderable: false, targets: [8] },
@@ -23,8 +23,8 @@
 
     // Filtrar por campo
     $('#campoFilter').change(function () {
-        var campoId = $(this).val();
-        filtrarPorCampo(campoId);
+        var idCampo = $(this).val();
+        filtrarPorCampo(idCampo);
     });
 
     // Restablecer filtros
@@ -33,8 +33,8 @@
         filtrarPorCampo(0);
     });
 
-    function filtrarPorCampo(campoId) {
-        $.post('@Url.Action("FiltrarPorCampo","Actividad")', { campoId: campoId })
+    function filtrarPorCampo(idCampo) {
+        $.post('@Url.Action("FiltrarPorCampo","Actividad")', { idCampo: idCampo })
             .done(function (response) {
                 if (response.success) {
                     actualizarDataTable(response.data);
@@ -66,9 +66,9 @@
                     '<span data-order="' + (actividad.costo || 0) + '">' + costo + '</span>',
                     '<span class="badge ' + estadoBadge + '" data-order="' + estadoOrder + '">' + actividad.estado + '</span>',
                     '<div class="btn-group btn-group-sm">' +
-                    '<button type="button" class="btn btn-outline-primary btn-view" data-id="' + actividad.id + '"><i class="bi bi-eye"></i></button>' +
-                    '<button type="button" class="btn btn-outline-secondary btn-edit" data-id="' + actividad.id + '"><i class="bi bi-pencil"></i></button>' +
-                    '<button type="button" class="btn btn-outline-danger btn-delete" data-id="' + actividad.id + '"><i class="bi bi-trash"></i></button>' +
+                    '<button type="button" class="btn btn-outline-primary btn-view" data-id="' + actividad.id + '"><i class="ph ph-eye"></i></button>' +
+                    '<button type="button" class="btn btn-outline-secondary btn-edit" data-id="' + actividad.id + '"><i class="ph ph-pencil"></i></button>' +
+                    '<button type="button" class="btn btn-outline-danger btn-delete" data-id="' + actividad.id + '"><i class="ph ph-trash"></i></button>' +
                     '</div>'
                 ]);
             });

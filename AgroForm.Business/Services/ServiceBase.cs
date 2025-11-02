@@ -17,7 +17,7 @@ namespace AlbaServicios.Services
     {
         protected readonly IDbContextFactory<AppDbContext> _contextFactory;
         protected readonly ILogger<ServiceBase<T>> _logger;
-        private UserAuth UserAuth;
+        protected UserAuth _userAuth;
 
         public ServiceBase(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<T>> logger, IHttpContextAccessor _httpContextAccessor)
         {
@@ -29,10 +29,11 @@ namespace AlbaServicios.Services
             {
                 var claimUser = httpContext.User;
 
-                UserAuth = new UserAuth
+                _userAuth = new UserAuth
                 {
                     UserName = GetClaimValue<string>(claimUser, ClaimTypes.Name),
                     IdLicencia = GetClaimValue<int>(claimUser, "Licencia"),
+                    IdCampaña = GetClaimValue<int>(claimUser, "Campania"),
                     IdUsuario = GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
                     IdRol = GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
                 };
@@ -69,12 +70,15 @@ namespace AlbaServicios.Services
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
-                var list = await context.Set<T>()
-                                        .AsNoTracking()
-                                        .ToListAsync();
 
-                //if (!list.Any())
-                //    return OperationResult<List<T>>.Failure($"No se encontraron registros de {typeof(T).Name}.", "NOT_FOUND");
+                IQueryable<T> query = context.Set<T>().AsNoTracking();
+
+                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
+                }
+
+                var list = await query.ToListAsync();
 
                 return OperationResult<List<T>>.SuccessResult(list);
             }
@@ -85,17 +89,20 @@ namespace AlbaServicios.Services
             }
         }
 
+
         public virtual async Task<OperationResult<List<T>>> GetAllWithDetailsAsync()
         {
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
-                var list = await context.Set<T>()
-                                        .AsNoTracking()
-                                        .ToListAsync();
 
-                //if (!list.Any())
-                //    return OperationResult<List<T>>.Failure($"No se encontraron registros de {typeof(T).Name}.", "NOT_FOUND");
+                IQueryable<T> query = context.Set<T>().AsNoTracking();
+
+                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
+                }
+                var list = await query.ToListAsync();
 
                 return OperationResult<List<T>>.SuccessResult(list);
             }
@@ -136,9 +143,6 @@ namespace AlbaServicios.Services
                                           .AsNoTracking()
                                           .FirstOrDefaultAsync(x => x.Id == id);
 
-                //if (entity == null)
-                //    return OperationResult<T>.Failure($"No se encontró el registro con ID {id}.", "NOT_FOUND");
-
                 return OperationResult<T>.SuccessResult(entity);
             }
             catch (Exception ex)
@@ -148,7 +152,7 @@ namespace AlbaServicios.Services
             }
         }
 
-        public virtual async Task<OperationResult> CreateAsync(T entity)
+        public virtual async Task<OperationResult<T>> CreateAsync(T entity)
         {
             try
             {
@@ -156,25 +160,31 @@ namespace AlbaServicios.Services
 
                 var validationResult = await ValidateAsync(entity);
                 if (!validationResult.Success)
-                    return validationResult;
+                    return OperationResult<T>.Failure(validationResult.ErrorMessage);
+
+                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                    entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
 
                 entity.RegistrationDate = TimeHelper.GetArgentinaTime();
                 entity.ModificationDate = null;
-                entity.RegistrationUser = UserAuth.UserName;
+                entity.RegistrationUser = _userAuth.UserName;
 
                 context.Set<T>().Add(entity);
                 int result = await context.SaveChangesAsync();
 
-                return result > 0 ? OperationResult.SuccessResult() : OperationResult.Failure("No se pudo insertar el registro en la base de datos.", "SAVE_FAILED");
+                if (result > 0)
+                    return OperationResult<T>.SuccessResult(entity);
+
+                return OperationResult<T>.Failure("No se pudo insertar el registro en la base de datos.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al insertar el registro");
-                return OperationResult.Failure($"Ocurrió un problema al insertar el registro: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, $"Error al insertar el registro {typeof(T)}");
+                return OperationResult<T>.Failure($"Ocurrió un problema al insertar el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
-        public virtual async Task<OperationResult> CreateRangeAsync(List<T> entityList)
+        public virtual async Task<OperationResult<List<T>>> CreateRangeAsync(List<T> entityList)
         {
             try
             {
@@ -184,28 +194,33 @@ namespace AlbaServicios.Services
                 {
                     var validationResult = await ValidateAsync(entity);
                     if (!validationResult.Success)
-                        return OperationResult.Failure($"Error de validación en el registro: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
+                        return OperationResult<List<T>>.Failure($"Error de validacion en el registro: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
+
+                    if (entity is EntityBaseWithLicencia entidadConLicencia)
+                        entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
 
                     entity.RegistrationDate = TimeHelper.GetArgentinaTime();
                     entity.ModificationDate = null;
-                    entity.RegistrationUser = UserAuth.UserName;
+                    entity.RegistrationUser = _userAuth.UserName;
                 }
 
                 context.Set<T>().AddRange(entityList);
                 int result = await context.SaveChangesAsync();
 
-                return result == entityList.Count
-                    ? OperationResult.SuccessResult()
-                    : OperationResult.Failure($"Solo se insertaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
+                if (result == entityList.Count)
+                    return OperationResult<List<T>>.SuccessResult(entityList);
+
+                return OperationResult<List<T>>.Failure($"Solo se insertaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al insertar {Count} registros", entityList.Count());
-                return OperationResult.Failure($"Ocurrió un problema al insertar los registros: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al insertar {Count} registros", entityList.Count);
+                return OperationResult<List<T>>.Failure($"Ocurrio un problema al insertar los registros: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
-        public virtual async Task<OperationResult> UpdateAsync(T entity)
+
+        public virtual async Task<OperationResult<T>> UpdateAsync(T entity)
         {
             try
             {
@@ -213,29 +228,35 @@ namespace AlbaServicios.Services
 
                 var original = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == entity.Id);
                 if (original == null)
-                    return OperationResult.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
+                    return OperationResult<T>.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
 
                 var validationResult = await ValidateAsync(entity);
                 if (!validationResult.Success)
-                    return validationResult;
+                    return OperationResult<T>.Failure(validationResult.ErrorMessage, "VALIDATION_ERROR");
 
-                //entity.RegistrationDate = original.RegistrationDate;
-                entity.ModificationDate = TimeHelper.GetArgentinaTime();
-                entity.ModificationUser = UserAuth.UserName;
+                if (entity is EntityBaseWithLicencia entidadConLicencia && original is EntityBaseWithLicencia originalConLicencia)
+                    entidadConLicencia.IdLicencia = originalConLicencia.IdLicencia;
 
                 context.Entry(original).CurrentValues.SetValues(entity);
+
+                original.ModificationDate = TimeHelper.GetArgentinaTime();
+                original.ModificationUser = _userAuth.UserName;
+
                 int result = await context.SaveChangesAsync();
 
-                return result > 0 ? OperationResult.SuccessResult() : OperationResult.Failure("No se pudo actualizar el registro en la base de datos.", "SAVE_FAILED");
+                if (result > 0)
+                    return OperationResult<T>.SuccessResult(original);
+
+                return OperationResult<T>.Failure("No se pudo actualizar el registro en la base de datos.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar el registro con ID {Id}", entity.Id);
-                return OperationResult.Failure($"Ocurrió un problema al actualizar el registro: {ex.Message}", "DATABASE_ERROR");
+                return OperationResult<T>.Failure($"Ocurrio un problema al actualizar el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
-        public virtual async Task<OperationResult> UpdateRangeAsync(List<T> entityList)
+        public virtual async Task<OperationResult<List<T>>> UpdateRangeAsync(List<T> entityList)
         {
             try
             {
@@ -245,28 +266,35 @@ namespace AlbaServicios.Services
                 {
                     var original = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == entity.Id);
                     if (original == null)
-                        return OperationResult.Failure($"El registro con ID {entity.Id} que intenta actualizar no existe.", "NOT_FOUND");
+                        return OperationResult<List<T>>.Failure($"El registro con ID {entity.Id} que intenta actualizar no existe.", "NOT_FOUND");
 
                     var validationResult = await ValidateAsync(entity);
                     if (!validationResult.Success)
-                        return OperationResult.Failure($"Error de validación en el registro con ID {entity.Id}: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
+                        return OperationResult<List<T>>.Failure($"Error de validacion en el registro con ID {entity.Id}: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
 
-                    //entity.RegistrationDate = original.RegistrationDate;
-                    entity.ModificationDate = TimeHelper.GetArgentinaTime();
-                    entity.ModificationUser = UserAuth.UserName;
+                    if (entity is EntityBaseWithLicencia entidadConLicencia && original is EntityBaseWithLicencia originalConLicencia)
+                        entidadConLicencia.IdLicencia = originalConLicencia.IdLicencia;
 
                     context.Entry(original).CurrentValues.SetValues(entity);
+
+                    original.ModificationDate = TimeHelper.GetArgentinaTime();
+                    original.ModificationUser = _userAuth.UserName;
                 }
 
                 int result = await context.SaveChangesAsync();
-                return result == entityList.Count ? OperationResult.SuccessResult() : OperationResult.Failure($"Solo se actualizaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
+
+                if (result == entityList.Count)
+                    return OperationResult<List<T>>.SuccessResult(entityList);
+
+                return OperationResult<List<T>>.Failure($"Solo se actualizaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar {Count} registros", entityList.Count());
-                return OperationResult.Failure($"Ocurrió un problema al actualizar los registros: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al actualizar {Count} registros", entityList.Count);
+                return OperationResult<List<T>>.Failure($"Ocurrio un problema al actualizar los registros: {ex.Message}", "DATABASE_ERROR");
             }
         }
+
 
         public virtual async Task<OperationResult> DeleteAsync(long id)
         {

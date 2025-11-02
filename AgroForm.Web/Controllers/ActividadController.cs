@@ -7,22 +7,22 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore.Scaffolding;
 using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
-    public class ActividadController : BaseController<Actividad, IActividadService>
+    public class ActividadController : BaseController<Actividad, ActividadVM, IActividadService>
     {
         private readonly ICampoService _campoService;
         private readonly ILoteService _loteService;
-        private readonly IMovimientoInsumoService _movimientoInsumoService;
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService, IMovimientoInsumoService movimientoInsumoService)
+
+        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService)
         : base(logger, mapper, service)
         {
             _campoService = campoService;
             _loteService = loteService;
-            _movimientoInsumoService = movimientoInsumoService;
         }
 
 
@@ -71,7 +71,7 @@ namespace AgroForm.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FiltrarPorCampo(int campoId = 0)
+        public async Task<IActionResult> FiltrarPorCampo(int idCampo = 0)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace AgroForm.Web.Controllers
 
                 List<Actividad> actividades;
 
-                if (campoId == 0)
+                if (idCampo == 0)
                 {
                     var result = await _service.GetAllAsync();
                     if (!result.Success)
@@ -90,14 +90,14 @@ namespace AgroForm.Web.Controllers
                 }
                 else
                 {
-                    var lotesResult = await _loteService.GetByCampoIdAsync(campoId);
+                    var lotesResult = await _loteService.GetByidCampoAsync(idCampo);
                     if (!lotesResult.Success)
                     {
                         return Json(new { success = false, message = "Error al obtener lotes del campo" });
                     }
 
                     var lotesIds = lotesResult.Data.Select(l => l.Id).ToList();
-                    actividades = await _service.GetByCampoIdAsync(lotesIds);
+                    actividades = await _service.GetByidCampoAsync(lotesIds);
                 }
 
                 var actividadesVM = Map<List<Actividad>, List<ActividadVM>>(actividades);
@@ -106,136 +106,11 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al filtrar actividades por campo {CampoId}", campoId);
+                _logger.LogError(ex, "Error al filtrar actividades por campo {idCampo}", idCampo);
                 return Json(new { success = false, message = "Error al filtrar actividades" });
             }
         }
 
-        // Endpoint para ver detalles de actividad
-        [HttpGet]
-        public async Task<IActionResult> Detalles(int id)
-        {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
-
-                var result = await _service.GetByIdWithDetailsAsync(id);
-                if (!result.Success)
-                {
-                    return Json(new { success = false, message = "Actividad no encontrada" });
-                }
-
-                var actividadVM = Map<Actividad, ActividadVM>(result.Data);
-                return Json(new { success = true, data = actividadVM });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener detalles de actividad {Id}", id);
-                return Json(new { success = false, message = "Error al cargar detalles" });
-            }
-        }
-
-        // Endpoint para cargar formulario de edición
-        [HttpGet]
-        public async Task<IActionResult> Editar(int id)
-        {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
-
-                var result = await _service.GetByIdWithDetailsAsync(id);
-                if (!result.Success)
-                {
-                    TempData["Error"] = "Actividad no encontrada";
-                    return RedirectToAction("Index");
-                }
-
-                var actividadVM = Map<Actividad, ActividadVM>(result.Data);
-
-                // Cargar datos para dropdowns si es necesario
-                await CargarDatosParaFormulario();
-
-                return View(actividadVM);
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex, "Error al cargar formulario de edición");
-            }
-        }
-
-        // Endpoint para actualizar actividad
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(ActividadVM model)
-        {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
-
-                if (!ModelState.IsValid)
-                {
-                    await CargarDatosParaFormulario();
-                    return View(model);
-                }
-
-                var actividad = Map<ActividadVM, Actividad>(model);
-                var result = await _service.UpdateAsync(actividad);
-
-                if (!result.Success)
-                {
-                    ModelState.AddModelError("", result.ErrorMessage);
-                    await CargarDatosParaFormulario();
-                    return View(model);
-                }
-
-                TempData["Success"] = "Actividad actualizada correctamente";
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex, "Error al actualizar actividad");
-            }
-        }
-
-        // Endpoint para eliminar actividad
-        [HttpPost]
-        public async Task<IActionResult> Eliminar(int id)
-        {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
-
-                var result = await _service.DeleteAsync(id);
-                if (!result.Success)
-                {
-                    return Json(new { success = false, message = result.ErrorMessage });
-                }
-
-                return Json(new { success = true, message = "Actividad eliminada correctamente" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al eliminar actividad {Id}", id);
-                return Json(new { success = false, message = "Error al eliminar actividad" });
-            }
-        }
-
-        // Método auxiliar para cargar datos de formulario
-        private async Task CargarDatosParaFormulario()
-        {
-            var camposResult = await _campoService.GetAllAsync();
-            if (camposResult.Success)
-            {
-                ViewBag.Campos = camposResult.Data.Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.Nombre
-                }).ToList();
-            }
-
-            // Aquí puedes cargar otros datos necesarios para el formulario
-            // como tipos de actividad, responsables, etc.
-        }
 
         [HttpPost]
         public async Task<IActionResult> CrearRapida([FromBody] ActividadRapidaVM model)
@@ -250,49 +125,33 @@ namespace AgroForm.Web.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Mapear a entidad Actividad
-                var actividad = new Actividad
+                var actividades = new List<Actividad>();
+                foreach (var item in model.LotesIds)
                 {
-                    Fecha = model.Fecha,
-                    TipoActividadId = model.TipoActividadId,
-                    Observacion = model.Observacion ?? string.Empty,
-                    Descripcion = "Actividad rápida", // O obtener del tipo de actividad
-                    LoteId = 1, // O el lote por defecto
-                    UsuarioId = user.IdUsuario, // Método para obtener usuario actual
-                    RegistrationDate = DateTime.Now,
-                    RegistrationUser = CurrentUser
-                };
+                    var actividad = new Actividad
+                    {
+                        Fecha = model.Fecha,
+                        IdTipoActividad = model.TipoidActividad,
+                        Observacion = model.Observacion ?? string.Empty,
+                        IdLote = item,
+                        IdUsuario = user.IdUsuario,
+                        Cantidad = model.Cantidad,
+                        IdInsumo = model.idInsumo
+                    };
+
+                    actividades.Add(actividad);
+                }
+
+                if (model.idInsumo.HasValue)
+                {
+                    // actualizar precio
+                }
 
                 // Crear actividad
-                var resultActividad = await _service.CreateAsync(actividad);
+                var resultActividad = await _service.CreateRangeAsync(actividades);
                 if (!resultActividad.Success)
                 {
                     return Json(new { success = false, message = resultActividad.ErrorMessage });
-                }
-
-                // Crear movimientos de insumo si existen
-                if (model.Insumo != null)
-                {
-                        var movimiento = new MovimientoInsumo
-                        {
-                            ActividadId = actividad.Id,
-                            InsumoId = model.Insumo.Id,
-                            Cantidad = model.Cantidad.GetValueOrDefault(),
-                            CostoUnitario = 0, // O obtener costo actual
-                            EsEntrada = false, // Asumimos salida
-                            MonedaId = 1, // Moneda por defecto
-                            UsuarioId = user.IdUsuario,
-                            RegistrationDate = DateTime.Now,
-                            RegistrationUser = CurrentUser
-                        };
-
-                        var resultMovimiento = await _movimientoInsumoService.CreateAsync(movimiento);
-                        if (!resultMovimiento.Success)
-                        {
-                            // Log error pero continuar con otros insumos
-                            _logger.LogWarning("Error al crear movimiento de insumo: {Error}", resultMovimiento.ErrorMessage);
-                        }
-                    
                 }
 
                 return Json(new { success = true, message = "Actividad creada correctamente" });
@@ -302,6 +161,23 @@ namespace AgroForm.Web.Controllers
                 _logger.LogError(ex, "Error al crear actividad rápida");
                 return Json(new { success = false, message = "Error al crear actividad" });
             }
+        }
+
+        [HttpGet]
+        public virtual async Task<IActionResult> GetRecent()
+        {
+            var result = await _service.GetRecentAsync();
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.ListObject = Map<List<Actividad>, List<ActividadVM>>(result.Data);
+            gResponse.Message = "Datos obtenidos correctamente";
+            return Ok(gResponse);
         }
     }
 }

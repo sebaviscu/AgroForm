@@ -13,13 +13,13 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+                        <i class="ph ph-check-circle-fill me-2 fs-4"></i>
                         <span class="fs-5">Sesión iniciada como: <strong>@User.Identity.Name</strong></span>
                     </div>
                 }
             </div>
             <div class="col-md-4 text-center">
-                <i class="bi bi-tree-fill display-1 opacity-75"></i>
+                <i class="ph ph-tree display-1 opacity-75"></i>
             </div>
         </div>
     </div> *@
@@ -30,7 +30,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="bg-success rounded-circle p-3 me-3">
-                        <i class="bi bi-tree text-white fs-4"></i>
+                        <i class="ph ph-tree text-white fs-4"></i>
                     </div>
                     <div>
                         <div class="stat-number">24</div>
@@ -43,7 +43,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="bg-info rounded-circle p-3 me-3">
-                        <i class="bi bi-calendar-check text-white fs-4"></i>
+                        <i class="ph ph-calendar-check text-white fs-4"></i>
                     </div>
                     <div>
                         <div class="stat-number">8</div>
@@ -56,7 +56,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="bg-warning rounded-circle p-3 me-3">
-                        <i class="bi bi-graph-up text-white fs-4"></i>
+                        <i class="ph ph-chart-line-up text-white fs-4"></i>
                     </div>
                     <div>
                         <div class="stat-number">92%</div>
@@ -69,7 +69,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="bg-primary rounded-circle p-3 me-3">
-                        <i class="bi bi-box-seam text-white fs-4"></i>
+                        <i class="ph ph-package text-white fs-4"></i>
                     </div>
                     <div>
                         <div class="stat-number">156</div>
@@ -82,64 +82,19 @@
 
     <!-- Quick Actions -->
     <div class="row">
-
-        @*         <div class="col-md-8">
-            <div class="dashboard-stats">
-                <h4 class="mb-4">
-                    <i class="bi bi-lightning-fill text-warning me-2"></i>Acciones Rápidas
-                </h4>
-                <div class="row g-3">
-                    <div class="col-sm-6 col-md-4">
-                        <a href="#" class="btn btn-outline-primary w-100 h-100 p-3 d-flex flex-column align-items-center">
-                            <i class="bi bi-plus-circle fs-2 mb-2"></i>
-                            <span>Nuevo Cultivo</span>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-md-4">
-                        <a href="#" class="btn btn-outline-success w-100 h-100 p-3 d-flex flex-column align-items-center">
-                            <i class="bi bi-calendar-plus fs-2 mb-2"></i>
-                            <span>Agendar Tarea</span>
-                        </a>
-                    </div>
-                    <div class="col-sm-6 col-md-4">
-                        <a href="#" class="btn btn-outline-info w-100 h-100 p-3 d-flex flex-column align-items-center">
-                            <i class="bi bi-clipboard-data fs-2 mb-2"></i>
-                            <span>Ver Reportes</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
- *@
         <div class="col-md-6">
             @await Component.InvokeAsync("CamposActividades")
         </div>
 
         <div class="col-md-6">
-            <div class="dashboard-stats">
-                <h4 class="mb-4">
-                    <i class="bi bi-clock-history text-info me-2"></i>Actividad Reciente
-                </h4>
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item px-0">
-                        <small class="text-muted">Hace 2 horas</small>
-                        <div>Nuevo cultivo registrado</div>
-                    </div>
-                    <div class="list-group-item px-0">
-                        <small class="text-muted">Hace 5 horas</small>
-                        <div>Riego programado completado</div>
-                    </div>
-                    <div class="list-group-item px-0">
-                        <small class="text-muted">Ayer</small>
-                        <div>Inventario actualizado</div>
-                    </div>
-                </div>
-            </div>
+            @await Component.InvokeAsync("ActividadReciente")
+            @await Component.InvokeAsync("Lluvia")
+
         </div>
 
     </div>
 
-
+@* 
     <div class="row">
 
         <div class="col-md-6">
@@ -149,6 +104,6 @@
         <div class="col-md-6">
             @await Component.InvokeAsync("Insumos")
         </div>
-    </div>
+    </div> *@
 </div>
 
