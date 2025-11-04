@@ -305,3 +305,15 @@
 .nav-tabs .nav-link:not(.active) {
     color: #6c757d;
 }
+
+
+.actividad-icono {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    font-size: 0.875rem;
+}

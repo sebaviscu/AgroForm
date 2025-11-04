@@ -87,17 +87,6 @@
             border-left-color: #0d6efd;
         }
 
-    .actividad-icono {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: #e9ecef;
-        font-size: 0.875rem;
-    }
-
     .actividad-contenido {
         flex: 1;
         min-width: 0; /* Para que el texto no desborde */
@@ -190,7 +179,7 @@
 
                             <!-- Icono -->
                             <div class="actividad-icono me-2 flex-shrink-0">
-                                <i class="ph ${actividad.iconoTipoActividad || 'ph ph-activity'}" style="color: ${actividad.iconoColorTipoActividad || '#000'}"></i>
+                                <i class="ph ${actividad.iconoTipoActividad}" style="color: ${actividad.iconoColorTipoActividad}"></i>
                             </div>
 
                             <!-- Contenido -->

@@ -45,13 +45,14 @@
                 <table id="tblActividades" class="table table-hover table-striped w-100">
                     <thead class="table-light">
                         <tr>
+                            <th>Fecha</th>
                             <th>Tipo</th>
                             <th>Campo</th>
-                            <th>Fecha</th>
+                            <th>Lote</th>
+                            <th>Insumo</th>
                             <th>Descripción</th>
                             <th>Responsable</th>
                             <th>Costo</th>
-                            <th>Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -59,49 +60,34 @@
                         @foreach (var actividad in Model.Actividades)
                         {
                             <tr>
-                                @* <td><span class="badge bg-primary">@actividad.TipoActividad</span></td> *@
-                                <td>@actividad.Campo</td>
                                 <td data-order="@actividad.Fecha.ToString("yyyyMMdd")">
                                     @actividad.Fecha.ToString("dd/MM/yyyy")
                                 </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="actividad-icono me-2 flex-shrink-0">
+                                            <i class="ph @actividad.IconoTipoActividad" style="color: @actividad.IconoColorTipoActividad"></i>
+                                        </div>
+                                        <strong>@actividad.TipoActividad</strong>
+                                    </div>
+                                </td>
+                                <td>@actividad.Campo</td>
+                                <td>@actividad.Lote</td>
+                                <td>@actividad.Insumo</td>
                                 <td>@actividad.Observacion</td>
                                 <td>@actividad.Responsable</td>
                                 <td data-order="@(actividad.Costo ?? 0)">
                                     @if (actividad.Costo.HasValue)
                                     {
-                                        <span class="fw-semibold">$@actividad.Costo.Value.ToString("N2")</span>
+                                        <span class="fw-semibold">$@actividad.Costo.Value.ToString("N0")</span>
                                     }
                                     else
                                     {
                                         <span class="text-muted">-</span>
                                     }
                                 </td>
-                                <td>
-                                    @{
-                                        var estadoBadge = actividad.Estado switch
-                                        {
-                                            "Completada" => "bg-success",
-                                            "En Progreso" => "bg-warning",
-                                            "Pendiente" => "bg-secondary",
-                                            "Cancelada" => "bg-danger",
-                                            _ => "bg-secondary"
-                                        };
-                                        var estadoOrder = actividad.Estado switch
-                                        {
-                                            "Pendiente" => 1,
-                                            "En Progreso" => 2,
-                                            "Completada" => 3,
-                                            "Cancelada" => 4,
-                                            _ => 0
-                                        };
-                                    }
-                                    <span class="badge @estadoBadge" data-order="@estadoOrder">@actividad.Estado</span>
-                                </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary btn-view" data-id="@actividad.Id">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
                                         <button type="button" class="btn btn-outline-secondary btn-edit" data-id="@actividad.Id">
                                             <i class="ph ph-pencil"></i>
                                         </button>

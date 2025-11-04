@@ -49,6 +49,8 @@ namespace AgroForm.Business.Services
             {
                 using var context = await _contextFactory.CreateDbContextAsync();
                 var entities = await context.Set<Actividad>()
+                    .Include(a => a.Insumo)
+                    .Include(a => a.TipoActividad)
                     .Include(a => a.Lote)
                     .ThenInclude(l => l.Campo)
                     .AsNoTracking()

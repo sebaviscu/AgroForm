@@ -74,10 +74,13 @@
                             <div class="mb-3">
                                 <label for="tipoidActividad" class="form-label">Tipo de Labor *</label>
                                 <select class="form-select" id="tipoidActividad" name="TipoidActividad" required>
-                                    @foreach (var tipo in Model.TiposActividad)
+                                    @foreach (var tipo in Model.TiposActividadCompletos)
                                     {
-                                        <option value="@tipo.Value" data-icono="ph @tipo.Group?.Name">
-                                            @tipo.Text
+                                        <option value="@tipo.Id"
+                                                data-icono="@tipo.IconoTipoActividad"
+                                                data-icono-color="@tipo.IconoColorTipoActividad"
+                                                data-tipo-insumo="@tipo.IdTipoInsumo">
+                                            @tipo.TipoActividad
                                         </option>
                                     }
                                 </select>
@@ -99,12 +102,6 @@
                                     <div class="mb-3">
                                         <label for="idInsumo" class="form-label">Insumo</label>
                                         <select class="form-select" id="idInsumo" name="idInsumo">
-                                            @foreach (var insumo in Model.InsumosDisponibles)
-                                            {
-                                                <option value="@insumo.Value" data-unidad="@insumo.Group?.Name">
-                                                    @insumo.Text
-                                                </option>
-                                            }
                                         </select>
                                     </div>
                                 </div>

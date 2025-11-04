@@ -211,6 +211,7 @@
         var fecha = new Date(actividad.fecha).toLocaleDateString();
         var tieneInsumo = actividad.insumo && actividad.cantidadInsumo;
         var icono = actividad.iconoTipoActividad || 'ph ph-activity';
+        var colorIcono = actividad.iconoColorTipoActividad;
 
         var $actividadDiv = $('<div>', {
             class: 'actividad-item border-start border-3 border-primary ps-2 py-1 mb-2'
@@ -223,7 +224,7 @@
         // Icono
         var $iconContainer = $('<div>', {
             class: 'me-2 flex-shrink-0'
-        }).html('<i class="' + icono + ' text-primary"></i>');
+        }).html('<div class="actividad-icono me-2 flex-shrink-0"> <i class="ph ' + icono + '" style="color:' + colorIcono + '"></i> </div>');
 
         // Contenedor principal del contenido
         var $contentContainer = $('<div>', {
@@ -243,21 +244,14 @@
         fila1Html += '</div>';
         $contentContainer.append(fila1Html);
 
-        // Fila 2: Responsable y Lote
+        // Fila 2: Responsable y Observación
         var fila2Html = '<div class="d-flex align-items-center text-muted small mt-1">' +
             '<span class="text-primary me-2">' + (actividad.registrationUser || 'Sin responsable') + '</span>' +
-            '<span>' + (actividad.lote || 'Sin lote') + '</span>' +
+            (actividad.observacion ?
+                '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + actividad.observacion + '"> - ' + (actividad.observacionCortada || actividad.observacion) + '</span>' :
+                '') +
             '</div>';
         $contentContainer.append(fila2Html);
-
-        // Fila 3: Observación corta
-        if (actividad.observacionCortada) {
-            var fila3Html = '<div class="actividad-observacion text-muted small mt-1" style="cursor: crosshair;" ' +
-                'data-bs-toggle="tooltip" data-bs-placement="top" title="' + (actividad.observacion || '') + '">' +
-                '- ' + actividad.observacionCortada +
-                '</div>';
-            $contentContainer.append(fila3Html);
-        }
 
         // Fecha (puede ir en la esquina derecha del header si querés)
         var $fechaContainer = $('<div>', {

@@ -33,7 +33,7 @@ namespace AgroForm.Web.Controllers
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
                 var campos = await _campoService.GetAllAsync();
-                var actividades = await _service.GetAllAsync();
+                var actividades = await _service.GetAllWithDetailsAsync();
 
                 if (!actividades.Success)
                 {

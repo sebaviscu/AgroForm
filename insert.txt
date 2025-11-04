@@ -111,17 +111,6 @@ VALUES
 ('Lino', 'Variedad para fibra y aceite', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 350.00, GETDATE(), 'System'); 
 
 
-INSERT INTO TiposActividad (Nombre, Icono)
-VALUES
-('Siembra', 'ph-leaf'),
-('Pulverizacion', 'ph-spray-bottle'),
-('Fertilizado', 'ph-test-tube'),
-('Riego', 'ph-drop'),
-('Monitoreo', 'ph-magnifying-glass'),
-('Cosecha', 'ph-wheat'),
-('Analisis de suelo', 'ph-wheat'),
-('Otras labores', 'ph-wrench');
-
 INSERT INTO TiposActividad (Nombre, Icono, ColorIcono, IdTipoInsumo)
 VALUES
 ('Analisis de suelo', 'ph-flask', '#607D8B', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
@@ -130,5 +119,5 @@ VALUES
 ('Fertilizado', 'ph-test-tube', '#9C27B0', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes')),
 ('Riego', 'ph-drop', '#03A9F4', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
 ('Monitoreo', 'ph-magnifying-glass', '#795548', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
-('Cosecha', 'ph-wheat', '#FFC107', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
+('Cosecha', 'ph-grains', '#FFC107', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
 ('Otras labores', 'ph-wrench', '#9E9E9E', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'));

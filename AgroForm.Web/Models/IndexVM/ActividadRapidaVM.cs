@@ -22,8 +22,7 @@ namespace AgroForm.Web.Models.IndexVM
         public decimal? Cantidad { get; set; }
         public int? idInsumo { get; set; }
 
-        // Para llenar los dropdowns
-        public List<SelectListItem>? TiposActividad { get; set; }
-        public List<SelectListItem>? InsumosDisponibles { get; set; }
+        public List<ActividadVM>? TiposActividadCompletos { get; set; } // Nueva propiedad
+
     }
 }

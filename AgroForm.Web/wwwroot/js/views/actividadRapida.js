@@ -6,10 +6,9 @@
     var loteSelect = $('#IdLote');
     var tipoActividadSelect = $('#tipoidActividad');
 
-
     function cargarCamposParaClima() {
         $.ajax({
-            url: '/Campo/GetAll', // Ajusta la URL según tu endpoint
+            url: '/Campo/GetAll',
             type: 'GET',
             success: function (result) {
                 if (result.success) {
@@ -51,7 +50,6 @@
     $('#formClima').on('submit', function (e) {
         e.preventDefault();
 
-        // Validar campo
         if (!$('#campoClima').val()) {
             $('#campoClima').addClass('is-invalid');
             return;
@@ -70,7 +68,6 @@
             $('#milimetros').removeClass('is-invalid');
         }
 
-        // Recopilar datos
         var data = {
             IdCampo: parseInt($('#campoClima').val()),
             TipoClima: parseInt($('#tipoClima').val()),
@@ -79,7 +76,6 @@
             Observaciones: $('#observacionesClima').val(),
         };
 
-        // Enviar datos
         var submitBtn = $('#formClima').find('button[type="submit"]');
         var originalText = submitBtn.html();
         submitBtn.html('<i class="ph ph-hourglass me-1"></i>Guardando...').prop('disabled', true);
@@ -120,8 +116,7 @@
         $('#campoClima').removeClass('is-invalid');
     });
 
-
-    // Inicializar Select2 para tipo de actividad
+    // Inicializar Select2 para tipo de actividad CON FILTRO DE INSUMOS
     function inicializarSelectConIconos() {
         if ($('#tipoidActividad').hasClass('select2-hidden-accessible')) {
             $('#tipoidActividad').select2('destroy');
@@ -134,9 +129,14 @@
             templateResult: function (option) {
                 if (!option.id) return option.text;
                 var icono = $(option.element).data('icono');
+                var iconoColor = $(option.element).data('icono-color') || '#000';
+
                 if (icono) {
                     var $span = $('<span></span>');
-                    $span.append($('<i></i>', { class: icono + ' me-2' }));
+                    $span.append($('<i></i>', {
+                        class:'ph '+ icono + ' me-2',
+                        style: 'color: ' + iconoColor
+                    }));
                     $span.append(option.text);
                     return $span;
                 }
@@ -144,9 +144,14 @@
             },
             templateSelection: function (option) {
                 var icono = $(option.element).data('icono');
+                var iconoColor = $(option.element).data('icono-color') || '#000';
+
                 if (icono && option.id) {
                     var $span = $('<span></span>');
-                    $span.append($('<i></i>', { class: icono + ' me-2' }));
+                    $span.append($('<i></i>', {
+                        class: 'ph ' + icono + ' me-2',
+                        style: 'color: ' + iconoColor
+                    }));
                     $span.append(option.text);
                     return $span;
                 }
@@ -158,8 +163,12 @@
             allowClear: false
         });
 
+        // Evento para filtrar insumos cuando cambia el tipo de actividad
+        tipoActividadSelect.on('change', function () {
+            var idTipoInsumo = $(this).find('option:selected').data('tipo-insumo');
+            filtrarInsumosPorTipo(idTipoInsumo);
+        });
 
-        // Forzar que no haya opción seleccionada
         tipoActividadSelect.val(null).trigger('change');
     }
 
@@ -178,20 +187,94 @@
         });
     }
 
+    // NUEVA FUNCIÓN: Cargar todos los insumos
+    function cargarTodosLosInsumos() {
+        $.ajax({
+            url: '/Insumo/GetAll',
+            type: 'GET',
+            success: function (result) {
+                if (result.success && result.listObject) {
+                    actualizarSelectInsumo(result.listObject);
+                } else {
+                    console.error('Error cargando insumos:', result.message);
+                    actualizarSelectInsumo([]);
+                }
+            },
+            error: function (error) {
+                console.error('Error cargando insumos:', error);
+                actualizarSelectInsumo([]);
+            }
+        });
+    }
+
+    // NUEVA FUNCIÓN: Filtrar insumos por tipo
+    function filtrarInsumosPorTipo(idTipoInsumo) {
+        $.ajax({
+            url: '/Insumo/GetByTipoInsumo',
+            type: 'GET',
+            data: { idTipoInsumo: idTipoInsumo },
+            success: function (result) {
+                if (result.success && result.listObject) {
+                    actualizarSelectInsumo(result.listObject);
+                } else {
+                    console.error('Error filtrando insumos:', result.message);
+                    actualizarSelectInsumo([]);
+                }
+            },
+            error: function (error) {
+                console.error('Error filtrando insumos:', error);
+                actualizarSelectInsumo([]);
+            }
+        });
+    }
+
+    // NUEVA FUNCIÓN: Actualizar select de insumos
+    function actualizarSelectInsumo(insumosData) {
+        // Destruir select2 actual
+        if (insumoSelect.hasClass('select2-hidden-accessible')) {
+            insumoSelect.select2('destroy');
+        }
+
+        // Limpiar opciones
+        insumoSelect.empty();
+
+        // Agregar placeholder
+        insumoSelect.append($('<option>', {
+            value: '',
+            text: 'Seleccione un insumo...'
+        }));
+
+        // Agregar insumos
+        $.each(insumosData, function (index, insumo) {
+            insumoSelect.append($('<option>', {
+                value: insumo.id,
+                text: insumo.descripcion,
+                'data-unidad': insumo.unidadMedida
+            }));
+        });
+
+        // Re-inicializar select2
+        insumoSelect.select2({
+            dropdownParent: $('#modalActividadRapida'),
+            placeholder: 'Seleccione un insumo...',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Limpiar selección y resetear campos relacionados
+        insumoSelect.val(null).trigger('change');
+        cantidadInput.val('').prop('disabled', true);
+        unidadMedidaText.text('-').addClass('text-muted');
+    }
+
+    // MODIFICADA: Inicializar Select de Insumo
     function inicializarSelectInsumo() {
         if ($('#idInsumo').hasClass('select2-hidden-accessible')) {
             $('#idInsumo').select2('destroy');
         }
 
-        insumoSelect.select2({
-            dropdownParent: $('#modalActividadRapida'),
-            placeholder: 'Seleccione un insumo...',
-            allowClear: true,
-            width: '100%',
-            data: [] 
-        });
-
-        insumoSelect.val(null).trigger('change');
+        // Cargar todos los insumos inicialmente
+        cargarTodosLosInsumos();
     }
 
     insumoSelect.on('change', function () {
@@ -232,7 +315,7 @@
 
         // Validar campos requeridos
         var fechaVal = $('#fecha').val();
-        var lotesVal = loteSelect.val(); // Ahora es un array
+        var lotesVal = loteSelect.val();
         var tipoActividadVal = tipoActividadSelect.val();
 
         if (!fechaVal) {
@@ -243,7 +326,6 @@
             $('#fecha').removeClass('is-invalid');
         }
 
-        // Validar que se haya seleccionado al menos un lote
         if (!lotesVal || lotesVal.length === 0) {
             loteSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
             e.stopPropagation();
@@ -301,11 +383,9 @@
     });
 
     function guardarActividad() {
-
         var insumoVal = insumoSelect.val();
         var idInsumo = null;
 
-        // Manejar diferentes casos del valor
         if (insumoVal && insumoVal !== "" && insumoVal !== "0") {
             idInsumo = parseInt(insumoVal);
         }
@@ -347,7 +427,6 @@
                     mostrarMensaje('Actividad creada correctamente', 'success');
                     $('#modalActividadRapida').modal('hide');
 
-                    // Recargar la página después de un tiempo
                     setTimeout(function () {
                         window.location.reload();
                     }, 500);

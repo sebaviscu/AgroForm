@@ -14,7 +14,7 @@ namespace AgroForm.Web.Models
 
         public int? idProveedor { get; set; }
 
-        public int? TipoidInsumo { get; set; }
+        public int? IdTipoInsumo { get; set; }
 
         public bool Estado { get; set; } = true;
     }
