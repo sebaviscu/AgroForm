@@ -27,6 +27,9 @@ namespace AgroForm.Web.Components
             //var insumos = await _insumoService.GetAllAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
 
+            var analisisSuelo = tiposActividad.Data.First(_ => _.Nombre == "Analisis de suelo");
+            analisisSuelo.Nombre = "AnalisisSuelo";
+
             var vm = new ActividadRapidaVM
             {
                 Fecha = DateTime.Now,
@@ -36,28 +39,7 @@ namespace AgroForm.Web.Components
                     Text = $"[{t.Campo.Nombre.ToUpper()}] {t.Nombre}"
                 }).ToList() ?? new List<SelectListItem>(),
 
-                //TiposActividad = tiposActividad.Data?.Select(t => new SelectListItem
-                //{
-                //    Value = t.Id.ToString(),
-                //    Text = t.Nombre,
-                //    Group = new SelectListGroup { Name = t.Icono }
-                //}).ToList() ?? new List<SelectListItem>(),
-
-                //InsumosDisponibles = insumos.Data?.OrderBy(_ => _.Nombre).Select(i => new SelectListItem
-                //{
-                //    Value = i.Id.ToString(),
-                //    Text = i.Nombre,
-                //    Group = new SelectListGroup { Name = i.UnidadMedida ?? "" }
-                //}).ToList() ?? new List<SelectListItem>(),
-
-                //InsumosDisponiblesCompleto = insumos.Data?.Select(i => new InsumoVM
-                //{
-                //    Id = i.Id,
-                //    Nombre = i.Nombre,
-                //    UnidadMedida = i.UnidadMedida,
-                //    IdTipoInsumo = i.IdTipoInsumo
-                //}).ToList() ?? new List<InsumoVM>(),
-
+               
                 TiposActividadCompletos = tiposActividad.Data?.Select(t => new ActividadVM
                 {
                     Id = t.Id,

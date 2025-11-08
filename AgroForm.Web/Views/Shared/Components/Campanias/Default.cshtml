@@ -7,7 +7,7 @@
         <i class="ph ph-calendar me-2"></i>
         <span id="campañaActualText">
             @{
-                var campañaActual = Model?.FirstOrDefault(c => c.EstadosCamapaña == EnumClass.EstadosCamapaña.EnCurso);
+                var campañaActual = Model?.FirstOrDefault(c => c.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso);
                 var texto = campañaActual?.Nombre ?? "Seleccionar Campaña";
             }
             @texto
@@ -19,13 +19,13 @@
             foreach (var campaña in Model)
             {
                 <li>
-                    <a class="dropdown-item d-flex justify-content-between align-items-center campaña-item @(campaña.EstadosCamapaña == EnumClass.EstadosCamapaña.EnCurso ? "active" : "")"
+                    <a class="dropdown-item d-flex justify-content-between align-items-center campaña-item @(campaña.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso ? "active" : "")"
                        href="#" data-campaña-id="@campaña.Id">
                         <div>
                             <div class="fw-semibold">@campaña.Nombre</div>
                             <small class="text-muted">@campaña.FechaInicio.ToShortDateString()</small>
                         </div>
-                        @if (campaña.EstadosCamapaña == EnumClass.EstadosCamapaña.EnCurso)
+                        @if (campaña.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso)
                         {
                             <i class="ph ph-check-circle-fill text-primary"></i>
                         }

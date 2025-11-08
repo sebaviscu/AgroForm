@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgroForm.Model.Actividades;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,16 @@ namespace AgroForm.Model
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;
 
-        public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
-        public ICollection<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
+        public List<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
+               
+        public List<Siembra> Siembras { get; set; } = new();
+        public List<Riego> Riegos { get; set; } = new();
+        public List<Fertilizacion> Fertilizaciones { get; set; } = new();
+        public List<Pulverizacion> Pulverizaciones { get; set; } = new();
+        public List<Monitoreo> Monitoreos { get; set; } = new();
+        public List<AnalisisSuelo> AnalisisSuelos { get; set; } = new();
+        public List<Cosecha> Cosechas { get; set; } = new();
+        public List<OtraLabor> OtrasLabores { get; set; } = new();
+
     }
 }

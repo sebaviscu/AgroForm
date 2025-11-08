@@ -1,73 +1,83 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
+using AgroForm.Model.Configuracion;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
+using AgroForm.Web.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Scaffolding;
+using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
-    public class ActividadController : BaseController<Actividad, ActividadVM, IActividadService>
+    public class ActividadController : Controller
     {
         private readonly ICampoService _campoService;
         private readonly ILoteService _loteService;
+        protected readonly ILogger<ActividadController> _logger;
+        protected readonly IMapper _mapper;
+        protected readonly IActividadService _service;
+        protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService)
-        : base(logger, mapper, service)
+        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service)
         {
-            _campoService = campoService;
-            _loteService = loteService;
+            _logger = logger;
+            _mapper = mapper;
+            _service = service;
         }
 
 
-        public async Task<IActionResult> Index()
+        //public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
+            return View();
+            //try
+            //{
+            //    ValidarAutorizacion(new[] { Roles.Administrador });
 
-                var campos = await _campoService.GetAllAsync();
-                var actividades = await _service.GetAllWithDetailsAsync();
+            //    var campos = await _campoService.GetAllAsync();
+            //    var actividades = await _service.GetAllWithDetailsAsync();
 
-                if (!actividades.Success)
-                {
-                    return BadRequest(actividades.ErrorMessage);
-                }
+            //    if (!actividades.Success)
+            //    {
+            //        return BadRequest(actividades.ErrorMessage);
+            //    }
 
-                if (!campos.Success)
-                {
-                    return BadRequest(campos.ErrorMessage);
-                }
+            //    if (!campos.Success)
+            //    {
+            //        return BadRequest(campos.ErrorMessage);
+            //    }
 
-                var vm = new ActividadesIndexVM
-                {
-                    Campos = campos.Data.Select(c => new SelectListItem
-                    {
-                        Value = c.Id.ToString(),
-                        Text = c.Nombre
-                    }).ToList(),
-                    Actividades = Map<List<Actividad>, List<ActividadVM>>(actividades.Data)
-                };
+            //    var vm = new ActividadesIndexVM
+            //    {
+            //        Campos = campos.Data.Select(c => new SelectListItem
+            //        {
+            //            Value = c.Id.ToString(),
+            //            Text = c.Nombre
+            //        }).ToList(),
+            //        Actividades = Map<List<Actividad>, List<ActividadVM>>(actividades.Data)
+            //    };
 
-                // Agregar opción "TODOS"
-                vm.Campos.Insert(0, new SelectListItem { Value = "0", Text = "TODOS", Selected = true });
+            //    // Agregar opción "TODOS"
+            //    vm.Campos.Insert(0, new SelectListItem { Value = "0", Text = "TODOS", Selected = true });
 
-                return View(vm);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return RedirectToAction("Login", "Access");
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex, "Error al cargar actividades");
-            }
+            //    return View(vm);
+            //}
+            //catch (UnauthorizedAccessException)
+            //{
+            //    return RedirectToAction("Login", "Access");
+            //}
+            //catch (Exception ex)
+            //{
+            //    return HandleException(ex, "Error al cargar actividades");
+            //}
         }
 
         [HttpPost]
@@ -77,32 +87,34 @@ namespace AgroForm.Web.Controllers
             {
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
-                List<Actividad> actividades;
+                //List<Actividad> actividades;
 
-                if (idCampo == 0)
-                {
-                    var result = await _service.GetAllAsync();
-                    if (!result.Success)
-                    {
-                        return Json(new { success = false, message = "Error al obtener actividades" });
-                    }
-                    actividades = result.Data;
-                }
-                else
-                {
-                    var lotesResult = await _loteService.GetByidCampoAsync(idCampo);
-                    if (!lotesResult.Success)
-                    {
-                        return Json(new { success = false, message = "Error al obtener lotes del campo" });
-                    }
+                //if (idCampo == 0)
+                //{
+                //    var result = await _service.GetAllAsync();
+                //    if (!result.Success)
+                //    {
+                //        return Json(new { success = false, message = "Error al obtener actividades" });
+                //    }
+                //    actividades = result.Data;
+                //}
+                //else
+                //{
+                //    var lotesResult = await _loteService.GetByidCampoAsync(idCampo);
+                //    if (!lotesResult.Success)
+                //    {
+                //        return Json(new { success = false, message = "Error al obtener lotes del campo" });
+                //    }
 
-                    var lotesIds = lotesResult.Data.Select(l => l.Id).ToList();
-                    actividades = await _service.GetByidCampoAsync(lotesIds);
-                }
+                //    var lotesIds = lotesResult.Data.Select(l => l.Id).ToList();
+                //    actividades = await _service.GetByidCampoAsync(lotesIds);
+                //}
 
-                var actividadesVM = Map<List<Actividad>, List<ActividadVM>>(actividades);
+                //var actividadesVM = Map<List<Actividad>, List<ActividadVM>>(actividades);
 
-                return Json(new { success = true, data = actividadesVM });
+                //return Json(new { success = true, data = actividadesVM });
+
+                return default;
             }
             catch (Exception ex)
             {
@@ -125,34 +137,164 @@ namespace AgroForm.Web.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                var actividades = new List<Actividad>();
-                foreach (var item in model.LotesIds)
+                var actividades = new List<ILabor>();
+
+                foreach (var loteId in model.LotesIds)
                 {
-                    var actividad = new Actividad
+                    ILabor actividad = null;
+
+                    switch (model.TipoActividad?.ToLower())
                     {
-                        Fecha = model.Fecha,
-                        IdTipoActividad = model.TipoidActividad,
-                        Observacion = model.Observacion ?? string.Empty,
-                        IdLote = item,
-                        IdUsuario = user.IdUsuario,
-                        Cantidad = model.Cantidad,
-                        IdInsumo = model.idInsumo
-                    };
+                        case "siembra":
+                            actividad = new Siembra
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                SuperficieHa = model.DatosEspecificos?.SuperficieHa ?? 0,
+                                DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa ?? 0,
+                                Costo = model.DatosEspecificos?.Costo ?? model.Costo,
+                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? 0,
+                                IdVariedad = model.DatosEspecificos?.IdVariedad,
+                                IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra ?? 0
+                            };
+                            break;
+
+                        case "riego":
+                            actividad = new Riego
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                HorasRiego = model.DatosEspecificos?.HorasRiego ?? 0,
+                                VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3 ?? 0,
+                                IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego ?? 0,
+                                IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua,
+                                Costo = model.DatosEspecificos?.Costo
+                            };
+                            break;
+
+                        case "fertilizado":
+                            actividad = new Fertilizacion
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                CantidadKgHa = model.DatosEspecificos?.CantidadKgHa ?? 0,
+                                DosisKgHa = model.DatosEspecificos?.DosisKgHa ?? 0,
+                                Costo = model.DatosEspecificos?.Costo ?? model.Costo,
+                                IdNutriente = model.DatosEspecificos?.IdNutriente ?? 0,
+                                IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante ?? 0,
+                                IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion ?? 0
+                            };
+                            break;
+
+                        case "pulverizacion":
+                            actividad = new Pulverizacion
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa ?? 0,
+                                Dosis = model.DatosEspecificos?.Dosis ?? 0,
+                                CondicionesClimaticas = model.DatosEspecificos?.CondicionesClimaticas ?? string.Empty,
+                                IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico ?? 0,
+                                Costo = model.DatosEspecificos?.Costo
+                            };
+                            break;
+
+                        case "monitoreo":
+                            actividad = new Monitoreo
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo ?? 0,
+                                IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico
+                            };
+                            break;
+
+                        case "analisissuelo":
+                            actividad = new AnalisisSuelo
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                ProfundidadCm = model.DatosEspecificos?.ProfundidadCm,
+                                PH = model.DatosEspecificos?.PH,
+                                MateriaOrganica = model.DatosEspecificos?.MateriaOrganica,
+                                Nitrogeno = model.DatosEspecificos?.Nitrogeno,
+                                Fosforo = model.DatosEspecificos?.Fosforo,
+                                Potasio = model.DatosEspecificos?.Potasio,
+                                ConductividadElectrica = model.DatosEspecificos?.ConductividadElectrica,
+                                CIC = model.DatosEspecificos?.CIC,
+                                Textura = model.DatosEspecificos?.Textura ?? string.Empty,
+                                IdLaboratorio = model.DatosEspecificos?.IdLaboratorio
+                            };
+                            break;
+
+                        case "cosecha":
+                            actividad = new Cosecha
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario,
+                                RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa ?? 0,
+                                HumedadGrano = model.DatosEspecificos?.HumedadGrano ?? 0,
+                                SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa ?? 0,
+                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? 0
+                            };
+                            break;
+
+                        case "otras labores":
+                            actividad = new OtraLabor
+                            {
+                                Fecha = model.Fecha,
+                                IdTipoActividad = model.TipoidActividad,
+                                Observacion = model.Observacion ?? string.Empty,
+                                IdLote = loteId,
+                                IdUsuario = user.IdUsuario
+                            };
+                            break;
+                    }
+
+                    actividad.IdCampania = user.IdCampaña;
+                    actividad.RegistrationDate = TimeHelper.GetArgentinaTime();
+                    actividad.RegistrationUser = user.UserName;
+                    actividad.IdLicencia = user.IdLicencia;
 
                     actividades.Add(actividad);
                 }
 
-                if (model.idInsumo.HasValue)
+                await _service.SaveActividadAsync(actividades);
+
+                // Actualizar stock de insumo si se usó
+                if (model.idInsumo.HasValue && model.Cantidad.HasValue)
                 {
-                    // actualizar precio
+                    // Aquí llamarías a tu servicio para actualizar el stock
+                    // await _insumoService.ActualizarStock(model.idInsumo.Value, -model.Cantidad.Value);
                 }
 
-                // Crear actividad
-                var resultActividad = await _service.CreateRangeAsync(actividades);
-                if (!resultActividad.Success)
-                {
-                    return Json(new { success = false, message = resultActividad.ErrorMessage });
-                }
+                // Crear actividades
+                //var resultActividad = await _service.CreateRangeAsync(actividades);
+                //if (!resultActividad.Success)
+                //{
+                //    return Json(new { success = false, message = resultActividad.ErrorMessage });
+                //}
 
                 return Json(new { success = true, message = "Actividad creada correctamente" });
             }
@@ -166,7 +308,12 @@ namespace AgroForm.Web.Controllers
         [HttpGet]
         public virtual async Task<IActionResult> GetRecent()
         {
-            var result = await _service.GetRecentAsync();
+            var user = ValidarAutorizacion();
+
+            var gResponse = new GenericResponse<LaborDTO>();
+
+            var result = await _service.GetLaboresByAsync(user.IdCampaña);
+
             if (!result.Success)
             {
                 gResponse.Success = false;
@@ -175,9 +322,48 @@ namespace AgroForm.Web.Controllers
             }
 
             gResponse.Success = true;
-            gResponse.ListObject = Map<List<Actividad>, List<ActividadVM>>(result.Data);
+            gResponse.ListObject = result.Data;
             gResponse.Message = "Datos obtenidos correctamente";
             return Ok(gResponse);
         }
+
+
+        protected UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
+        {
+            if (!HttpContext.User.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("El usuario no esta autenticado");
+
+            var claimUser = HttpContext.User;
+
+            var userName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name) ?? string.Empty;
+
+            var userAuth = new UserAuth
+            {
+                UserName = userName,
+                IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
+                IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
+                IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
+                IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
+            };
+
+            if (rolesPermitidos != null)
+            {
+                userAuth.Result = rolesPermitidos.Contains((Roles)userAuth.IdRol);
+
+                if (!userAuth.Result)
+                {
+                    var controller = ControllerContext.ActionDescriptor.ControllerName;
+                    var action = ControllerContext.ActionDescriptor.ActionName;
+                    var fullUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+
+                    _logger.LogError($"Acceso denegado: Usuario {userName} intento acceder a {controller}/{action} ({fullUrl})");
+
+                    throw new AccessViolationException($" * * * * {userName} USUARIO CON PERMISOS INSUFICIENTES * * * * ");
+                }
+            }
+
+            return userAuth;
+        }
+
     }
 }

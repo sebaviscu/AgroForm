@@ -29,7 +29,6 @@ INSERT INTO TiposInsumo (Nombre, RegistrationDate, RegistrationUser)
 VALUES 
 ('Fertilizantes', GETDATE(), 'System'),
 ('Plaguicidas', GETDATE(), 'System'),
-('Semillas', GETDATE(), 'System'),
 ('Herbicidas', GETDATE(), 'System'),
 ('Sustratos', GETDATE(), 'System'),
 ('Equipamiento', GETDATE(), 'System'),
@@ -121,3 +120,357 @@ VALUES
 ('Monitoreo', 'ph-magnifying-glass', '#795548', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
 ('Cosecha', 'ph-grains', '#FFC107', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
 ('Otras labores', 'ph-wrench', '#9E9E9E', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'));
+
+
+-- Insertar Cultivos (sin IDs explícitos y sin Descripcion)
+INSERT INTO Cultivos (Nombre, Orden, Activo, RegistrationDate) VALUES
+('SOJA', 1, 1, GETDATE()),
+('MAÍZ', 2, 1, GETDATE()),
+('TRIGO', 3, 1, GETDATE()),
+('SORGO', 4, 1, GETDATE()),
+('GIRASOL', 5, 1, GETDATE()),
+('MIJO', 6, 1, GETDATE()),
+('LINO', 7, 1, GETDATE()),
+('AVENA', 8, 1, GETDATE()),
+('ARROZ', 9, 1, GETDATE()),
+('CEBADA', 10, 1, GETDATE()),
+('GARBANZO', 11, 1, GETDATE()),
+('COLZA', 12, 1, GETDATE()),
+('ALGODÓN', 13, 1, GETDATE()),
+('CHÍA', 14, 1, GETDATE()),
+('MANÍ', 15, 1, GETDATE()),
+('POROTO', 16, 1, GETDATE()),
+('ARVEJA', 17, 1, GETDATE()),
+('LENTEJA', 18, 1, GETDATE()),
+('QUINOA', 19, 1, GETDATE()),
+('ALPISTE', 20, 1, GETDATE()),
+('SESAMO', 21, 1, GETDATE()),
+('CÁRTAMO', 22, 1, GETDATE()),
+('CORIANDRO', 23, 1, GETDATE()),
+('CARINATA', 24, 1, GETDATE()),
+('CAMELINA', 25, 1, GETDATE()),
+('CENTENO', 26, 1, GETDATE());
+
+-- Insertar Variedades con descripciones
+INSERT INTO Variedades (IdCultivo, Nombre, Descripcion, Tipo, Activo, RegistrationDate) VALUES
+-- SOJA
+(1, 'SOJA', 'Variedad principal de soja para producción de grano', 0, 1, GETDATE()),
+(1, 'ACEITE DE SOJA', 'Subproducto obtenido del procesamiento de soja', 1, 1, GETDATE()),
+(1, 'PELLET SOJA', 'Subproducto peletizado para alimentación animal', 1, 1, GETDATE()),
+(1, 'HARINA DE SOJA', 'Harina proteica para alimentación animal', 1, 1, GETDATE()),
+(1, 'HARINA SOJA HI PRO', 'Harina de soja con alto contenido proteico', 1, 1, GETDATE()),
+
+-- MAÍZ
+(2, 'MAÍZ', 'Variedad principal de maíz para grano', 0, 1, GETDATE()),
+(2, 'MAÍZ FLINT', 'Maíz de tipo flint para usos específicos', 0, 1, GETDATE()),
+(2, 'MAÍZ PISINGALLO', 'Maíz pisingallo para pochoclo', 0, 1, GETDATE()),
+(2, 'DESCARTE MAIZ PISINGALLO', 'Descarte de maíz pisingallo para otros usos', 2, 1, GETDATE()),
+
+-- TRIGO
+(3, 'TRIGO', 'Variedad principal de trigo pan', 0, 1, GETDATE()),
+(3, 'TRIGO CANDEAL', 'Trigo candeal para pastas y sémolas', 0, 1, GETDATE()),
+(3, 'AFRECHILLO DE TRIGO', 'Subproducto de la molinería de trigo', 1, 1, GETDATE()),
+
+-- SORGO
+(4, 'SORGO', 'Variedad principal de sorgo granífero', 0, 1, GETDATE()),
+
+-- GIRASOL
+(5, 'GIRASOL', 'Variedad principal de girasol', 0, 1, GETDATE()),
+(5, 'GIRASOL DE ALTO GRADO OLEICO', 'Girasol con alto contenido de ácido oleico', 0, 1, GETDATE()),
+(5, 'GIRASOL CONFITERO', 'Girasol para consumo directo como confitería', 0, 1, GETDATE()),
+(5, 'PELLET GIRASOL', 'Subproducto peletizado de girasol', 1, 1, GETDATE()),
+(5, 'DESCARTE GIRASOL CONFITERO', 'Descarte de girasol confitero', 2, 1, GETDATE()),
+
+-- MIJO
+(6, 'MIJO', 'Variedad principal de mijo', 0, 1, GETDATE()),
+
+-- LINO
+(7, 'LINO', 'Variedad principal de lino oleaginoso', 0, 1, GETDATE()),
+
+-- AVENA
+(8, 'AVENA', 'Variedad principal de avena', 0, 1, GETDATE()),
+
+-- ARROZ
+(9, 'ARROZ CÁSCARA', 'Arroz con cáscara para procesamiento', 0, 1, GETDATE()),
+(9, 'ARROZ CÁSCARA LARGO ANCHO', 'Arroz largo ancho con cáscara', 0, 1, GETDATE()),
+
+-- CEBADA
+(10, 'CEBADA FORRAJERA', 'Cebada para uso forrajero', 0, 1, GETDATE()),
+(10, 'CEBADA CERVECERA', 'Cebada para producción de cerveza', 0, 1, GETDATE()),
+
+-- GARBANZO
+(11, 'GARBANZO', 'Variedad principal de garbanzo', 0, 1, GETDATE()),
+(11, 'GARBANZO PARTIDO', 'Garbanzo partido para consumo', 0, 1, GETDATE()),
+(11, 'DESCARTE GARBANZO', 'Descarte de garbanzo para otros usos', 2, 1, GETDATE()),
+
+-- COLZA
+(12, 'COLZA', 'Variedad principal de colza', 0, 1, GETDATE()),
+(12, 'COLZA CANOLA', 'Colza tipo canola con bajo ácido erúcico', 0, 1, GETDATE()),
+
+-- ALGODÓN
+(13, 'ALGODÓN', 'Variedad principal de algodón', 0, 1, GETDATE()),
+
+-- CHÍA
+(14, 'CHÍA', 'Variedad principal de chía', 0, 1, GETDATE()),
+
+-- MANÍ
+(15, 'MANÍ', 'Variedad principal de maní', 0, 1, GETDATE()),
+(15, 'MANÍ PARTIDO', 'Maní partido para consumo', 0, 1, GETDATE()),
+
+-- POROTO
+(16, 'POROTO BLANCO NATURAL OVAL Y ALUBIA', 'Poroto blanco natural tipo oval y alubia', 0, 1, GETDATE()),
+(16, 'POROTO DISTINTO DEL BLANCO OVAL Y ALUBIA', 'Poroto de otros colores diferentes al blanco', 0, 1, GETDATE()),
+(16, 'POROTO PALLAR', 'Poroto pallar de grano grande', 0, 1, GETDATE()),
+(16, 'POROTO CRANBERRY', 'Poroto cranberry con manchas rojas', 0, 1, GETDATE()),
+(16, 'POROTO COLORADO OSCURO', 'Poroto colorado de tono oscuro', 0, 1, GETDATE()),
+(16, 'POROTO COLORADO CLARO', 'Poroto colorado de tono claro', 0, 1, GETDATE()),
+(16, 'POROTO MUNG', 'Poroto mung para brotes', 0, 1, GETDATE()),
+(16, 'POROTO NEGRO', 'Poroto negro para consumo', 0, 1, GETDATE()),
+(16, 'POROTO NAVY', 'Poroto navy blanco pequeño', 0, 1, GETDATE()),
+(16, 'POROTO ALUBIA', 'Poroto alubia blanco', 0, 1, GETDATE()),
+(16, 'DESCARTE POROTO ALUBIA', 'Descarte de poroto alubia', 2, 1, GETDATE()),
+(16, 'DESCARTE POROTO NEGRO', 'Descarte de poroto negro', 2, 1, GETDATE()),
+(16, 'DESCARTE POROTO CRANBERRY', 'Descarte de poroto cranberry', 2, 1, GETDATE()),
+(16, 'DESCARTE POROTO COLORADO CLARO', 'Descarte de poroto colorado claro', 2, 1, GETDATE()),
+(16, 'DESCARTE POROTO COLORADO OSCURO', 'Descarte de poroto colorado oscuro', 2, 1, GETDATE()),
+
+-- ARVEJA
+(17, 'ARVEJA AMARILLA', 'Arveja amarilla para consumo', 0, 1, GETDATE()),
+(17, 'ARVEJA VERDE', 'Arveja verde para consumo fresco', 0, 1, GETDATE()),
+(17, 'ARVEJA AMARILLA PARTIDA', 'Arveja amarilla partida para sopas', 0, 1, GETDATE()),
+(17, 'ARVEJA VERDE PARTIDA', 'Arveja verde partida para consumo', 0, 1, GETDATE()),
+(17, 'DESCARTE ARVEJA AMARILLA', 'Descarte de arveja amarilla', 2, 1, GETDATE()),
+(17, 'DESCARTE ARVEJA VERDE', 'Descarte de arveja verde', 2, 1, GETDATE()),
+
+-- LENTEJA
+(18, 'LENTEJA', 'Variedad principal de lenteja', 0, 1, GETDATE()),
+(18, 'DESCARTE LENTEJA', 'Descarte de lenteja para otros usos', 2, 1, GETDATE()),
+
+-- QUINOA
+(19, 'QUINOA', 'Variedad principal de quinoa', 0, 1, GETDATE()),
+(19, 'DESCARTE QUINOA', 'Descarte de quinoa para alimentación animal', 2, 1, GETDATE()),
+
+-- ALPISTE
+(20, 'ALPISTE', 'Variedad principal de alpiste', 0, 1, GETDATE()),
+(20, 'DESCARTE ALPISTE', 'Descarte de alpiste para otros usos', 2, 1, GETDATE()),
+
+-- SESAMO
+(21, 'SESAMO', 'Variedad principal de sésamo', 0, 1, GETDATE()),
+(21, 'DESCARTE SESAMO', 'Descarte de sésamo para aceite', 2, 1, GETDATE()),
+
+-- CÁRTAMO
+(22, 'CÁRTAMO', 'Variedad principal de cártamo', 0, 1, GETDATE()),
+(22, 'CÁRTAMO ALTO OLEICO', 'Cártamo con alto contenido de ácido oleico', 0, 1, GETDATE()),
+
+-- CORIANDRO
+(23, 'CORIANDRO', 'Variedad principal de coriandro', 0, 1, GETDATE()),
+(23, 'DESCARTE CORIANDRO', 'Descarte de coriandro para especias', 2, 1, GETDATE()),
+
+-- CARINATA
+(24, 'CARINATA', 'Variedad principal de carinata para biocombustibles', 0, 1, GETDATE()),
+
+-- CAMELINA
+(25, 'CAMELINA', 'Variedad principal de camelina', 0, 1, GETDATE()),
+
+-- CENTENO
+(26, 'CENTENO', 'Variedad principal de centeno', 0, 1, GETDATE()),
+(26, 'DESCARTE CENTENO', 'Descarte de centeno para forraje', 2, 1, GETDATE());
+
+
+-- Insertar Estados Fenológicos
+INSERT INTO EstadosFenologicos (IdCultivo, Codigo, Nombre, Descripcion, Activo, RegistrationDate) VALUES
+-- GARBANZO (IdCultivo = 11)
+(11, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(11, 'V2', 'Desarrollo vegetativo', 'Inicio del crecimiento de ramas.', 1, GETDATE()),
+(11, 'R1', 'Inicio de floración', 'Primera flor abierta.', 1, GETDATE()),
+(11, 'R3', 'Formación de vaina', 'Aparición de las primeras vainas.', 1, GETDATE()),
+(11, 'R6', 'Madurez fisiológica', 'Semillas completamente desarrolladas.', 1, GETDATE()),
+
+-- COLZA (IdCultivo = 12)
+(12, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(12, 'R1', 'Roseta', 'Formación de hojas basales.', 1, GETDATE()),
+(12, 'B', 'Botonamiento', 'Inicio de elongación del tallo.', 1, GETDATE()),
+(12, 'F', 'Floración', 'Flores abiertas.', 1, GETDATE()),
+(12, 'M', 'Madurez', 'Síliquas secas y semillas duras.', 1, GETDATE()),
+
+-- ALGODÓN (IdCultivo = 13)
+(13, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(13, 'V6', 'Desarrollo vegetativo', 'Planta con ramas fructíferas.', 1, GETDATE()),
+(13, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(13, 'B', 'Formación de cápsulas', 'Cápsulas visibles en las ramas.', 1, GETDATE()),
+(13, 'M', 'Madurez', 'Cápsulas abiertas con fibra visible.', 1, GETDATE()),
+
+-- CHÍA (IdCultivo = 14)
+(14, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(14, 'V4', 'Desarrollo vegetativo', 'Crecimiento de hojas y ramas.', 1, GETDATE()),
+(14, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(14, 'M', 'Madurez', 'Semillas oscuras y duras.', 1, GETDATE()),
+
+-- MANÍ (IdCultivo = 15)
+(15, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(15, 'V3', 'Desarrollo vegetativo', 'Formación de ramas.', 1, GETDATE()),
+(15, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(15, 'G', 'Clavado', 'Inicio de penetración de ginecóforos al suelo.', 1, GETDATE()),
+(15, 'M', 'Madurez', 'Vainas secas y semillas maduras.', 1, GETDATE()),
+
+-- POROTO (IdCultivo = 16)
+(16, 'E', 'Emergencia', 'Aparición de los cotiledones.', 1, GETDATE()),
+(16, 'V2', 'Desarrollo vegetativo', 'Desarrollo de hojas y ramas.', 1, GETDATE()),
+(16, 'R1', 'Floración', 'Primera flor abierta.', 1, GETDATE()),
+(16, 'R3', 'Llenado de grano', 'Desarrollo de las vainas.', 1, GETDATE()),
+(16, 'R6', 'Madurez', 'Vainas secas, semillas duras.', 1, GETDATE()),
+
+-- ARVEJA (IdCultivo = 17)
+(17, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(17, 'V4', 'Desarrollo vegetativo', 'Desarrollo de tallos y hojas.', 1, GETDATE()),
+(17, 'R1', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(17, 'R3', 'Formación de vaina', 'Primeras vainas visibles.', 1, GETDATE()),
+(17, 'R6', 'Madurez fisiológica', 'Semillas maduras.', 1, GETDATE()),
+
+-- LENTEJA (IdCultivo = 18)
+(18, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(18, 'V2', 'Desarrollo vegetativo', 'Inicio de ramificación.', 1, GETDATE()),
+(18, 'R1', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(18, 'R3', 'Formación de vaina', 'Primeras vainas formadas.', 1, GETDATE()),
+(18, 'R6', 'Madurez', 'Vainas secas y semillas maduras.', 1, GETDATE()),
+
+-- QUINOA (IdCultivo = 19)
+(19, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(19, 'V4', 'Desarrollo vegetativo', 'Crecimiento de hojas y tallos.', 1, GETDATE()),
+(19, 'B', 'Botonamiento', 'Inicio de diferenciación floral.', 1, GETDATE()),
+(19, 'F', 'Floración', 'Apertura de flores.', 1, GETDATE()),
+(19, 'M', 'Madurez', 'Granos duros y secos.', 1, GETDATE()),
+
+-- ALPISTE (IdCultivo = 20)
+(20, 'Z10', 'Emergencia', 'Plántula emerge.', 1, GETDATE()),
+(20, 'Z21', 'Macollaje', 'Inicio del macollaje.', 1, GETDATE()),
+(20, 'Z31', 'Encañado', 'Primer nudo visible.', 1, GETDATE()),
+(20, 'Z51', 'Espigazón', 'Inicio de espigazón.', 1, GETDATE()),
+(20, 'Z85', 'Madurez', 'Grano duro y seco.', 1, GETDATE()),
+
+-- SESAMO (IdCultivo = 21)
+(21, 'E', 'Emergencia', 'Plántula emerge.', 1, GETDATE()),
+(21, 'V4', 'Desarrollo vegetativo', 'Desarrollo de hojas y ramas.', 1, GETDATE()),
+(21, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(21, 'M', 'Madurez', 'Cápsulas secas y semillas maduras.', 1, GETDATE()),
+
+-- CÁRTAMO (IdCultivo = 22)
+(22, 'E', 'Emergencia', 'Plántula emerge.', 1, GETDATE()),
+(22, 'R1', 'Roseta', 'Formación de hojas basales.', 1, GETDATE()),
+(22, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(22, 'M', 'Madurez', 'Cabezas secas, semillas duras.', 1, GETDATE()),
+
+-- CORIANDRO (IdCultivo = 23)
+(23, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(23, 'V3', 'Desarrollo vegetativo', 'Desarrollo de hojas compuestas.', 1, GETDATE()),
+(23, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(23, 'M', 'Madurez', 'Umbelas secas y semillas duras.', 1, GETDATE()),
+
+-- CARINATA (IdCultivo = 24)
+(24, 'E', 'Emergencia', 'Plántula emerge.', 1, GETDATE()),
+(24, 'R1', 'Roseta', 'Formación de hojas basales.', 1, GETDATE()),
+(24, 'B', 'Botonamiento', 'Inicio de elongación del tallo.', 1, GETDATE()),
+(24, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(24, 'M', 'Madurez', 'Síliquas secas.', 1, GETDATE()),
+
+-- CAMELINA (IdCultivo = 25)
+(25, 'E', 'Emergencia', 'Plántula emerge del suelo.', 1, GETDATE()),
+(25, 'V6', 'Desarrollo vegetativo', 'Crecimiento de hojas.', 1, GETDATE()),
+(25, 'F', 'Floración', 'Inicio de floración.', 1, GETDATE()),
+(25, 'M', 'Madurez', 'Frutos secos, semillas maduras.', 1, GETDATE()),
+
+-- CENTENO (IdCultivo = 26)
+(26, 'Z10', 'Emergencia', 'Plántula emerge.', 1, GETDATE()),
+(26, 'Z21', 'Macollaje', 'Inicio del macollaje.', 1, GETDATE()),
+(26, 'Z31', 'Encañado', 'Primer nudo visible.', 1, GETDATE()),
+(26, 'Z51', 'Espigazón', 'Inicio de espigazón.', 1, GETDATE()),
+(26, 'Z85', 'Madurez', 'Grano duro.', 1, GETDATE());
+
+
+INSERT INTO Catalogos (Tipo, Nombre, Descripcion, Activo, RegistrationDate, RegistrationUser)
+VALUES
+
+-- Plagas
+(10, 'Oruga Cogollera', 'Spodoptera frugiperda, ataca maíz y sorgo', 1, GETDATE(), 'admin'),
+(10, 'Chinche verde', 'Nezara viridula, afecta soja y maíz', 1, GETDATE(), 'admin'),
+(10, 'Trips', 'Pequeños insectos que succionan savia', 1, GETDATE(), 'admin'),
+(10, 'Barrenador del tallo', 'Ataca maíz y caña de azúcar', 1, GETDATE(), 'admin'),
+(10, 'Gusano blanco', 'Larva del escarabajo que daña raíces', 1, GETDATE(), 'admin'),
+(10, 'Minador de hojas', 'Crea galerías dentro de las hojas', 1, GETDATE(), 'admin'),
+(10, 'Pulgón amarillo del sorgo', 'Melanaphis sacchari, afecta hojas', 1, GETDATE(), 'admin'),
+(10, 'Mosca blanca', 'Transmite virosis en cultivos hortícolas', 1, GETDATE(), 'admin'),
+(10, 'Pulgón del sorgo', 'Insecto que afecta hojas y tallos', 1, GETDATE(), 'admin'),
+
+-- Malezas
+(11, 'Amaranthus palmeri', 'Maleza resistente a herbicidas', 1, GETDATE(), 'admin'),
+(11, 'Conyza bonariensis', 'Rama negra, resistente a herbicidas', 1, GETDATE(), 'admin'),
+(11, 'Sorghum halepense', 'Sorgo de Alepo, perenne invasiva', 1, GETDATE(), 'admin'),
+(11, 'Echinochloa colona', 'Pasto cuaresma, frecuente en arroz', 1, GETDATE(), 'admin'),
+(11, 'Lolium multiflorum', 'Raigrás anual resistente', 1, GETDATE(), 'admin'),
+(11, 'Digitaria sanguinalis', 'Pasto cuaresma, de ciclo anual', 1, GETDATE(), 'admin'),
+(11, 'Bidens pilosa', 'Picapica, maleza de hoja ancha', 1, GETDATE(), 'admin'),
+(11, 'Chenopodium album', 'Quinoa silvestre, común en barbechos', 1, GETDATE(), 'admin'),
+
+-- Enfermedades
+(12, 'Roya del trigo', 'Puccinia triticina, causa manchas anaranjadas', 1, GETDATE(), 'admin'),
+(12, 'Tizón del maíz', 'Exserohilum turcicum, afecta hojas', 1, GETDATE(), 'admin'),
+(12, 'Mancha ojo de rana', 'Cercospora sojina en soja', 1, GETDATE(), 'admin'),
+(12, 'Cancro del tallo', 'Diaporthe phaseolorum, afecta tallos de soja', 1, GETDATE(), 'admin'),
+(12, 'Podredumbre gris', 'Botrytis cinerea en hortalizas', 1, GETDATE(), 'admin'),
+(12, 'Mildiu', 'Plasmopara viticola, afecta hojas de vid', 1, GETDATE(), 'admin'),
+(12, 'Fusariosis', 'Fusarium spp., afecta raíces y tallos', 1, GETDATE(), 'admin'),
+(12, 'Antracnosis', 'Colletotrichum spp., provoca lesiones en hojas', 1, GETDATE(), 'admin'),
+
+-- Tipo de fertilizante
+(20, 'Granulado', 'Fertilizante sólido granulado', 1, GETDATE(), 'admin'),
+(20, 'Líquido', 'Fertilizante soluble en agua', 1, GETDATE(), 'admin'),
+(20, 'Foliar', 'Aplicación directa sobre hojas', 1, GETDATE(), 'admin'),
+(20, 'Orgánico', 'Proveniente de compost, estiércol o residuos', 1, GETDATE(), 'admin'),
+(20, 'Químico', 'Fertilizante sintético con nutrientes concentrados', 1, GETDATE(), 'admin'),
+(20, 'Control liberación lenta', 'Libera nutrientes progresivamente', 1, GETDATE(), 'admin'),
+(20, 'Microgranulado', 'Fertilizante fino de rápida disolución', 1, GETDATE(), 'admin'),
+
+-- Nutrientes
+(21, 'Nitrógeno (N)', 'Estimula crecimiento vegetativo', 1, GETDATE(), 'admin'),
+(21, 'Fósforo (P)', 'Favorece desarrollo radicular', 1, GETDATE(), 'admin'),
+(21, 'Potasio (K)', 'Aumenta resistencia a enfermedades', 1, GETDATE(), 'admin'),
+(21, 'Azufre (S)', 'Participa en síntesis de proteínas', 1, GETDATE(), 'admin'),
+(21, 'Calcio (Ca)', 'Fortalece estructura celular', 1, GETDATE(), 'admin'),
+(21, 'Magnesio (Mg)', 'Componente central de la clorofila', 1, GETDATE(), 'admin'),
+(21, 'Zinc (Zn)', 'Interviene en formación de hormonas de crecimiento', 1, GETDATE(), 'admin'),
+(21, 'Hierro (Fe)', 'Necesario para la fotosíntesis', 1, GETDATE(), 'admin'),
+(21, 'Boro (B)', 'Favorece floración y fructificación', 1, GETDATE(), 'admin'),
+
+-- Productos agroquímicos
+(22, 'Glifosato', 'Herbicida sistémico no selectivo', 1, GETDATE(), 'admin'),
+(22, 'Atrazina', 'Herbicida selectivo para maíz', 1, GETDATE(), 'admin'),
+(22, '2,4-D', 'Herbicida hormonal postemergente', 1, GETDATE(), 'admin'),
+(22, 'Clorpirifos', 'Insecticida de amplio espectro', 1, GETDATE(), 'admin'),
+(22, 'Lambda cihalotrina', 'Insecticida piretroide', 1, GETDATE(), 'admin'),
+(22, 'Azoxistrobina', 'Fungicida preventivo', 1, GETDATE(), 'admin'),
+(22, 'Tebuconazole', 'Fungicida triazol', 1, GETDATE(), 'admin'),
+(22, 'Imidacloprid', 'Insecticida neonicotinoide', 1, GETDATE(), 'admin'),
+(22, 'Paraquat', 'Herbicida de contacto', 1, GETDATE(), 'admin'),
+
+
+(30, 'Siembra directa', 'Método sin laboreo previo del suelo', 1, GETDATE(), 'admin'),
+(30, 'Siembra convencional', 'Labranza previa antes de la siembra', 1, GETDATE(), 'admin'),
+
+(31, 'Riego por goteo', 'Ahorra agua y nutrientes', 1, GETDATE(), 'admin'),
+(31, 'Riego por aspersión', 'Método de riego mediante rociadores', 1, GETDATE(), 'admin'),
+(32, 'Aplicación terrestre', 'Uso de maquinaria agrícola terrestre', 1, GETDATE(), 'admin'),
+(32, 'Aplicación aérea', 'Uso de avión o dron para aplicar insumos', 1, GETDATE(), 'admin'),
+
+
+(40, 'Tractor', 'Tractor', 1, GETDATE(), 'admin'),
+(40, 'Pulverizadora', 'Pulverizadora', 1, GETDATE(), 'admin'),
+(40, 'Sembradora', 'Sembradora', 1, GETDATE(), 'admin'),
+(40, 'Cosechadora', 'Cosechadora', 1, GETDATE(), 'admin'),
+(40, 'Rastra de discos', 'Rastra de arrastre para laboreo', 1, GETDATE(), 'admin'),
+
+
+(41, 'Pozo profundo', 'Fuente de agua subterránea', 1, GETDATE(), 'admin'),
+(41, 'Represa', 'Depósito de agua superficial', 1, GETDATE(), 'admin'),
+
+-- Otros
+(99, 'Otro tipo de registro', 'Elemento no clasificado', 1, GETDATE(), 'admin');

@@ -27,10 +27,10 @@
 
 <script>
         $(document).ready(function() {
-        // Cargar campos en el selector
+
         cargarCamposActividades();
 
-        // Cargar campos y lotes con actividades al iniciar
+
         cargarCamposYLotes();
 
         // Filtrar por campo seleccionado
@@ -203,13 +203,22 @@
             );
         }
 
+        inicializarPopovers();
+
         return $loteDiv;
     }
 
+    
+    function inicializarPopovers() {
+
+        // Inicializa todos los popovers nuevamente
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        [...popoverTriggerList].map(el => new bootstrap.Popover(el));
+    }
+
     // Función para crear elemento de actividad
-            function crearActividadElement(actividad) {
+    function crearActividadElement(actividad) {
         var fecha = new Date(actividad.fecha).toLocaleDateString();
-        var tieneInsumo = actividad.insumo && actividad.cantidadInsumo;
         var icono = actividad.iconoTipoActividad || 'ph ph-activity';
         var colorIcono = actividad.iconoColorTipoActividad;
 
@@ -235,23 +244,40 @@
         var fila1Html = '<div class="d-flex align-items-baseline">' +
             '<strong class="text-dark me-2">' + (actividad.tipoActividad || 'Actividad') + '</strong>';
 
-        if (tieneInsumo) {
-            fila1Html += '<small class="text-muted">' +
-                actividad.insumo + ': ' + actividad.cantidadInsumo + (actividad.unidadMedida ? ' ' + actividad.unidadMedida : '') +
-                '</small>';
-        }
+
+        fila1Html += `<div class="actividad-insumo text-muted small">
+                            <i class="ph ph-eye ms-1"
+                                role="button"
+                                tabindex="0"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="focus"
+                                data-bs-html="true"
+                                title="Detalle de la labor"
+                                data-bs-content="${
+                                    actividad.detalle
+                                        ? actividad.detalle.replace(/\n/g, '<br>') +
+                                            (actividad.observacion
+                                                ? '<br><br><strong>Observacion:</strong> ' + actividad.observacion
+                                                : '')
+                                        : actividad.observacion
+                                            ? '<strong>Observacion:</strong> ' + actividad.observacion
+                                            : 'Sin detalle disponible'
+                                }">
+                            </i>
+                        </div>`;
+
 
         fila1Html += '</div>';
         $contentContainer.append(fila1Html);
 
         // Fila 2: Responsable y Observación
-        var fila2Html = '<div class="d-flex align-items-center text-muted small mt-1">' +
-            '<span class="text-primary me-2">' + (actividad.registrationUser || 'Sin responsable') + '</span>' +
-            (actividad.observacion ?
-                '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + actividad.observacion + '"> - ' + (actividad.observacionCortada || actividad.observacion) + '</span>' :
-                '') +
-            '</div>';
-        $contentContainer.append(fila2Html);
+        // var fila2Html = '<div class="d-flex align-items-center text-muted small mt-1">' +
+        //     '<span class="text-primary me-2">' + (actividad.registrationUser || 'Sin responsable') + '</span>' +
+        //     (actividad.observacion ?
+        //         '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + actividad.observacion + '"> - ' + (actividad.observacionCortada || actividad.observacion) + '</span>' :
+        //         '') +
+        //     '</div>';
+        // $contentContainer.append(fila2Html);
 
         // Fecha (puede ir en la esquina derecha del header si querés)
         var $fechaContainer = $('<div>', {

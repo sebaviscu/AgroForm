@@ -123,6 +123,7 @@
 
 <script>
     $(document).ready(function() {
+
         cargarActividadesRecientes();
 
         // Manejar filtros
@@ -147,6 +148,7 @@
                     if (result.success && result.listObject.length > 0) {
                         mostrarActividades(result.listObject);
                         $('#listaActividades').show();
+                        inicializarPopovers();
                     } else {
                         $('#sinActividades').show();
                     }
@@ -170,60 +172,68 @@
             });
         }
 
-        function crearItemActividad(actividad) {
-            var filtroClase = actividad.filtroTiempo || '';
+            function crearItemActividad(actividad) {
+        var filtroClase = actividad.filtroTiempo || '';
 
-                return `
-                    <div class="list-group-item px-0 actividad-item" data-filter="${filtroClase}">
-                        <div class="d-flex align-items-start ms-2 me-2">
+        return `
+            <div class="list-group-item px-0 actividad-item" data-filter="${filtroClase}">
+                <div class="d-flex align-items-start ms-2 me-2">
 
-                            <!-- Icono -->
-                            <div class="actividad-icono me-2 flex-shrink-0">
-                                <i class="ph ${actividad.iconoTipoActividad}" style="color: ${actividad.iconoColorTipoActividad}"></i>
+                    <div class="actividad-icono me-2 flex-shrink-0">
+                        <i class="ph ${actividad.iconoTipoActividad}" style="color: ${actividad.iconoColorTipoActividad}"></i>
+                    </div>
+
+                    <div class="actividad-contenido flex-grow-1">
+                        <div class="d-flex align-items-baseline">
+                            <div class="actividad-texto fw-semibold me-2">
+                                <strong class="text-dark">${actividad.tipoActividad || 'Actividad'}</strong>
                             </div>
-
-                            <!-- Contenido -->
-                            <div class="actividad-contenido">
-
-                                <!-- Fila 1: Tipo de actividad y tipo de insumo -->
-                                <div class="d-flex align-items-baseline">
-                                    <div class="actividad-texto fw-semibold me-2">
-                                        <strong class="text-dark">${actividad.tipoActividad || 'Actividad'}</strong>
-                                    </div>
-                                    <div class="actividad-insumo text-muted small">
-                                        ${actividad.insumo
-                                            ? actividad.insumo + ': ' + actividad.cantidadInsumo + (actividad.unidadMedida ? ' ' + actividad.unidadMedida : '')
-                                            : ''}
-                                    </div>
-                                </div>
-
-                                <!-- Fila 2: Responsable, Lote y Observación -->
-                                <div class="actividad-meta d-flex align-items-center">
-                                    <span class="text-primary">${actividad.responsable || 'Sin responsable'}</span>
-                                    <span class="text-muted mx-1">•</span>
-                                    <span>${actividad.lote || 'Sin lote'}</span>
-                                    ${actividad.observacion ? `
-                                        <span class="actividad-observacion text-muted small ms-2" style="cursor: crosshair;"
-                                              data-bs-toggle="tooltip"
-                                              data-bs-placement="top"
-                                              title="${actividad.observacion}">
-                                            - ${actividad.observacionCortada}
-                                        </span>
-                                    ` : ''}
-                                </div>
-
+                            <div class="actividad-insumo text-muted small">
+                                <i class="ph ph-eye ms-1"
+                                    role="button"
+                                    tabindex="0"
+                                    data-bs-toggle="popover"
+                                    data-bs-trigger="focus"
+                                    data-bs-html="true"
+                                    title="Detalle de la labor"
+                                    data-bs-content="${
+                                        actividad.detalle
+                                            ? actividad.detalle.replace(/\n/g, '<br>') +
+                                                (actividad.observacion
+                                                    ? '<br><br><strong>Observacion:</strong> ' + actividad.observacion
+                                                    : '')
+                                            : actividad.observacion
+                                                ? '<strong>Observacion:</strong> ' + actividad.observacion
+                                                : 'Sin detalle disponible'
+                                    }">
+                                </i>
                             </div>
+                        </div>
 
-                            <!-- Fecha relativa -->
-                            <div class="actividad-fecha flex-shrink-0">
-                                ${actividad.fechaRelativa || ''}
-                            </div>
-
+                        <div class="actividad-meta d-flex align-items-center">
+                            <span class="text-primary">${actividad.responsable || 'Sin responsable'}</span>
+                            <span class="text-muted mx-1">•</span>
+                            <span>${actividad.lote || 'Sin lote'}</span>
                         </div>
                     </div>
-                `;
 
-        }
+                    <div class="actividad-fecha flex-shrink-0 small ms-2">
+                        ${actividad.fechaRelativa || ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+
+    function inicializarPopovers() {
+        // Destruye popovers previos (si hay contenido dinámico)
+        // $('[data-bs-toggle="popover"]').popover('dispose');
+
+        // Inicializa todos los popovers nuevamente
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        [...popoverTriggerList].map(el => new bootstrap.Popover(el));
+    }
 
     function aplicarFiltro(filtro) {
         $('.actividad-item').each(function() {

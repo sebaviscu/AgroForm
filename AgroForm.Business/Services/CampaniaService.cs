@@ -70,7 +70,7 @@ namespace AgroForm.Business.Services
             try
             {
                 var campania = await GetQuery().SingleOrDefaultAsync(_ => _.IdLicencia == _userAuth.IdLicencia &&
-                                                                _.EstadosCamapaña == EnumClass.EstadosCamapaña.EnCurso);
+                                                                _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso);
 
                 if (campania == null)
                 {

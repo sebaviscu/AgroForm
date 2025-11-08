@@ -1,6 +1,7 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using AlbaServicios.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,17 @@ namespace AgroForm.Business.Services
         {
         }
 
+        public override async Task<OperationResult<List<Campo>>> GetAllWithDetailsAsync()
+        {
+            var campos =  await base.GetQuery()
+                     .Where(c => c.IdLicencia == _userAuth.IdLicencia)
+                     .Include(c => c.Lotes)
+                     .AsNoTracking()
+                     .ToListAsync();
+
+            return OperationResult<List<Campo>>.SuccessResult(campos);
+        }
+
         public async Task<OperationResult<List<Campo>>> GetCamposConLotesYActividades()
         {
             try
@@ -35,18 +47,18 @@ namespace AgroForm.Business.Services
                 var lotesIds = campos.SelectMany(c => c.Lotes).Select(l => l.Id).ToList();
 
                 using var context = await _contextFactory.CreateDbContextAsync();
-                var actividades = context.Set<Actividad>()
-                    .Where(a => lotesIds.Contains(a.IdLote))
-                    .Include(a => a.TipoActividad)
-                    .Include(a => a.Insumo)
-                    .AsNoTracking();
+                //var actividades = context.Set<Actividad>()
+                //    .Where(a => lotesIds.Contains(a.IdLote))
+                //    .Include(a => a.TipoActividad)
+                //    .Include(a => a.Insumo)
+                //    .AsNoTracking();
 
                 // Asignar actividades a sus lotes manualmente
                 foreach (var campo in campos)
                 {
                     foreach (var lote in campo.Lotes)
                     {
-                        lote.Actividades = actividades.Where(a => a.IdLote == lote.Id).ToList();
+                        //lote.Actividades = actividades.Where(a => a.IdLote == lote.Id).ToList();
                     }
                 }
 

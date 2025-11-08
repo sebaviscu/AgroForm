@@ -1,4 +1,5 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Utilities;
@@ -160,14 +161,14 @@ namespace AgroForm.Web.Controllers
 
             var claimUser = HttpContext.User;
 
-            var userName = GetClaimValue<string>(claimUser, ClaimTypes.Name) ?? string.Empty;
+            var userName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name) ?? string.Empty;
 
             var userAuth = new UserAuth
             {
                 UserName = userName,
-                IdLicencia = GetClaimValue<int>(claimUser, "Licencia"),
-                IdUsuario = GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                IdRol = GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
+                IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
+                IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
+                IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
             };
 
             if (rolesPermitidos != null)
@@ -188,31 +189,7 @@ namespace AgroForm.Web.Controllers
 
             return userAuth;
         }
-
-        protected T GetClaimValue<T>(ClaimsPrincipal user, string claimType)
-        {
-            var claim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-            if (claim == null)
-                return default;
-
-            try
-            {
-                if (typeof(T).IsEnum)
-                {
-                    if (Enum.TryParse(typeof(T), claim.Value, out var result))
-                    {
-                        return (T)result;
-                    }
-                    return default;
-                }
-
-                return (T)Convert.ChangeType(claim.Value, typeof(T));
-            }
-            catch
-            {
-                return default;
-            }
-        }
+        
 
         protected IActionResult HandleException(
             Exception? ex,

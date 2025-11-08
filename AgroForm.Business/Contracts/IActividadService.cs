@@ -1,4 +1,5 @@
 ﻿using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using AlbaServicios.Services;
 using System;
 using System.Collections.Generic;
@@ -8,10 +9,15 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Business.Contracts
 {
-    public interface IActividadService : IServiceBase<Actividad>
+    public interface IActividadService
     {
-        Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId);
+        Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? IdCampania = null, int? IdLote = null, List<int> IdsLotes = null);
 
-        Task<OperationResult<List<Actividad>>> GetRecentAsync();
+        Task SaveActividadAsync(List<ILabor> actividades);
+
+        //Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId);
+
+        //Task<OperationResult<List<Actividad>>> GetRecentAsync();
+
     }
 }

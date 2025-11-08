@@ -18,11 +18,7 @@ namespace AgroForm.Data.Repository
         Task<bool> UpdateRangeAsync(IEnumerable<TEntity> entidades);
         Task<bool> DeleteAsync(TEntity entidad);
         Task<bool> DeleteRangeAsync(IEnumerable<TEntity> entidades);
-        //IQueryable<TEntity> Query(Expression<Func<TEntity, bool>>? filtro = null, bool asNoTracking = false);
-        //IQueryable<TEntity> FromSql(string sql, params object[] parametros);
-        //Task BeginTransactionAsync();
-        //Task CommitTransactionAsync();
-        //Task RollbackTransactionAsync();
+        IQueryable<TEntity> Query();
 
     }
 }

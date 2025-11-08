@@ -241,9 +241,9 @@ function configurarEventosModal() {
     });
 
     // Agregar campo
-    $('#btnAgregarCampo').off('click').on('click', function () {
-        agregarCampo();
-    });
+    //$('#btnAgregarCampo').off('click').on('click', function () {
+    //    agregarCampo();
+    //});
 
     // Agregar lote
     $('#btnAgregarLote').off('click').on('click', function () {
@@ -382,38 +382,38 @@ function mostrarInfoCampoLotes(idCampo) {
     }
 }
 
-function agregarCampo() {
-    var idCampo = $('#campoSeleccionadoLotes').val();
-    if (!idCampo) {
-        mostrarError('Por favor seleccione un campo');
-        return;
-    }
+//function agregarCampo() {
+//    var idCampo = $('#campoSeleccionadoLotes').val();
+//    if (!idCampo) {
+//        mostrarError('Por favor seleccione un campo');
+//        return;
+//    }
 
-    // Verificar si el campo ya fue agregado
-    if (camposConLotes.some(item => item.campo.id == idCampo)) {
-        mostrarError('Este campo ya ha sido agregado a la campaña');
-        return;
-    }
+//    // Verificar si el campo ya fue agregado
+//    if (camposConLotes.some(item => item.campo.id == idCampo)) {
+//        mostrarError('Este campo ya ha sido agregado a la campaña');
+//        return;
+//    }
 
-    var option = $('#campoSeleccionadoLotes').find('option[value="' + idCampo + '"]');
-    var campo = {
-        id: idCampo,
-        nombre: option.text(),
-        ubicacion: option.data('ubicacion'),
-        superficieTotal: parseFloat(option.data('superficie') || '0')
-    };
+//    var option = $('#campoSeleccionadoLotes').find('option[value="' + idCampo + '"]');
+//    var campo = {
+//        id: idCampo,
+//        nombre: option.text(),
+//        ubicacion: option.data('ubicacion'),
+//        superficieTotal: parseFloat(option.data('superficie') || '0')
+//    };
 
-    camposConLotes.push({
-        campo: campo,
-        lotes: []
-    });
+//    camposConLotes.push({
+//        campo: campo,
+//        lotes: []
+//    });
 
-    renderizarCamposConLotes();
-    $('#campoSeleccionadoLotes').val('');
-    $('#infoSuperficieCampo').hide();
-    $('#formAgregarLote').hide();
-    campoSeleccionadoActual = null;
-}
+//    renderizarCamposConLotes();
+//    $('#campoSeleccionadoLotes').val('');
+//    $('#infoSuperficieCampo').hide();
+//    $('#formAgregarLote').hide();
+//    campoSeleccionadoActual = null;
+//}
 
 function eliminarCampo(idCampo) {
     mostrarConfirmacion('¿Está seguro de que desea eliminar este campo y todos sus lotes?', 'Eliminar Campo')

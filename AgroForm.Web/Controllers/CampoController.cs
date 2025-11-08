@@ -10,11 +10,12 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class CampoController : BaseController<Campo, CampoVM, ICampoService>
     {
-        private readonly ILoteService _loteService;
-        public CampoController(ILogger<CampoController> logger, IMapper mapper, ICampoService service, ILoteService loteService)
+        private readonly IActividadService _actividadService;
+
+        public CampoController(ILogger<CampoController> logger, IMapper mapper, ICampoService service, IActividadService actividadService)
             : base(logger, mapper, service)
         {
-            _loteService = loteService;
+            _actividadService = actividadService;
         }
 
         public IActionResult Index()
@@ -25,7 +26,7 @@ namespace AgroForm.Web.Controllers
         [HttpGet]
         public virtual async Task<IActionResult> GetCamposConLotesYActividades()
         {
-            var result = await _service.GetCamposConLotesYActividades();
+            var result = await _service.GetAllWithDetailsAsync();
             if (!result.Success)
             {
                 gResponse.Success = false;
@@ -33,8 +34,26 @@ namespace AgroForm.Web.Controllers
                 return BadRequest(gResponse);
             }
 
+            var campoVM = Map<List<Campo>, List<CampoVM>>(result.Data);
+
+            foreach (var campo in campoVM)
+            {
+
+                foreach (var lote in campo.Lotes)
+                {
+                    var resultLabores = await _actividadService.GetLaboresByAsync(IdLote: lote.Id);
+                    if (!resultLabores.Success)
+                    {
+                        gResponse.Success = false;
+                        gResponse.Message = resultLabores.ErrorMessage;
+                        return BadRequest(gResponse);
+                    }
+                    lote.Actividades = resultLabores.Data;
+                }
+            }
+
             gResponse.Success = true;
-            gResponse.ListObject = Map<List<Campo>, List<CampoVM>>(result.Data);
+            gResponse.ListObject = campoVM;
             gResponse.Message = "Datos obtenidos correctamente";
             return Ok(gResponse);
         }

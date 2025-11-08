@@ -1,24 +1,30 @@
-﻿using AgroForm.Model;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AgroForm.Web.Models
+namespace AgroForm.Model.Actividades
 {
-    public class ActividadVM : EntityBaseWithLicenciaVM
+    public class LaborDTO
     {
+        public int Id { get; set; }
+        public int IdTipoActividad { get; set; }
+        public int IdCampania { get; set; }
+        public int IdLote { get; set; } 
+        public string Lote { get; set; } = string.Empty;
+
         public string TipoActividad { get; set; } = string.Empty;
+        public DateTime Fecha { get; set; }
+        public DateTime? RegistrationDate { get; set; }
+
+        public string Responsable { get; set; } = string.Empty;
+        public string Detalle { get; set; } = string.Empty;
+        public decimal? Costo { get; set; }
         public string IconoTipoActividad { get; set; } = string.Empty;
         public string IconoColorTipoActividad { get; set; } = string.Empty;
-        public string IdTipoInsumo { get; set; } = string.Empty;
-        public string Campo { get; set; } = string.Empty;
-        public int idCampo { get; set; }
-        public DateTime Fecha { get; set; }
-        public string Estado { get; set; } = string.Empty;
-        public string Responsable { get; set; } = string.Empty;
-        public string Lote { get; set; } = string.Empty;
-        public decimal? Costo { get; set; }
-        public string Insumo { get; set; } = string.Empty;
-        public string UnidadMedida { get; set; } = string.Empty;
-        public string CantidadInsumo { get; set; } = string.Empty;
-        public decimal? PrecioInsumo { get; set; } = 0m;
+
+
         public string Observacion { get; set; } = string.Empty;
         public string ObservacionCortada
         {
@@ -83,6 +89,5 @@ namespace AgroForm.Web.Models
                 else return "older";
             }
         }
-
     }
 }

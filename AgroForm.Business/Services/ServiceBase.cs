@@ -1,4 +1,5 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
@@ -31,39 +32,15 @@ namespace AlbaServicios.Services
 
                 _userAuth = new UserAuth
                 {
-                    UserName = GetClaimValue<string>(claimUser, ClaimTypes.Name),
-                    IdLicencia = GetClaimValue<int>(claimUser, "Licencia"),
-                    IdCampaña = GetClaimValue<int>(claimUser, "Campania"),
-                    IdUsuario = GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                    IdRol = GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
+                    UserName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name),
+                    IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
+                    IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
+                    IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
+                    IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
                 };
             }
         }
 
-        protected T GetClaimValue<T>(ClaimsPrincipal user, string claimType)
-        {
-            var claim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-            if (claim == null)
-                return default;
-
-            try
-            {
-                if (typeof(T).IsEnum)
-                {
-                    if (Enum.TryParse(typeof(T), claim.Value, out var result))
-                    {
-                        return (T)result;
-                    }
-                    return default;
-                }
-
-                return (T)Convert.ChangeType(claim.Value, typeof(T));
-            }
-            catch
-            {
-                return default;
-            }
-        }
 
         public virtual async Task<OperationResult<List<T>>> GetAllAsync()
         {
@@ -356,11 +333,15 @@ namespace AlbaServicios.Services
         }
     }
 
+    public abstract class ClaimBase
+    {
+    }
+        
 
     public class OperationResult<T>
     {
         public bool Success { get; set; }
-        public T? Data { get; set; }
+        public T Data { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
         public string ErrorCode { get; set; } = string.Empty;
 

@@ -31,6 +31,40 @@ namespace AgroForm.Model
             Lluvia,
             Granizo
         }
+
+        public enum TipoCatalogo
+        {
+            // Monitoreo
+            Plaga = 10,
+            Maleza = 11,
+            Enfermedad = 12,
+
+            // Fertilización y productos
+            TipoFertilizante = 20,
+            Nutriente = 21,
+            ProductoAgroquimico = 22,
+
+            // Actividades y operaciones
+            MetodoSiembra = 30,
+            MetodoRiego = 31,
+            MetodoAplicacion = 32,
+
+            // Infraestructura y personas
+            Maquinaria = 40,
+            FuenteAgua = 41,
+
+            // Otros
+            Laboratorio = 50,
+            Otro = 99
+        }
+
+        public enum TipoVariedad
+        {
+            Variedad,
+            Subproducto,
+            Descarte
+        }
+
     }
 
     public static class EnumExtensions

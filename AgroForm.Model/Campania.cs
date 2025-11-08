@@ -10,7 +10,7 @@ namespace AgroForm.Model
     public class Campania : EntityBaseWithLicencia
     {
         public string Nombre { get; set; } = string.Empty;
-        public EstadosCamapaña EstadosCamapaña { get; set; }
+        public EstadosCamapaña EstadosCampania { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
 

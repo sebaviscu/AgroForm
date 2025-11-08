@@ -75,6 +75,13 @@
             await context.SaveChangesAsync();
             return true;
         }
+
+        public IQueryable<TEntity> Query()
+        {
+            var context = _contextFactory.CreateDbContext();
+            return context.Set<TEntity>().AsQueryable();
+        }
+
     }
 
 }

@@ -2,23 +2,10 @@
 @model ActividadRapidaVM
 
 <style>
-    /* En tu archivo CSS */
     .select-with-icons option {
         padding-left: 30px;
     }
 
-        .select-with-icons option::before {
-            font-family: "bootstrap-icons";
-            content: attr(data-icon);
-            position: absolute;
-            left: 10px;
-        }
-
-    /*     .input-group-text {
-                min-width: 80px;
-            } */
-
-    /* Asegurar que los iconos se vean bien en Select2 */
     .select2-container--default .select2-results__option[aria-selected=true] {
         background-color: #e9ecef;
     }
@@ -28,14 +15,17 @@
         color: white;
     }
 
-    /* Ajustar el alto del Select2 para que coincida con otros inputs */
     .select2-container .select2-selection--single {
         height: 38px;
         padding: 6px 12px;
     }
+
+    /* Estilos para las secciones específicas */
+    .campos-especificos {
+        transition: all 0.3s ease;
+    }
 </style>
 
-<!-- Modal -->
 <div class="modal fade" id="modalActividadRapida" tabindex="-1" aria-labelledby="modalActividadRapidaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -79,7 +69,7 @@
                                         <option value="@tipo.Id"
                                                 data-icono="@tipo.IconoTipoActividad"
                                                 data-icono-color="@tipo.IconoColorTipoActividad"
-                                                data-tipo-insumo="@tipo.IdTipoInsumo">
+                                                data-tipo-actividad="@tipo.TipoActividad">
                                             @tipo.TipoActividad
                                         </option>
                                     }
@@ -89,45 +79,9 @@
                         </div>
                     </div>
 
-                    <!-- Sección de Insumo (Opcional) -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">
-                                <i class="ph ph-package me-1"></i>Insumo
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-5">
-                                    <div class="mb-3">
-                                        <label for="idInsumo" class="form-label">Insumo</label>
-                                        <select class="form-select" id="idInsumo" name="idInsumo">
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label for="cantidad" class="form-label">Cantidad</label>
-                                        <div class="input-group">
-                                            <input type="number" class="form-control" id="cantidad"
-                                                   name="Cantidad" min="0.01" step="0.01" disabled>
-                                            <span class="input-group-text text-muted" id="unidadMedidaText">-</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="costoTotal" class="form-label">Costo</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text text-muted">$</span>
-                                            <input type="number" class="form-control" id="costoTotal"
-                                                   name="Costo" min="0.01" step="0.01"
-                                                   placeholder="Costo">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- SECCIONES ESPECÍFICAS POR TIPO DE ACTIVIDAD -->
+                    <div id="camposEspecificos">
+                        <!-- Los campos específicos se cargarán aquí dinámicamente -->
                     </div>
 
                     <!-- Observaciones -->
@@ -147,6 +101,422 @@
         </div>
     </div>
 </div>
+
+<!-- TEMPLATES PARA CAMPOS ESPECÍFICOS (ocultos) -->
+<div id="templates" style="display: none;">
+
+    <!-- SIEMBRA -->
+    <div id="templateSiembra">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-seedling me-1"></i>Datos de Siembra
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idCultivo" class="form-label">Cultivo *</label>
+                            <select class="form-select" id="idCultivo" name="IdCultivo" required>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idVariedad" class="form-label">Variedad</label>
+                            <select class="form-select" id="idVariedad" name="IdVariedad">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idMetodoSiembra" class="form-label">Método de Siembra</label>
+                            <select class="form-select" id="idMetodoSiembra" name="IdMetodoSiembra" required>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="superficieHa" class="form-label">Superficie (Ha)</label>
+                            <input type="number" class="form-control" id="superficieHa" name="SuperficieHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="densidadSemillaKgHa" class="form-label">Densidad (Kg/Ha)</label>
+                            <input type="number" class="form-control" id="densidadSemillaKgHa" name="DensidadSemillaKgHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="costoSiembra" class="form-label">Costo</label>
+                            <input type="number" class="form-control" id="costoSiembra" name="CostoSiembra"
+                                   min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIEGO -->
+    <div id="templateRiego">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-drop me-1"></i>Datos de Riego
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="horasRiego" class="form-label">Horas de Riego</label>
+                            <input type="number" class="form-control" id="horasRiego" name="HorasRiego"
+                                   min="0.1" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="volumenAguaM3" class="form-label">Volumen Agua (m³)</label>
+                            <input type="number" class="form-control" id="volumenAguaM3" name="VolumenAguaM3"
+                                   min="0.1" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="costoRiegoTotal" class="form-label">Costo</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted">$</span>
+                                <input type="number" class="form-control" id="costoRiegoTotal"
+                                       name="Costo" min="0.01" step="0.01"
+                                       placeholder="Costo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="idMetodoRiego" class="form-label">Método de Riego</label>
+                            <select class="form-select" id="idMetodoRiego" name="IdMetodoRiego">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="idFuenteAgua" class="form-label">Fuente de Agua</label>
+                            <select class="form-select" id="idFuenteAgua" name="IdFuenteAgua">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FERTILIZACIÓN -->
+    <div id="templateFertilizado">
+        <div class="card mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-flask me-1"></i>Datos de Fertilización
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="cantidadKgHa" class="form-label">Cantidad (Kg/Ha) </label>
+                            <input type="number" class="form-control" id="cantidadKgHa" name="CantidadKgHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="dosisKgHa" class="form-label">Dosis (Kg/Ha) </label>
+                            <input type="number" class="form-control" id="dosisKgHa" name="DosisKgHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="costoFertilizado" class="form-label">Costo</label>
+                            <input type="number" class="form-control" id="costoFertilizado" name="CostoFertilizacion"
+                                   min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idNutriente" class="form-label">Nutriente </label>
+                            <select class="form-select" id="idNutriente" name="IdNutriente">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idTipoFertilizante" class="form-label">Tipo Fertilizante </label>
+                            <select class="form-select" id="idTipoFertilizante" name="IdTipoFertilizante">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idMetodoAplicacion" class="form-label">Método Aplicación </label>
+                            <select class="form-select" id="idMetodoAplicacion" name="IdMetodoAplicacion">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PULVERIZACIÓN -->
+    <div id="templatePulverizacion">
+        <div class="card mb-3">
+            <div class="card-header bg-danger text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-spray me-1"></i>Datos de Pulverización
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="volumenLitrosHa" class="form-label">Volumen (Lt/Ha)</label>
+                            <input type="number" class="form-control" id="volumenLitrosHa" name="VolumenLitrosHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="dosisPulverizacion" class="form-label">Dosis</label>
+                            <input type="number" class="form-control" id="dosisPulverizacion" name="DosisPulverizacion"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="costoPulverizacionTotal" class="form-label">Costo</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted">$</span>
+                                <input type="number" class="form-control" id="costoPulverizacionTotal"
+                                       name="Costo" min="0.01" step="0.01"
+                                       placeholder="Costo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="idProductoAgroquimico" class="form-label">Producto Agroquímico</label>
+                            <select class="form-select" id="idProductoAgroquimico" name="IdProductoAgroquimico">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="condicionesClimaticas" class="form-label">Condiciones Climáticas</label>
+                            <input type="text" class="form-control" id="condicionesClimaticas" name="CondicionesClimaticas"
+                                   placeholder="Ej: Soleado, 25°C, viento leve">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MONITOREO -->
+    <div id="templateMonitoreo">
+        <div class="card mb-3">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-binoculars me-1"></i>Datos de Monitoreo
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idMonitoreo" class="form-label">Tipo de Monitoreo </label>
+                            <select class="form-select" id="idMonitoreo" name="Textura">
+                                <option value="10">Plaga</option>
+                                <option value="11">Maleza</option>
+                                <option value="12">Enfermedad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idTipoMonitoreo" class="form-label">Tipo</label>
+                            <select class="form-select" id="idTipoMonitoreo" name="IdTipoMonitoreo">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="idEstadoFenologico" class="form-label">Estado Fenológico</label>
+                            <select class="form-select" id="idEstadoFenologico" name="IdEstadoFenologico">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANÁLISIS DE SUELO -->
+    <div id="templateAnalisisSuelo">
+        <div class="card mb-3">
+            <div class="card-header bg-dark text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-test-tube me-1"></i>Datos de Análisis de Suelo
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="profundidadCm" class="form-label">Profundidad (cm)</label>
+                            <input type="number" class="form-control" id="profundidadCm" name="ProfundidadCm"
+                                   min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="ph" class="form-label">pH</label>
+                            <input type="number" class="form-control" id="ph" name="PH"
+                                   min="0" max="14" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="materiaOrganica" class="form-label">Materia Orgánica (%)</label>
+                            <input type="number" class="form-control" id="materiaOrganica" name="MateriaOrganica"
+                                   min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="nitrogeno" class="form-label">Nitrógeno (ppm)</label>
+                            <input type="number" class="form-control" id="nitrogeno" name="Nitrogeno"
+                                   min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="fosforo" class="form-label">Fósforo (ppm)</label>
+                            <input type="number" class="form-control" id="fosforo" name="Fosforo"
+                                   min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="potasio" class="form-label">Potasio (ppm)</label>
+                            <input type="number" class="form-control" id="potasio" name="Potasio"
+                                   min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="conductividadElectrica" class="form-label">Conductividad Eléctrica</label>
+                            <input type="number" class="form-control" id="conductividadElectrica" name="ConductividadElectrica"
+                                   min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cic" class="form-label">CIC</label>
+                            <input type="number" class="form-control" id="cic" name="CIC"
+                                   min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="textura" class="form-label">Textura</label>
+                            <select class="form-select" id="textura" name="Textura">
+                                <option value="Arenosa">Arenosa</option>
+                                <option value="Franca">Franca</option>
+                                <option value="Arcillosa">Arcillosa</option>
+                                <option value="Franco-arenosa">Franco-arenosa</option>
+                                <option value="Franco-arcillosa">Franco-arcillosa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="idLaboratorio" class="form-label">Laboratorio</label>
+                            <select class="form-select" id="idLaboratorio" name="IdLaboratorio">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COSECHA -->
+    <div id="templateCosecha">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-harvest me-1"></i>Datos de Cosecha
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="rendimientoTonHa" class="form-label">Rendimiento (Ton/Ha)</label>
+                            <input type="number" class="form-control" id="rendimientoTonHa" name="RendimientoTonHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="humedadGrano" class="form-label">Humedad (%)</label>
+                            <input type="number" class="form-control" id="humedadGrano" name="HumedadGrano"
+                                   min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="superficieCosechadaHa" class="form-label">Superficie Cosechada (Ha)</label>
+                            <input type="number" class="form-control" id="superficieCosechadaHa" name="SuperficieCosechadaHa"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="idCultivoCosecha" class="form-label">Cultivo </label>
+                            <select class="form-select" id="idCultivoCosecha" name="IdCultivo" >
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 
 <!-- Modal para Clima -->
 <div class="modal fade" id="modalClima" tabindex="-1" aria-labelledby="modalClimaLabel" aria-hidden="true">
@@ -174,7 +544,6 @@
                                 <div class="mb-3">
                                     <label for="campoClima" class="form-label">Campo *</label>
                                     <select class="form-select" id="campoClima" name="idCampo" required>
-                                        <option value="" selected disabled>Seleccione un campo...</option>
                                         <!-- Aquí se cargarán los lotes/campos -->
                                     </select>
                                     <div class="invalid-feedback">Por favor seleccione un campo.</div>

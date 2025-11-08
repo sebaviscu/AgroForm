@@ -9,8 +9,8 @@ namespace AgroForm.Data.DBContext
 {
     public interface IUnitOfWork
     {
-        //IGenericRepository<RegistroCampo> RegistrosCampo { get; }
-        //IGenericRepository<Usuario> Usuarios { get; }
+        IGenericRepository<T> Repository<T>() where T : class;
+
         Task<int> SaveAsync();
     }
 }

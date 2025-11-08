@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AgroForm.Model
+namespace AgroForm.Model.Actividades
 {
-    public class Actividad : EntityBaseWithLicencia
+    public class Pulverizacion : EntityBaseWithLicencia, ILabor
     {
+        public int IdCampania { get; set; }
+        public Campania Campania { get; set; } = null!;
+
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; } = string.Empty;
-        public decimal? Cantidad { get; set; }
 
         public int IdLote { get; set; }
         public Lote Lote { get; set; } = null!;
@@ -21,8 +23,14 @@ namespace AgroForm.Model
         public int IdUsuario { get; set; }
         public Usuario Usuario { get; set; } = null!;
 
-        public int? IdInsumo { get; set; }
-        public Insumo? Insumo { get; set; }
+        public decimal? Costo { get; set; }
 
+        public decimal? VolumenLitrosHa { get; set; }
+        public decimal? Dosis { get; set; }
+        public string CondicionesClimaticas { get; set; } = string.Empty;
+
+        public int IdProductoAgroquimico { get; set; }
+        public Catalogo ProductoAgroquimico { get; set; } = null!;
     }
+
 }

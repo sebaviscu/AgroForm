@@ -1,4 +1,5 @@
 ﻿using AgroForm.Model;
+using AgroForm.Model.Actividades;
 
 namespace AgroForm.Web.Models
 {
@@ -11,7 +12,7 @@ namespace AgroForm.Web.Models
 
         public int idCampania { get; set; }
 
-        public ICollection<ActividadVM> Actividades { get; set; } = new List<ActividadVM>();
+        public ICollection<LaborDTO> Actividades { get; set; } = new List<LaborDTO>();
 
     }
 }
