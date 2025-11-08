@@ -50,7 +50,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException(ex, "Error al cargar campañas");
+                return HandleException(ex,"Error al iniciar la pagina", "Index");
             }
         }
     }

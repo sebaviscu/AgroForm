@@ -33,8 +33,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener catalogos por tipo {tipo}", tipo);
-                return Json(new { success = false, message = "Error al obtener catalogos por tipo" });
+                return HandleException(ex, "Error al obtener catalogos por tipo", "GetByTipo", tipo);
             }
         }
 

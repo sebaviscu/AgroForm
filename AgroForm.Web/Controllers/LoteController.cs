@@ -40,8 +40,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener lotes por campo {idCampo}", idCampo);
-                return Json(new { success = false, message = "Error al obtener lotes" });
+                return HandleException(ex, "Error al obtener lotes por campo", "GetByCampos", idCampo);
             }
         }
     }

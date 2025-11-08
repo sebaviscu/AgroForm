@@ -34,8 +34,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener Variedads por tipo {idCultivo}", idCultivo);
-                return Json(new { success = false, message = "Error al obtener Variedads por tipo" });
+                return HandleException(ex, "Error al obtener Variedads por tipo de cultivo", "GetByCultivo", idCultivo);
             }
         }
 

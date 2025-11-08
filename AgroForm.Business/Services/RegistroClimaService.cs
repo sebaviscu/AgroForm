@@ -16,7 +16,7 @@ namespace AgroForm.Business.Services
         {
         }
 
-        public async Task<List<RegistroClima>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0)
+        public async Task<OperationResult<List<RegistroClima>>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0)
         {
             try
             {
@@ -37,13 +37,13 @@ namespace AgroForm.Business.Services
                 {
                     query = query.Where(rc => rc.Lote.IdCampo == idCampo);
                 }
-
-                return await query.ToListAsync();
+                var lista = await query.ToListAsync();
+                return OperationResult<List<RegistroClima>>.SuccessResult(lista);
             }
             catch (Exception ex)    
             {
-                _logger.LogError(ex, "Error al obtener Registro de lluvia {meses}, {idCampo}", meses, idCampo);
-                throw;
+                _logger.LogError(ex, "Error al obtener Registro de lluvia {meses}, {idCampo}", meses, idCampo); 
+                return OperationResult<List<RegistroClima>>.Failure($"Error al obtener Registro de lluvia: {ex.Message}", "DATABASE_ERROR");
             }
         }
 

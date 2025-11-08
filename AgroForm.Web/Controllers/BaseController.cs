@@ -194,7 +194,7 @@ namespace AgroForm.Web.Controllers
         protected IActionResult HandleException(
             Exception? ex,
             string errorMessage,
-
+            string endpint = "",
             object model = null,
             params (string Key, object Value)[] additionalData)
         {
@@ -243,7 +243,7 @@ namespace AgroForm.Web.Controllers
             }
 
             var controllerName = GetType().Name;
-            var logTemplate = $" - - - - - - ❌ - - - - - - [Controller: {controllerName}] Usuario: {CurrentUser}. {{ErrorMessage}}";
+            var logTemplate = $" - - - - - - ❌ - - - - - - Usuario: {CurrentUser}. [Controller: {controllerName}]  Endpint: {endpint}";
 
             foreach (var key in logParams.Keys.Where(k => k != "ErrorMessage"))
             {

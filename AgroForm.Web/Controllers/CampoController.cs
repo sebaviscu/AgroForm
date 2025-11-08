@@ -26,36 +26,44 @@ namespace AgroForm.Web.Controllers
         [HttpGet]
         public virtual async Task<IActionResult> GetCamposConLotesYActividades()
         {
-            var result = await _service.GetAllWithDetailsAsync();
-            if (!result.Success)
-            {
-                gResponse.Success = false;
-                gResponse.Message = result.ErrorMessage;
-                return BadRequest(gResponse);
-            }
-
-            var campoVM = Map<List<Campo>, List<CampoVM>>(result.Data);
-
-            foreach (var campo in campoVM)
+            try
             {
 
-                foreach (var lote in campo.Lotes)
+                var result = await _service.GetAllWithDetailsAsync();
+                if (!result.Success)
                 {
-                    var resultLabores = await _actividadService.GetLaboresByAsync(IdLote: lote.Id);
-                    if (!resultLabores.Success)
-                    {
-                        gResponse.Success = false;
-                        gResponse.Message = resultLabores.ErrorMessage;
-                        return BadRequest(gResponse);
-                    }
-                    lote.Actividades = resultLabores.Data;
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return BadRequest(gResponse);
                 }
-            }
 
-            gResponse.Success = true;
-            gResponse.ListObject = campoVM;
-            gResponse.Message = "Datos obtenidos correctamente";
-            return Ok(gResponse);
+                var campoVM = Map<List<Campo>, List<CampoVM>>(result.Data);
+
+                foreach (var campo in campoVM)
+                {
+
+                    foreach (var lote in campo.Lotes)
+                    {
+                        var resultLabores = await _actividadService.GetLaboresByAsync(IdLote: lote.Id);
+                        if (!resultLabores.Success)
+                        {
+                            gResponse.Success = false;
+                            gResponse.Message = resultLabores.ErrorMessage;
+                            return BadRequest(gResponse);
+                        }
+                        lote.Actividades = resultLabores.Data;
+                    }
+                }
+
+                gResponse.Success = true;
+                gResponse.ListObject = campoVM;
+                gResponse.Message = "Datos obtenidos correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex,"Error al cargar campos y lotes con actividades", "GetCamposConLotesYActividades");
+            }
         }
     }
 }

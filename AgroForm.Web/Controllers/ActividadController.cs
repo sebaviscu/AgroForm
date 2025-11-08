@@ -7,6 +7,7 @@ using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
 using AutoMapper;
+using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,50 +35,50 @@ namespace AgroForm.Web.Controllers
         }
 
 
-        //public async Task<IActionResult> Index()
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-            //try
-            //{
-            //    ValidarAutorizacion(new[] { Roles.Administrador });
+            try
+            {
+                ValidarAutorizacion(new[] { Roles.Administrador });
 
-            //    var campos = await _campoService.GetAllAsync();
-            //    var actividades = await _service.GetAllWithDetailsAsync();
+                var campos = await _campoService.GetAllAsync();
+                var idsLotes = campos.Data.SelectMany(c => c.Lotes).Select(l => l.Id).ToList();
 
-            //    if (!actividades.Success)
-            //    {
-            //        return BadRequest(actividades.ErrorMessage);
-            //    }
+                var actividades = await _service.GetLaboresByAsync(IdsLotes: idsLotes);
 
-            //    if (!campos.Success)
-            //    {
-            //        return BadRequest(campos.ErrorMessage);
-            //    }
+                if (!actividades.Success)
+                {
+                    return BadRequest(actividades.ErrorMessage);
+                }
 
-            //    var vm = new ActividadesIndexVM
-            //    {
-            //        Campos = campos.Data.Select(c => new SelectListItem
-            //        {
-            //            Value = c.Id.ToString(),
-            //            Text = c.Nombre
-            //        }).ToList(),
-            //        Actividades = Map<List<Actividad>, List<ActividadVM>>(actividades.Data)
-            //    };
+                if (!campos.Success)
+                {
+                    return BadRequest(campos.ErrorMessage);
+                }
 
-            //    // Agregar opción "TODOS"
-            //    vm.Campos.Insert(0, new SelectListItem { Value = "0", Text = "TODOS", Selected = true });
+                var vm = new ActividadesIndexVM
+                {
+                    Campos = campos.Data.Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Nombre
+                    }).ToList(),
+                    Actividades = actividades.Data
+                };
 
-            //    return View(vm);
-            //}
-            //catch (UnauthorizedAccessException)
-            //{
-            //    return RedirectToAction("Login", "Access");
-            //}
-            //catch (Exception ex)
-            //{
-            //    return HandleException(ex, "Error al cargar actividades");
-            //}
+                // Agregar opción "TODOS"
+                vm.Campos.Insert(0, new SelectListItem { Value = "0", Text = "TODOS", Selected = true });
+
+                return View(vm);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return RedirectToAction("Login", "Access");
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al cargar actividades", "Index");
+            }
         }
 
         [HttpPost]
@@ -127,6 +128,7 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearRapida([FromBody] ActividadRapidaVM model)
         {
+            var gResponse = new GenericResponse<int>();
             try
             {
                 var user = ValidarAutorizacion(new[] { Roles.Administrador });
@@ -296,12 +298,17 @@ namespace AgroForm.Web.Controllers
                 //    return Json(new { success = false, message = resultActividad.ErrorMessage });
                 //}
 
-                return Json(new { success = true, message = "Actividad creada correctamente" });
+                gResponse.Success = true;
+                gResponse.Message = "Actividad creada correctamente";
+
+                return Ok(gResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear actividad rápida");
-                return Json(new { success = false, message = "Error al crear actividad" });
+                _logger.LogError(ex, "Error al crear labor rápida");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
             }
         }
 
@@ -328,7 +335,7 @@ namespace AgroForm.Web.Controllers
         }
 
 
-        protected UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
+        private UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
         {
             if (!HttpContext.User.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("El usuario no esta autenticado");

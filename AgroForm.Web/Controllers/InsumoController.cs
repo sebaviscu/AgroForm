@@ -40,8 +40,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener Insumos por Tipo de Insumo {idTipoInsumo}", idTipoInsumo);
-                return Json(new { success = false, message = "Error al obtener Insumos" });
+                return HandleException(ex, "Error al obtener insumos", "GetByTipoInsumo", idTipoInsumo);
             }
         }
     }

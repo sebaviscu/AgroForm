@@ -3,6 +3,7 @@ using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Models;
 using AutoMapper;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
@@ -27,43 +28,51 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public override async Task<IActionResult> Create([FromBody] RegistroClimaVM dto)
         {
-            var entity = Map<RegistroClimaVM, RegistroClima>(dto);
-
-            var lotes = await _loteService.GetByidCampoAsync(dto.IdCampo);
-            if (!lotes.Success)
+            try
             {
-                gResponse.Success = false;
-                gResponse.Message = lotes.ErrorMessage;
-                return NotFound(gResponse);
-            }
+                var entity = Map<RegistroClimaVM, RegistroClima>(dto);
 
-            var registrosLluvia = new List<RegistroClima>();
-
-            foreach (var item in lotes.Data)
-            {
-                var rl = new RegistroClima()
+                var lotes = await _loteService.GetByidCampoAsync(dto.IdCampo);
+                if (!lotes.Success)
                 {
-                    IdLote = item.Id,
-                    Observaciones = dto.Observaciones,
-                    Milimetros = dto.Milimetros,
-                    TipoClima = dto.TipoClima,
-                    Fecha = dto.Fecha
-                };
-                registrosLluvia.Add(rl);
+                    gResponse.Success = false;
+                    gResponse.Message = lotes.ErrorMessage;
+                    return NotFound(gResponse);
+                }
+
+                var registrosLluvia = new List<RegistroClima>();
+
+                foreach (var item in lotes.Data)
+                {
+                    var rl = new RegistroClima()
+                    {
+                        IdLote = item.Id,
+                        Observaciones = dto.Observaciones,
+                        Milimetros = dto.Milimetros,
+                        TipoClima = dto.TipoClima,
+                        Fecha = dto.Fecha
+                    };
+                    registrosLluvia.Add(rl);
+                }
+
+                var result = await _service.CreateRangeAsync(registrosLluvia);
+
+                if (!result.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                gResponse.Success = true;
+                gResponse.Message = "Registro creado correctamente";
+                return Ok(gResponse);
+
             }
-
-            var result = await _service.CreateRangeAsync(registrosLluvia);
-
-            if (!result.Success)
+            catch (Exception ex)
             {
-                gResponse.Success = false;
-                gResponse.Message = result.ErrorMessage;
-                return BadRequest(gResponse);
+                return HandleException(ex, "Error al crear campo", "Create", dto);
             }
-
-            gResponse.Success = true;
-            gResponse.Message = "Registro creado correctamente";
-            return Ok(gResponse);
         }
 
         [HttpGet]
@@ -71,7 +80,16 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                var registros = await _service.GetRegistroClimasAsync(meses, campoId);
+                var result = await _service.GetRegistroClimasAsync(meses, campoId);
+
+                if (!result.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return NotFound(gResponse);
+                }
+
+                var registros = result.Data;
                 var fechaFin = TimeHelper.GetArgentinaTime();
 
                 var todosLosMeses = new List<DateTime>();
@@ -84,7 +102,8 @@ namespace AgroForm.Web.Controllers
 
                 // Agrupar datos por mes
                 var datosAgrupados = registros
-                    .GroupBy(rc => new {
+                    .GroupBy(rc => new
+                    {
                         Año = rc.Fecha.Year,
                         Mes = rc.Fecha.Month
                     })
@@ -113,8 +132,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener datos de lluvia");
-                return Json(new { success = false, message = "Error al cargar los datos" });
+                return HandleException(ex, "Error al obtener datos de lluvia", "GetDatosLluvia");
             }
         }
 
