@@ -75,6 +75,23 @@
             await context.SaveChangesAsync();
             return true;
         }
+        public async Task<TEntity?> GetByIdAsync(object id)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+            return await context.Set<TEntity>().FindAsync(id);
+        }
+
+        public async Task<bool> DeleteByIdAsync(object id)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+            var entidad = await context.Set<TEntity>().FindAsync(id);
+            if (entidad == null)
+                return false;
+
+            context.Remove(entidad);
+            await context.SaveChangesAsync();
+            return true;
+        }
 
         public IQueryable<TEntity> Query()
         {

@@ -11,7 +11,6 @@ using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore.Scaffolding;
 using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
 
@@ -25,13 +24,17 @@ namespace AgroForm.Web.Controllers
         protected readonly ILogger<ActividadController> _logger;
         protected readonly IMapper _mapper;
         protected readonly IActividadService _service;
+        private readonly IMonedaService _monedaService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service)
+        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService, IMonedaService monedaService)
         {
             _logger = logger;
             _mapper = mapper;
             _service = service;
+            _campoService = campoService;
+            _loteService = loteService;
+            _monedaService = monedaService;
         }
 
 
@@ -63,11 +66,11 @@ namespace AgroForm.Web.Controllers
                         Value = c.Id.ToString(),
                         Text = c.Nombre
                     }).ToList(),
-                    Actividades = actividades.Data
+                    Labores = actividades.Data
                 };
 
                 // Agregar opción "TODOS"
-                vm.Campos.Insert(0, new SelectListItem { Value = "0", Text = "TODOS", Selected = true });
+                vm.Campos.Insert(0, new SelectListItem { Value = "", Text = "TODOS", Selected = true });
 
                 return View(vm);
             }
@@ -75,10 +78,10 @@ namespace AgroForm.Web.Controllers
             {
                 return RedirectToAction("Login", "Access");
             }
-            catch (Exception ex)
-            {
-                return HandleException(ex, "Error al cargar actividades", "Index");
-            }
+            //catch (Exception ex)
+            //{
+            //    return HandleException(ex, "Error al cargar actividades", "Index");
+            //}
         }
 
         [HttpPost]
@@ -136,9 +139,12 @@ namespace AgroForm.Web.Controllers
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    return Json(new { success = false, message = string.Join(", ", errors) });
+                    gResponse.Success = false;
+                    gResponse.Message = $"Ah ocurrido un error: {string.Join(", ", errors)}";
+                    return BadRequest(gResponse);
                 }
 
+                var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
                 var actividades = new List<ILabor>();
 
                 foreach (var loteId in model.LotesIds)
@@ -150,78 +156,49 @@ namespace AgroForm.Web.Controllers
                         case "siembra":
                             actividad = new Siembra
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                SuperficieHa = model.DatosEspecificos?.SuperficieHa ?? 0,
-                                DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa ?? 0,
-                                Costo = model.DatosEspecificos?.Costo ?? model.Costo,
-                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? 0,
+                                SuperficieHa = model.DatosEspecificos?.SuperficieHa,
+                                DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa,
                                 IdVariedad = model.DatosEspecificos?.IdVariedad,
-                                IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra ?? 0
+                                IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra,
+                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la siembra")
                             };
                             break;
 
                         case "riego":
                             actividad = new Riego
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                HorasRiego = model.DatosEspecificos?.HorasRiego ?? 0,
-                                VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3 ?? 0,
-                                IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego ?? 0,
-                                IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua,
-                                Costo = model.DatosEspecificos?.Costo
+                                HorasRiego = model.DatosEspecificos?.HorasRiego,
+                                VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3,
+                                IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego,
+                                IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua
                             };
                             break;
 
                         case "fertilizado":
                             actividad = new Fertilizacion
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                CantidadKgHa = model.DatosEspecificos?.CantidadKgHa ?? 0,
-                                DosisKgHa = model.DatosEspecificos?.DosisKgHa ?? 0,
-                                Costo = model.DatosEspecificos?.Costo ?? model.Costo,
-                                IdNutriente = model.DatosEspecificos?.IdNutriente ?? 0,
-                                IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante ?? 0,
-                                IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion ?? 0
+                                CantidadKgHa = model.DatosEspecificos?.CantidadKgHa,
+                                DosisKgHa = model.DatosEspecificos?.DosisKgHa,
+                                IdNutriente = model.DatosEspecificos?.IdNutriente,
+                                IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante,
+                                IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion,
                             };
                             break;
 
                         case "pulverizacion":
                             actividad = new Pulverizacion
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa ?? 0,
-                                Dosis = model.DatosEspecificos?.Dosis ?? 0,
+                                VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa,
+                                Dosis = model.DatosEspecificos?.Dosis,
                                 CondicionesClimaticas = model.DatosEspecificos?.CondicionesClimaticas ?? string.Empty,
-                                IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico ?? 0,
-                                Costo = model.DatosEspecificos?.Costo
+                                IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico
                             };
                             break;
 
                         case "monitoreo":
                             actividad = new Monitoreo
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo ?? 0,
+                                IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo,
                                 IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico
                             };
                             break;
@@ -229,11 +206,6 @@ namespace AgroForm.Web.Controllers
                         case "analisissuelo":
                             actividad = new AnalisisSuelo
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
                                 ProfundidadCm = model.DatosEspecificos?.ProfundidadCm,
                                 PH = model.DatosEspecificos?.PH,
                                 MateriaOrganica = model.DatosEspecificos?.MateriaOrganica,
@@ -244,59 +216,48 @@ namespace AgroForm.Web.Controllers
                                 CIC = model.DatosEspecificos?.CIC,
                                 Textura = model.DatosEspecificos?.Textura ?? string.Empty,
                                 IdLaboratorio = model.DatosEspecificos?.IdLaboratorio
+
                             };
                             break;
 
                         case "cosecha":
                             actividad = new Cosecha
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario,
-                                RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa ?? 0,
-                                HumedadGrano = model.DatosEspecificos?.HumedadGrano ?? 0,
-                                SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa ?? 0,
-                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? 0
+                                RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa,
+                                HumedadGrano = model.DatosEspecificos?.HumedadGrano,
+                                SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa,
+                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la cosecha")
                             };
                             break;
 
                         case "otras labores":
                             actividad = new OtraLabor
                             {
-                                Fecha = model.Fecha,
-                                IdTipoActividad = model.TipoidActividad,
-                                Observacion = model.Observacion ?? string.Empty,
-                                IdLote = loteId,
-                                IdUsuario = user.IdUsuario
+
                             };
                             break;
                     }
 
+                    var esDolar = model.DatosEspecificos?.EsDolar == true;
+                    //actividad.IdUsuario = user.IdUsuario,;
                     actividad.IdCampania = user.IdCampaña;
                     actividad.RegistrationDate = TimeHelper.GetArgentinaTime();
                     actividad.RegistrationUser = user.UserName;
                     actividad.IdLicencia = user.IdLicencia;
-
+                    actividad.Costo = model.DatosEspecificos?.Costo;
+                    actividad.IdMoneda = esDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
+                    actividad.Fecha = model.Fecha;
+                    actividad.IdTipoActividad = model.TipoidActividad;
+                    actividad.Observacion = model.Observacion ?? string.Empty;
+                    actividad.IdLote = loteId;
+                    actividad.CostoARS = UtilidadService.CalcularCostoARS(actividad.Costo, esDolar, tipoCambioUSD);
+                    actividad.CostoUSD = UtilidadService.CalcularCostoUSD(actividad.Costo, esDolar, tipoCambioUSD);
                     actividades.Add(actividad);
                 }
 
                 await _service.SaveActividadAsync(actividades);
 
                 // Actualizar stock de insumo si se usó
-                if (model.idInsumo.HasValue && model.Cantidad.HasValue)
-                {
-                    // Aquí llamarías a tu servicio para actualizar el stock
-                    // await _insumoService.ActualizarStock(model.idInsumo.Value, -model.Cantidad.Value);
-                }
-
-                // Crear actividades
-                //var resultActividad = await _service.CreateRangeAsync(actividades);
-                //if (!resultActividad.Success)
-                //{
-                //    return Json(new { success = false, message = resultActividad.ErrorMessage });
-                //}
 
                 gResponse.Success = true;
                 gResponse.Message = "Actividad creada correctamente";
@@ -334,6 +295,28 @@ namespace AgroForm.Web.Controllers
             return Ok(gResponse);
         }
 
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id, int idTipoActividad)
+        {
+            var gResponse = new GenericResponse<int>();
+
+            try
+            {
+                await _service.DeteleActividadAsync(id, (TipoActividadEnum)idTipoActividad);
+
+                gResponse.Success = true;
+                gResponse.Message = "Labor eliminada correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al borrar labor");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+
+        }
 
         private UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
         {

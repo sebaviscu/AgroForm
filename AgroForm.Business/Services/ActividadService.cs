@@ -59,114 +59,10 @@ namespace AgroForm.Business.Services
             }
         }
 
-
-
-        //public async Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId)
-        //{
-        //    try
-        //    {
-        //        using var context = await _contextFactory.CreateDbContextAsync();
-        //        var query = context.Set<Actividad>()
-        //            .Include(a => a.Lote)
-        //            .ThenInclude(l => l.Campo)
-        //            .AsNoTracking()
-        //            .AsQueryable();
-
-        //        if (lotesId.Any())
-        //        {
-        //            query = query.Where(_ => lotesId.Contains(_.IdLote));
-        //        }
-
-        //        return await query.ToListAsync();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al obtener actividades por LotesId {LotesId}", string.Join(",", lotesId));
-        //        throw;
-        //    }
-        //}
-
-        //public override async Task<OperationResult<List<Actividad>>> GetAllWithDetailsAsync()
-        //{
-        //    try
-        //    {
-        //        using var context = await _contextFactory.CreateDbContextAsync();
-        //        var entities = await context.Set<Actividad>()
-        //            .Include(a => a.Insumo)
-        //            .Include(a => a.TipoActividad)
-        //            .Include(a => a.Lote)
-        //            .ThenInclude(l => l.Campo)
-        //            .AsNoTracking()
-        //            .ToListAsync();
-
-        //        return OperationResult<List<Actividad>>.SuccessResult(entities);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al obtener todas las actividades con detalles");
-        //        return OperationResult<List<Actividad>>.Failure("Error al obtener actividades");
-        //    }
-        //}
-
-        //public override async Task<OperationResult<Actividad>> GetByIdWithDetailsAsync(long id)
-        //{
-        //    try
-        //    {
-        //        using var context = await _contextFactory.CreateDbContextAsync();
-        //        var entity = await context.Set<Actividad>()
-        //            .Include(a => a.Lote)
-        //            .ThenInclude(l => l.Campo)
-        //            .AsNoTracking()
-        //            .FirstOrDefaultAsync(e => e.Id == id);
-
-        //        if (entity == null)
-        //            return OperationResult<Actividad>.Failure("Actividad no encontrada");
-
-        //        return OperationResult<Actividad>.SuccessResult((Actividad)(object)entity);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al obtener actividad con id {Id}", id);
-        //        return OperationResult<Actividad>.Failure("Error al obtener actividad");
-        //    }
-        //}
-
-        //public async Task<OperationResult<List<Actividad>>> GetRecentAsync()
-        //{
-        //    try
-        //    {
-        //        var fechaLimite = TimeHelper.GetArgentinaTime(); // Últimos 7 días
-
-        //        using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        //var actividades = await context.Actividades
-        //        //    .Where(a => a.IdLicencia == _userAuth.IdLicencia)
-        //        //    .Include(a => a.Lote)
-        //        //        .ThenInclude(l => l.Campo)
-        //        //    .Include(a => a.TipoActividad)
-        //        //    .Include(a => a.Usuario)
-        //        //    .Include(a => a.Insumo)
-        //        //    .OrderByDescending(a => a.Fecha)
-        //        //    .Take(15)
-        //        //    .AsNoTracking()
-        //        //    .ToListAsync();
-
-        //        return default;
-
-        //        //return OperationResult<List<Actividad>>.SuccessResult(actividades);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al obtener actividades recientes para licencia {IdLicencia}", _userAuth.IdLicencia);
-        //        return OperationResult<List<Actividad>>.Failure("Error al obtener actividades recientes");
-        //    }
-        //}
-
         public async Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? idCampania = null, int? idLote = null, List<int> idsLotes = null)
         {
             var labores = new List<LaborDTO>();
 
-            // Filtros dinámicos
             IQueryable<T> aplicarFiltros<T>(IQueryable<T> query)
                 where T : class, ILabor
             {
@@ -176,7 +72,9 @@ namespace AgroForm.Business.Services
                     query = query.Where(x => x.IdLote == idLote.Value);
                 if (idsLotes != null && idsLotes.Any())
                     query = query.Where(x => idsLotes.Contains(x.IdLote));
-                return query.Include(_ => _.TipoActividad).Include(_ => _.Lote);
+                return query.Include(_ => _.TipoActividad)
+                            .Include(_ => _.Lote)
+                                .ThenInclude(_ => _.Campo);
             }
 
 
@@ -185,6 +83,7 @@ namespace AgroForm.Business.Services
             {
                 Id = s.Id,
                 TipoActividad = s.TipoActividad.Nombre,
+                IdTipoActividad = s.TipoActividad.Id,
                 IconoTipoActividad = s.TipoActividad.Icono,
                 IconoColorTipoActividad = s.TipoActividad.ColorIcono,
                 Fecha = s.Fecha,
@@ -195,7 +94,9 @@ namespace AgroForm.Business.Services
                 IdCampania = s.IdCampania,
                 Observacion = s.Observacion,
                 IdLote = s.IdLote,
-                Lote = s.Lote.Nombre
+                Lote = s.Lote.Nombre,
+                Campo = s.Lote.Campo.Nombre,
+                EsDolar = s.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(siembras);
 
@@ -203,18 +104,21 @@ namespace AgroForm.Business.Services
             var riegos = await aplicarFiltros(_repositoryRiego.Query()).Select(r => new LaborDTO
             {
                 Id = r.Id,
-                TipoActividad =r.TipoActividad.Nombre,
+                TipoActividad = r.TipoActividad.Nombre,
+                IdTipoActividad = r.TipoActividad.Id,
                 IconoTipoActividad = r.TipoActividad.Icono,
                 IconoColorTipoActividad = r.TipoActividad.ColorIcono,
                 Fecha = r.Fecha,
                 Responsable = r.RegistrationUser,
                 RegistrationDate = r.RegistrationDate,
                 Detalle = $"Horas: {r.HorasRiego}, Volumen: {r.VolumenAguaM3} m³",
-                Costo = null,
+                Costo = r.Costo,
                 IdCampania = r.IdCampania,
                 Observacion = r.Observacion,
                 IdLote = r.IdLote,
-                Lote = r.Lote.Nombre
+                Lote = r.Lote.Nombre,
+                Campo = r.Lote.Campo.Nombre,
+                EsDolar = r.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(riegos);
 
@@ -222,6 +126,7 @@ namespace AgroForm.Business.Services
             var fertilizaciones = await aplicarFiltros(_repositoryFertilizacion.Query()).Select(f => new LaborDTO
             {
                 Id = f.Id,
+                IdTipoActividad = f.TipoActividad.Id,
                 TipoActividad = f.TipoActividad.Nombre,
                 IconoTipoActividad = f.TipoActividad.Icono,
                 IconoColorTipoActividad = f.TipoActividad.ColorIcono,
@@ -233,7 +138,9 @@ namespace AgroForm.Business.Services
                 IdCampania = f.IdCampania,
                 Observacion = f.Observacion,
                 IdLote = f.IdLote,
-                Lote = f.Lote.Nombre
+                Lote = f.Lote.Nombre,
+                Campo = f.Lote.Campo.Nombre,
+                EsDolar = f.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(fertilizaciones);
 
@@ -241,6 +148,7 @@ namespace AgroForm.Business.Services
             var pulverizaciones = await aplicarFiltros(_repositoryPulverizacion.Query()).Select(p => new LaborDTO
             {
                 Id = p.Id,
+                IdTipoActividad = p.TipoActividad.Id,
                 TipoActividad = p.TipoActividad.Nombre,
                 IconoTipoActividad = p.TipoActividad.Icono,
                 IconoColorTipoActividad = p.TipoActividad.ColorIcono,
@@ -248,11 +156,13 @@ namespace AgroForm.Business.Services
                 RegistrationDate = p.RegistrationDate,
                 Responsable = p.RegistrationUser,
                 Detalle = $"Producto: {p.ProductoAgroquimico.Nombre}, Volumen: {p.VolumenLitrosHa} L/ha",
-                Costo = null,
+                Costo = p.Costo,
                 IdCampania = p.IdCampania,
                 Observacion = p.Observacion,
                 IdLote = p.IdLote,
-                Lote = p.Lote.Nombre
+                Lote = p.Lote.Nombre,
+                Campo = p.Lote.Campo.Nombre,
+                EsDolar = p.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(pulverizaciones);
 
@@ -260,18 +170,21 @@ namespace AgroForm.Business.Services
             var monitoreos = await aplicarFiltros(_repositoryMonitoreo.Query()).Select(m => new LaborDTO
             {
                 Id = m.Id,
+                IdTipoActividad = m.TipoActividad.Id,
                 TipoActividad = m.TipoActividad.Nombre,
                 IconoTipoActividad = m.TipoActividad.Icono,
                 IconoColorTipoActividad = m.TipoActividad.ColorIcono,
                 Fecha = m.Fecha,
                 Responsable = m.RegistrationUser,
                 RegistrationDate = m.RegistrationDate,
-                Detalle = $"Tipo: {m.TipoMonitoreo.Nombre}, Estado: {m.EstadoFenologico.Nombre ?? "N/A"}",
-                Costo = null,
+                Detalle = $"{m.TipoMonitoreo.Tipo}: {m.TipoMonitoreo.Nombre}",
+                Costo = m.Costo,
                 IdCampania = m.IdCampania,
                 Observacion = m.Observacion,
                 IdLote = m.IdLote,
-                Lote = m.Lote.Nombre
+                Lote = m.Lote.Nombre,
+                Campo = m.Lote.Campo.Nombre,
+                EsDolar = m.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(monitoreos);
 
@@ -279,6 +192,7 @@ namespace AgroForm.Business.Services
             var cosechas = await aplicarFiltros(_repositoryCosecha.Query()).Select(c => new LaborDTO
             {
                 Id = c.Id,
+                IdTipoActividad = c.TipoActividad.Id,
                 TipoActividad = c.TipoActividad.Nombre,
                 IconoTipoActividad = c.TipoActividad.Icono,
                 IconoColorTipoActividad = c.TipoActividad.ColorIcono,
@@ -286,11 +200,13 @@ namespace AgroForm.Business.Services
                 Responsable = c.RegistrationUser,
                 RegistrationDate = c.RegistrationDate,
                 Detalle = $"Cultivo: {c.Cultivo.Nombre}, Rendimiento: {c.RendimientoTonHa} ton/ha",
-                Costo = null,
+                Costo = c.Costo,
                 IdCampania = c.IdCampania,
                 Observacion = c.Observacion,
                 IdLote = c.IdLote,
-                Lote = c.Lote.Nombre
+                Lote = c.Lote.Nombre,
+                Campo = c.Lote.Campo.Nombre,
+                EsDolar = c.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(cosechas);
 
@@ -298,18 +214,21 @@ namespace AgroForm.Business.Services
             var analisis = await aplicarFiltros(_repositoryAnalisisSuelo.Query()).Select(a => new LaborDTO
             {
                 Id = a.Id,
+                IdTipoActividad = a.TipoActividad.Id,
                 TipoActividad = a.TipoActividad.Nombre,
                 IconoTipoActividad = a.TipoActividad.Icono,
                 IconoColorTipoActividad = a.TipoActividad.ColorIcono,
                 Fecha = a.Fecha,
+                Costo = a.Costo,
                 Responsable = a.RegistrationUser,
                 RegistrationDate = a.RegistrationDate,
                 Detalle = $"pH: {a.PH}, MO: {a.MateriaOrganica}%",
-                Costo = null,
                 IdCampania = a.IdCampania,
                 Observacion = a.Observacion,
                 IdLote = a.IdLote,
-                Lote = a.Lote.Nombre
+                Lote = a.Lote.Nombre,
+                Campo = a.Lote.Campo.Nombre,
+                EsDolar = a.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(analisis);
 
@@ -317,6 +236,7 @@ namespace AgroForm.Business.Services
             var otras = await aplicarFiltros(_repositoryOtrasLabores.Query()).Select(o => new LaborDTO
             {
                 Id = o.Id,
+                IdTipoActividad = o.TipoActividad.Id,
                 TipoActividad = o.TipoActividad.Nombre,
                 IconoTipoActividad = o.TipoActividad.Icono,
                 IconoColorTipoActividad = o.TipoActividad.ColorIcono,
@@ -324,11 +244,13 @@ namespace AgroForm.Business.Services
                 Responsable = o.RegistrationUser,
                 RegistrationDate = o.RegistrationDate,
                 Detalle = $"Descripción: {o.Observacion}",
-                Costo = null,
+                Costo = o.Costo,
                 IdCampania = o.IdCampania,
                 Observacion = o.Observacion,
                 IdLote = o.IdLote,
-                Lote = o.Lote.Nombre
+                Lote = o.Lote.Nombre,
+                Campo = o.Lote.Campo.Nombre,
+                EsDolar = o.IdMoneda == (int)Monedas.Dolar
             }).ToListAsync();
             labores.AddRange(otras);
 
@@ -387,10 +309,54 @@ namespace AgroForm.Business.Services
             catch (Exception e)
             {
 
-                throw;
             }
 
         }
 
+        public async Task DeteleActividadAsync(int idActividad, TipoActividadEnum IdTipoActividad)
+        {
+            switch(IdTipoActividad)
+                {
+                    case TipoActividadEnum.Siembra:
+                        await BorrarAsync(_repositorySiembra, idActividad);
+                        break;
+                    case TipoActividadEnum.Riego:
+                        await BorrarAsync(_repositoryRiego, idActividad);
+                        break;
+                    case TipoActividadEnum.Fertilizado:
+                        await BorrarAsync(_repositoryFertilizacion, idActividad);
+                        break;
+                    case TipoActividadEnum.Pulverizacion:
+                        await BorrarAsync(_repositoryPulverizacion, idActividad);
+                        break;
+                    case TipoActividadEnum.Monitoreo:
+                        await BorrarAsync(_repositoryMonitoreo, idActividad);
+                        break;
+                    case TipoActividadEnum.Cosecha:
+                        await BorrarAsync(_repositoryCosecha, idActividad);
+                        break;
+                    case TipoActividadEnum.AnalisisSuelo:
+                        await BorrarAsync(_repositoryAnalisisSuelo, idActividad);
+                        break;
+                    case TipoActividadEnum.OtrasLabores :
+                        await BorrarAsync(_repositoryOtrasLabores, idActividad);
+                        break;
+                    }
+            }
+
+
+        private async Task BorrarAsync<T>(IGenericRepository<T> repo, int idActividad) where T : EntityBaseWithLicencia
+        {
+            try
+            {
+                await repo.DeleteByIdAsync(idActividad);
+
+            }
+            catch (Exception e)
+            {
+
+            }
+
+        }
     }
 }

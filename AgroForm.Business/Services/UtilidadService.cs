@@ -33,5 +33,17 @@ namespace AgroForm.Business.Services
                 return default;
             }
         }
+
+        public static decimal? CalcularCostoARS(decimal? costo, bool esDolar, decimal tipoCambioUSD)
+        {
+            if (costo == null) return null;
+            return esDolar ? costo * tipoCambioUSD : costo;
+        }
+
+        public static decimal? CalcularCostoUSD(decimal? costo, bool esDolar, decimal tipoCambioUSD)
+        {
+            if (costo == null) return null;
+            return esDolar ? costo : costo / tipoCambioUSD;
+        }
     }
 }

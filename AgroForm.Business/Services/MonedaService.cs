@@ -18,7 +18,12 @@ namespace AgroForm.Business.Services
         public MonedaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Moneda>> logger, IHttpContextAccessor httpContextAccessor)
             : base(contextFactory, logger, httpContextAccessor)
         {
+        }
 
+        public async Task<decimal> ObtenerTipoCambioActualAsync()
+        {
+            var monedaUSD = await GetQuery().FirstAsync(m => m.Codigo == "USD");
+            return monedaUSD.TipoCambioReferencia ?? 1;
         }
     }
 }

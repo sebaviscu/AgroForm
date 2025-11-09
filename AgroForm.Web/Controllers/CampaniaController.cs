@@ -13,9 +13,12 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class CampaniaController : BaseController<Campania, CampaniaVM, ICampaniaService>
     {
-        public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service)
+        private readonly ILoteService _loteService;
+
+        public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service, ILoteService loteService)
             : base(logger, mapper, service)
         {
+            _loteService = loteService;
         }
 
         public async Task<IActionResult> Index()
@@ -52,6 +55,27 @@ namespace AgroForm.Web.Controllers
             {
                 return HandleException(ex,"Error al iniciar la pagina", "Index");
             }
+        }
+
+        [HttpPut("{id}")]
+        public override async Task<IActionResult> Update([FromBody] CampaniaVM dto)
+        {
+            var entity = Map<CampaniaVM, Campania>(dto);
+            var result = await _service.UpdateAsync(entity);
+
+            await _loteService.CreateRangeAsync(entity.Lotes.ToList());
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = Map<Campania, CampaniaVM>(result.Data);
+            gResponse.Message = "Registro actualizado correctamente";
+            return Ok(gResponse);
         }
     }
 }

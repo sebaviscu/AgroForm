@@ -95,12 +95,11 @@ namespace AlbaServicios.Services
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
-                var entity = await context.Set<T>()
-                                          .AsNoTracking()
-                                          .FirstOrDefaultAsync(x => x.Id == id);
 
-                //if (entity == null)
-                //    return OperationResult<T>.Failure($"No se encontró el registro con ID {id}.", "NOT_FOUND");
+                var entity = context.Set<T>().AsNoTracking().FirstOrDefault(_=>_.Id == id);
+
+                if (entity == null)
+                    return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
 
                 return OperationResult<T>.SuccessResult(entity);
             }

@@ -9,5 +9,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface IMonedaService : IServiceBase<Moneda>
     {
+        Task<decimal> ObtenerTipoCambioActualAsync();
     }
 }

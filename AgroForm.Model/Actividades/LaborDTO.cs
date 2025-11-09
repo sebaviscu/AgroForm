@@ -13,6 +13,8 @@ namespace AgroForm.Model.Actividades
         public int IdCampania { get; set; }
         public int IdLote { get; set; } 
         public string Lote { get; set; } = string.Empty;
+        public string Campo { get; set; } = string.Empty;
+        public bool EsDolar { get; set; }
 
         public string TipoActividad { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }
@@ -21,6 +23,9 @@ namespace AgroForm.Model.Actividades
         public string Responsable { get; set; } = string.Empty;
         public string Detalle { get; set; } = string.Empty;
         public decimal? Costo { get; set; }
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+
         public string IconoTipoActividad { get; set; } = string.Empty;
         public string IconoColorTipoActividad { get; set; } = string.Empty;
 

@@ -17,6 +17,12 @@ namespace AgroForm.Model.Actividades
 
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; }
+        public decimal? Costo { get; set; }
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+
+        public int IdMoneda { get; set; }
+        public Moneda Moneda { get; set; }
 
         public int IdLote { get; set; }
         public Lote? Lote { get; set; }
@@ -24,7 +30,7 @@ namespace AgroForm.Model.Actividades
         public int IdTipoActividad { get; set; }
         public TipoActividad? TipoActividad { get; set; }
 
-        public int IdUsuario { get; set; }
+        public int? IdUsuario { get; set; }
         public int IdCampania { get; set; }
         public int IdLicencia { get; set; }
     }

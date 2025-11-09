@@ -13,9 +13,11 @@
         'Fertilizado': '#templateFertilizado',
         'Pulverizacion': '#templatePulverizacion',
         'Monitoreo': '#templateMonitoreo',
-        'AnalisisSuelo': '#templateAnalisisSuelo',
+        'Analisis de suelo': '#templateAnalisisSuelo',
+        'Otras labores': '#templateOtrasLabores',
         'Cosecha': '#templateCosecha'
     };
+
 
     // FUNCIÓN: Cargar campos específicos según tipo de actividad
     function cargarCamposEspecificos(tipoActividadNombre) {
@@ -40,32 +42,49 @@
         }
     }
 
+    function cargarSwitchMoneda(idSwitch, idLabel) {
+        $("#" + idSwitch).on("change", function () {
+            const esUSD = $(this).is(":checked");
+            $("#" + idLabel).text(esUSD ? "US$" : "$");
+            $(this).next("label").text(esUSD ? "USD" : "ARS");
+        });
+    }
     // FUNCIÓN: Cargar datos para selects específicos
     function cargarDatosParaSelects(tipoActividadNombre) {
         switch (tipoActividadNombre) {
             case 'Siembra':
                 cargarCultivos();
                 cargarCatalogos(30, 'MetodoSiembra');
+                cargarSwitchMoneda("switchMonedaCostoSiembra", "labelMonedaCostoSiembra");
             case 'Cosecha':
                 cargarCultivos();
+                cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
                 break;
             case 'Riego':
                 cargarCatalogos(31, 'MetodoRiego');
                 cargarCatalogos(41, 'FuenteAgua');
+                cargarSwitchMoneda("switchMonedaCostoRiego", "labelMonedaCostoRiego");
                 break;
             case 'Fertilizado':
                 cargarCatalogos(21, 'Nutriente');
                 cargarCatalogos(20, 'TipoFertilizante');
                 cargarCatalogos(32, 'MetodoAplicacion');
+                cargarSwitchMoneda("switchMonedaCostoFertilizacion", "labelMonedaCostoFertilizacion");
                 break;
             case 'Pulverizacion':
                 cargarCatalogos(22, 'ProductoAgroquimico');
+                cargarSwitchMoneda("switchMonedaCostoPulverizacion", "labelMonedaCostoPulverizacion");
                 break;
             case 'Monitoreo':
-                cargarEstadosFenologicos();
+                //cargarEstadosFenologicos();
+                cargarSwitchMoneda("switchMonedaCostoMonitoreo", "labelMonedaCostoMonitoreo");
                 break;
             case 'AnalisisSuelo':
                 cargarCatalogos(50, 'Laboratorio');
+                cargarSwitchMoneda("switchMonedaCostoAnalisisSuelo", "labelMonedaCostoAnalisisSuelo");
+                break;
+            case 'OtrasLabores':
+                cargarSwitchMoneda("switchMonedaCostoOtraLabor", "labelMonedaCostoOtraLabor");
                 break;
         }
     }
@@ -78,13 +97,14 @@
             success: function (result) {
                 if (result.success && result.listObject) {
                     var selectCultivo = $('#idCultivo, #idCultivoCosecha');
-                    selectCultivo.empty().append('<option value="">Seleccionar cultivo</option>');
                     $.each(result.listObject, function (index, cultivo) {
                         selectCultivo.append($('<option>', {
                             value: cultivo.id,
                             text: cultivo.nombre
                         }));
                     });
+                    $('#idCultivo').val(null).trigger('change');
+                    $('#idCultivoCosecha').val(null).trigger('change');
                 }
             },
             error: function (error) {
@@ -109,6 +129,7 @@
                             text: catalogo.nombre
                         }));
                     });
+                    $('#' + selectId).val(null).trigger('change');
                 }
             },
             error: function (error) {
@@ -146,7 +167,7 @@
         if (cultivoId) {
             cargarVariedades(cultivoId);
         } else {
-            $('#idVariedad').empty().append('<option value="">Seleccionar variedad</option>');
+            $('#idVariedad').empty().val(null).trigger('change');
         }
     });
 
@@ -155,7 +176,7 @@
         if (idTipoCatalogo) {
             cargarCatalogos(idTipoCatalogo, 'TipoMonitoreo');
         } else {
-            $('#IdTipoMonitoreo').empty().append('<option value="">Seleccionar Tipo Monitoreo</option>');
+            $('#IdTipoMonitoreo').empty().val(null).trigger('change');
         }
     });
 
@@ -168,13 +189,14 @@
             success: function (result) {
                 if (result.success && result.listObject) {
                     var select = $('#idVariedad');
-                    select.empty().append('<option value="">Seleccionar variedad</option>');
+                    select.empty();
                     $.each(result.listObject, function (index, variedad) {
                         select.append($('<option>', {
                             value: variedad.id,
                             text: variedad.nombre
                         }));
                     });
+                    select.val(null).trigger('change');
                 }
             },
             error: function (error) {
@@ -439,40 +461,46 @@
 
         switch (tipoActividadNombre) {
             case 'Siembra':
-                if (!$('#superficieHa').val()) {
-                    $('#superficieHa').addClass('is-invalid');
-                    isValid = false;
-                }
-                if (!$('#densidadSemillaKgHa').val()) {
-                    $('#densidadSemillaKgHa').addClass('is-invalid');
-                    isValid = false;
-                }
+                //if (!$('#superficieHa').val()) {
+                //    $('#superficieHa').addClass('is-invalid');
+                //    isValid = false;
+                //}
+                //if (!$('#densidadSemillaKgHa').val()) {
+                //    $('#densidadSemillaKgHa').addClass('is-invalid');
+                //    isValid = false;
+                //}
                 if (!$('#idCultivo').val()) {
                     $('#idCultivo').next('.select2-container').find('.select2-selection').addClass('is-invalid');
                     isValid = false;
                 }
-                if (!$('#idMetodoSiembra').val()) {
-                    $('#idMetodoSiembra').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                //if (!$('#idMetodoSiembra').val()) {
+                //    $('#idMetodoSiembra').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                //    isValid = false;
+                //}
+                break;
+
+            case 'Cosecha':
+                if (!$('#idCultivoCosecha').val()) {
+                    $('#idCultivoCosecha').next('.select2-container').find('.select2-selection').addClass('is-invalid');
                     isValid = false;
                 }
                 break;
 
             case 'Riego':
-                if (!$('#horasRiego').val()) {
-                    $('#horasRiego').addClass('is-invalid');
-                    isValid = false;
-                }
-                if (!$('#volumenAguaM3').val()) {
-                    $('#volumenAguaM3').addClass('is-invalid');
-                    isValid = false;
-                }
-                if (!$('#idMetodoRiego').val()) {
-                    $('#idMetodoRiego').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                    isValid = false;
-                }
+                //if (!$('#horasRiego').val()) {
+                //    $('#horasRiego').addClass('is-invalid');
+                //    isValid = false;
+                //}
+                //if (!$('#volumenAguaM3').val()) {
+                //    $('#volumenAguaM3').addClass('is-invalid');
+                //    isValid = false;
+                //}
+                //if (!$('#idMetodoRiego').val()) {
+                //    $('#idMetodoRiego').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                //    isValid = false;
+                //}
                 break;
 
-            // Agregar validaciones para otros tipos...
         }
 
         return isValid;
@@ -514,8 +542,6 @@
             }) : [],
             tipoidActividad: parseInt($('#tipoidActividad').val()),
             observacion: $('#observacion').val(),
-            costo: parseFloat($('#costoTotal').val()) || 0,
-            cantidad: cantidadInput.val() ? parseFloat(cantidadInput.val()) : null,
             tipoActividad: tipoActividadNombre,
             datosEspecificos: dataEspecifica
         };
@@ -536,14 +562,14 @@
             },
             success: function (result) {
                 if (result.success) {
-                    mostrarMensaje('Actividad creada correctamente', 'success');
                     $('#modalActividadRapida').modal('hide');
+                    mostrarExito('Actividad creada correctamente');
 
                     setTimeout(function () {
                         window.location.reload();
                     }, 500);
                 } else {
-                    mostrarMensaje(result.message || 'Error al crear actividad', 'error');
+                    mostrarError(result.message || 'Error al crear actividad', 'error');
                     submitBtn.html(originalText).prop('disabled', false);
                 }
             },
@@ -566,10 +592,11 @@
                     Costo: parseFloat($('#costoSiembra').val()) || 0,
                     IdCultivo: parseInt($('#idCultivo').val()),
                     IdVariedad: $('#idVariedad').val() ? parseInt($('#idVariedad').val()) : null,
-                    IdMetodoSiembra: parseInt($('#idMetodoSiembra').val())
+                    IdMetodoSiembra: parseInt($('#idMetodoSiembra').val()),
+                    EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
                 };
                 break;
-
+                
             case 'Riego':
                 datos = {
                     HorasRiego: parseFloat($('#horasRiego').val()) || 0,
@@ -577,6 +604,7 @@
                     IdMetodoRiego: parseInt($('#idMetodoRiego').val()),
                     IdFuenteAgua: $('#idFuenteAgua').val() ? parseInt($('#idFuenteAgua').val()) : null,
                     Costo: parseFloat($('#costoRiegoTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoRiego').is(':checked')
                 };
                 break;
 
@@ -587,8 +615,9 @@
                     Costo: parseFloat($('#costoFertilizado').val()) || 0,
                     IdNutriente: parseInt($('#idNutriente').val()),
                     IdTipoFertilizante: parseInt($('#idTipoFertilizante').val()),
-                    IdMetodoAplicacion: parseInt($('#idMetodoAplicacion').val())
-                };
+                    IdMetodoAplicacion: parseInt($('#idMetodoAplicacion').val()),
+                    EsDolar: $('#switchMonedaCostoFertilizacion').is(':checked')
+                }; 
                 break;
 
             case 'Pulverizacion':
@@ -598,13 +627,16 @@
                     CondicionesClimaticas: $('#condicionesClimaticas').val() || '',
                     IdProductoAgroquimico: parseInt($('#idProductoAgroquimico').val()),
                     Costo: parseFloat($('#costoPulverizacionTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoPulverizacion').is(':checked')
                 };
                 break;
 
             case 'Monitoreo':
                 datos = {
                     IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
-                    IdEstadoFenologico: $('#idEstadoFenologico').val() ? parseInt($('#idEstadoFenologico').val()) : null
+                    IdEstadoFenologico: $('#idEstadoFenologico').val() ? parseInt($('#idEstadoFenologico').val()) : null,
+                    Costo: parseFloat($('#costoMonitoreoTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoMonitoreo').is(':checked')
                 };
                 break;
 
@@ -619,7 +651,9 @@
                     ConductividadElectrica: $('#conductividadElectrica').val() ? parseFloat($('#conductividadElectrica').val()) : null,
                     CIC: $('#cic').val() ? parseFloat($('#cic').val()) : null,
                     Textura: $('#textura').val() || '',
-                    IdLaboratorio: $('#idLaboratorio').val() ? parseInt($('#idLaboratorio').val()) : null
+                    IdLaboratorio: $('#idLaboratorio').val() ? parseInt($('#idLaboratorio').val()) : null,
+                    Costo: parseFloat($('#costoAnalisisSueloTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoAnalisisSuelo').is(':checked')
                 };
                 break;
 
@@ -628,7 +662,16 @@
                     RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
                     HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
                     SuperficieCosechadaHa: parseFloat($('#superficieCosechadaHa').val()) || 0,
-                    IdCultivo: parseInt($('#idCultivoCosecha').val())
+                    IdCultivo: parseInt($('#idCultivoCosecha').val()),
+                    Costo: parseFloat($('#costoCosechaTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoCosecha').is(':checked')
+                };
+                break;
+
+            case 'OtraLabor':
+                datos = {
+                    Costo: parseFloat($('#costoOtraLaborTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
                 };
                 break;
         }
@@ -647,4 +690,5 @@
             alert(mensaje);
         }
     }
+
 });

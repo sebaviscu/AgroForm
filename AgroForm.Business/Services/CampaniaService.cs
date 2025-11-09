@@ -85,5 +85,20 @@ namespace AgroForm.Business.Services
                 return OperationResult<Campania>.Failure($"Ocurrió un problema al  reuperar campaña en cusro Campania: {ex.Message}", "DATABASE_ERROR");
             }
         }
+
+        public override async Task<OperationResult<Campania>> GetByIdAsync(long id)
+        {
+            try
+            {
+                var campania = await GetQuery().Include(_=>_.Lotes).ThenInclude(_=>_.Campo).SingleAsync(_ => _.Id == id);
+
+                return OperationResult<Campania>.SuccessResult(campania);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer el registro con ID {Id}", id);
+                return OperationResult<Campania>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
     }
 }

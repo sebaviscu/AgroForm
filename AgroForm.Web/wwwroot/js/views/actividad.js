@@ -1,5 +1,10 @@
 ﻿$(document).ready(function () {
-    // Inicializar DataTable
+
+    inicializarDataTable();
+    configurarEventosGrilla();
+});
+
+function inicializarDataTable() {
     var table = $('#tblActividades').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
@@ -31,43 +36,67 @@
                 }
             ]
         },
-        columnDefs: [
-            { orderable: false, targets: [7] },
-            { searchable: false, targets: [5, 6, 7] },
-            { className: 'dt-center', targets: [7] },
-            { width: '100px', targets: [3, 6, 7] }
-        ],
         order: [[0, 'desc']],
         pageLength: 25,
         responsive: true
     });
 
-    // Botones dinámicos
-    $('#tblActividades tbody').on('click', '.btn-view', function () { verDetalles($(this).data('id')); });
-    $('#tblActividades tbody').on('click', '.btn-edit', function () { window.location.href = '@Url.Action("Editar","Actividad")/' + $(this).data('id'); });
-    $('#tblActividades tbody').on('click', '.btn-delete', function () { eliminarActividad($(this).data('id')); });
+    $('#campoFilter').on('change', function () {
+        var valor = $(this).val();
 
-    function verDetalles(id) {
-        $.get('@Url.Action("Detalles","Actividad")/' + id)
-            .done(function (response) {
-                if (response.success) { mostrarModalDetalles(response.data); }
-                else { mostrarError(response.message || 'Error al cargar detalles'); }
-            })
-            .fail(function () { mostrarError('Error al conectar con el servidor'); });
-    }
+        if (valor === "TODOS" || valor === null) {
+            table.column(2).search('').draw();
+        } else {
+            table.column(2).search('^' + valor + '$', true, false).draw();
+        }
+    });
+}
 
-    function eliminarActividad(id) {
-        if (!confirm('¿Está seguro de que desea eliminar esta actividad?')) return;
-        $.post('@Url.Action("Eliminar","Actividad")', { id: id })
-            .done(function (response) {
-                if (response.success) { mostrarExito(response.message); filtrarPorCampo($('#campoFilter').val()); }
-                else { mostrarError(response.message || 'Error al eliminar actividad'); }
-            })
-            .fail(function () { mostrarError('Error al conectar con el servidor'); });
-    }
+function configurarEventosGrilla() {
 
-    function mostrarModalDetalles(actividad) {
-        console.log('Detalles:', actividad);
-        alert('Detalles de: ' + actividad.descripcion);
-    }
-});
+    $('#tblActividades tbody').on('click', '.btn-edit', function () {
+        var id = $(this).data('id');
+        var idTipoActividad = $(this).data('idTipoActividad');
+        //abrirModalActividad(id, idTipoActividad);
+    });
+
+    $('#tblActividades tbody').on('click', '.btn-delete', function () {
+        var id = $(this).data('id');
+        var idTipoActividad = $(this).data('idtipoactividad');
+        eliminarActividad(id, idTipoActividad);
+    });
+}
+
+function eliminarActividad(id, idTipoActividad) {
+    mostrarConfirmacion(
+        '¿Está seguro de que desea eliminar esta labor? Esta acción no se puede deshacer.',
+        'Eliminar labor'
+    ).then((result) => {
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: '/Actividad/Delete?id=' + id + '&idTipoActividad=' + idTipoActividad,
+                type: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    cerrarAlertas();
+                    if (response.success) {
+                        mostrarExito(response.message);
+
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 500);
+                    } else {
+                        mostrarError(response.message || 'Error al eliminar labor');
+                    }
+                },
+                error: function () {
+                    cerrarAlertas();
+                    mostrarError('Error al conectar con el servidor');
+                }
+            });
+        }
+    });
+}

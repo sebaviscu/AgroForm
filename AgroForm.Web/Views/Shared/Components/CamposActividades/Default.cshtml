@@ -72,6 +72,7 @@
                     $('#loadingCamposActividades').hide();
                 if (result.success && result.listObject) {
                     renderizarCamposYLotes(result.listObject);
+                    inicializarPopovers();
                 } else {
                     $('#camposLotesList').html('<div class="alert alert-warning">No se pudieron cargar los datos</div>');
                 }
@@ -98,6 +99,7 @@
             var $campoElement = crearCampoElement(campo);
             $container.append($campoElement);
         });
+
     }
 
     // Función para crear elemento de campo
@@ -203,18 +205,22 @@
             );
         }
 
-        inicializarPopovers();
-
         return $loteDiv;
     }
 
-    
-    function inicializarPopovers() {
 
-        // Inicializa todos los popovers nuevamente
-        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-        [...popoverTriggerList].map(el => new bootstrap.Popover(el));
+    function inicializarPopovers() {
+        $('[data-bs-toggle="popover"]').each(function() {
+            var existing = bootstrap.Popover.getInstance(this);
+            if (existing) existing.dispose();
+            new bootstrap.Popover(this, {
+                container: 'body',
+                trigger: $(this).data('bs-trigger') || 'focus',
+                html: $(this).data('bs-html') === true || $(this).data('bs-html') === 'true'
+            });
+        });
     }
+
 
     // Función para crear elemento de actividad
     function crearActividadElement(actividad) {
@@ -270,16 +276,6 @@
         fila1Html += '</div>';
         $contentContainer.append(fila1Html);
 
-        // Fila 2: Responsable y Observación
-        // var fila2Html = '<div class="d-flex align-items-center text-muted small mt-1">' +
-        //     '<span class="text-primary me-2">' + (actividad.registrationUser || 'Sin responsable') + '</span>' +
-        //     (actividad.observacion ?
-        //         '<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + actividad.observacion + '"> - ' + (actividad.observacionCortada || actividad.observacion) + '</span>' :
-        //         '') +
-        //     '</div>';
-        // $contentContainer.append(fila2Html);
-
-        // Fecha (puede ir en la esquina derecha del header si querés)
         var $fechaContainer = $('<div>', {
             class: 'actividad-fecha flex-shrink-0 ms-2 small text-muted'
         }).text(fecha);

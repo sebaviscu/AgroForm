@@ -18,81 +18,104 @@
 </head>
 
 <body class="" id="body">
-<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-    <div class="card shadow border-0 rounded-4" style="width: 100%; max-width: 400px;">
-        <div class="card-body p-4">
-            <!-- Header -->
-            <div class="text-center mb-4">
-                <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                     style="width: 70px; height: 70px;">
-                    <i class="ph ph-tree text-white fs-3"></i>
-                </div>
-                <h3 class="fw-bold text-success mb-1">AgroForm</h3>
-                <p class="text-muted">Ingresa a tu cuenta</p>
-            </div>
-
-            <!-- Error Message -->
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
-                    <i class="ph ph-warning-circle me-2"></i>
-                    <small>@ViewBag.Error</small>
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            <!-- Login Form -->
-            <form method="post">
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Correo Electrónico</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="ph ph-envelope text-muted"></i>
-                        </span>
-                        <input type="email" class="form-control border-start-0" name="email"
-                               placeholder="usuario@ejemplo.com" required>
+    <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div class="card shadow border-0 rounded-4" style="width: 100%; max-width: 400px;">
+            <div class="card-body p-4">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 70px; height: 70px;">
+                        <i class="ph ph-tree text-white fs-3"></i>
                     </div>
+                    <h3 class="fw-bold text-success mb-1">AgroForm</h3>
+                    <p class="text-muted">Ingresa a tu cuenta</p>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Contraseña</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="ph ph-lock text-muted"></i>
-                        </span>
-                        <input type="password" class="form-control border-start-0" name="password"
-                               placeholder="Tu contraseña" required>
+                <!-- Error Message -->
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                        <i class="ph ph-warning-circle me-2"></i>
+                        <small>@ViewBag.Error</small>
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
                     </div>
-                </div>
+                }
 
-                <div class="mb-4 d-flex justify-content-between align-items-center">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                        <label class="form-check-label small" for="rememberMe">
-                            Recordarme
-                        </label>
+                <!-- Login Form -->
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="ph ph-envelope text-muted"></i>
+                            </span>
+                            <input type="email" class="form-control border-start-0" name="email"
+                                   placeholder="usuario@ejemplo.com" required>
+                        </div>
                     </div>
-                    <a href="#" class="small text-success text-decoration-none">
-                        ¿Contraseña olvidada?
-                    </a>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="ph ph-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control border-start-0" name="password"
+                                   placeholder="Tu contraseña" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
+                            <label class="form-check-label small" for="rememberMe">
+                                Recordarme
+                            </label>
+                        </div>
+                        <a href="#" class="small text-success text-decoration-none">
+                            ¿Contraseña olvidada?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-3 py-2 fw-semibold">
+                        <i class="ph ph-sign-in me-2"></i>
+                        Iniciar Sesión
+                    </button>
+                </form>
+
+                <!-- Footer -->
+                <div class="text-center mt-4 pt-3 border-top">
+                    <p class="small text-muted mb-0">
+                        ¿Primera vez aquí? <a href="#" class="text-success text-decoration-none fw-medium">Contacta al administrador</a>
+                    </p>
                 </div>
-
-                <button type="submit" class="btn btn-success btn-lg w-100 rounded-3 py-2 fw-semibold">
-                    <i class="ph ph-sign-in me-2"></i>
-                    Iniciar Sesión
-                </button>
-            </form>
-
-            <!-- Footer -->
-            <div class="text-center mt-4 pt-3 border-top">
-                <p class="small text-muted mb-0">
-                    ¿Primera vez aquí? <a href="#" class="text-success text-decoration-none fw-medium">Contacta al administrador</a>
-                </p>
             </div>
         </div>
     </div>
-</div>
     <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(function() {
+            var $form = $('form');
+            var $btn = $form.find('button[type="submit"]');
+
+            $form.on('submit', function() {
+                $btn.prop('disabled', true);
+                $btn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Iniciando...');
+            });
+
+            // Si hay un mensaje de error, reactivar el boton
+            @if (ViewBag.Error != null)
+            {
+                    <text>
+                        $btn.prop('disabled', false);
+                        $btn.html('<i class="ph ph-sign-in me-2"></i> Iniciar Sesión');
+                    </text>
+            }
+        });
+    </script>
 
 </body>
 </html>
@@ -119,9 +142,9 @@
         transition: all 0.3s ease;
     }
 
-    .btn-success:hover {
-        background-color: #157347;
-        border-color: #146c43;
-        transform: translateY(-1px);
-    }
+        .btn-success:hover {
+            background-color: #157347;
+            border-color: #146c43;
+            transform: translateY(-1px);
+        }
 </style>

@@ -12,7 +12,6 @@ namespace AgroForm.Web.Models.IndexVM
         public List<int> LotesIds { get; set; } = new List<int>();
 
         public List<SelectListItem>? Lotes { get; set; }
-        public decimal? Costo { get; set; }
 
         [Required(ErrorMessage = "El tipo de actividad es requerido")]
         [Display(Name = "Tipo de Actividad")]
@@ -34,10 +33,12 @@ namespace AgroForm.Web.Models.IndexVM
 
     public class DatosEspecificosVM
     {
+        public decimal? Costo { get; set; }
+        public bool? EsDolar { get; set; }
+
         // Siembra
         public decimal? SuperficieHa { get; set; }
         public decimal? DensidadSemillaKgHa { get; set; }
-        public decimal? Costo { get; set; }
         public int IdCultivo { get; set; }
         public int? IdVariedad { get; set; }
         public int? IdMetodoSiembra { get; set; }

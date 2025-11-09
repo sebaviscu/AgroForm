@@ -27,8 +27,11 @@ namespace AgroForm.Web.Components
             //var insumos = await _insumoService.GetAllAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
 
-            var analisisSuelo = tiposActividad.Data.First(_ => _.Nombre == "Analisis de suelo");
-            analisisSuelo.Nombre = "AnalisisSuelo";
+            //var analisisSuelo = tiposActividad.Data.First(_ => _.Nombre == "Analisis de suelo");
+            //analisisSuelo.Nombre = "AnalisisSuelo";
+
+            //var otrasLabores = tiposActividad.Data.First(_ => _.Nombre == "Otras labores");
+            //otrasLabores.Nombre = "OtrasLabores";
 
             var vm = new ActividadRapidaVM
             {

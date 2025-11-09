@@ -41,6 +41,7 @@ CREATE TABLE Campos (
     SuperficieHectareas DECIMAL(10,2) NULL,
     Latitud DECIMAL(18,2) NOT NULL,
     Longitud DECIMAL(18,2) NOT NULL,
+	CoordenadasPoligono NVARCHAR(MAX) NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -219,13 +220,16 @@ CREATE TABLE Siembras (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     SuperficieHa DECIMAL(10,2) NULL,
     DensidadSemillaKgHa DECIMAL(10,2) NULL,
     Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdCultivo INT NOT NULL,
     IdVariedad INT NULL,
     IdMetodoSiembra INT NOT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -237,7 +241,8 @@ CREATE TABLE Siembras (
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
     FOREIGN KEY (IdVariedad) REFERENCES Variedades(Id),
-    FOREIGN KEY (IdMetodoSiembra) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdMetodoSiembra) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Riegos (
@@ -248,12 +253,15 @@ CREATE TABLE Riegos (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     HorasRiego DECIMAL(10,2) NULL,
     VolumenAguaM3 DECIMAL(10,2) NULL,
     Costo DECIMAL(18,2) NULL,
-    IdMetodoRiego INT NOT NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
+    IdMetodoRiego INT NULL,
     IdFuenteAgua INT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -264,7 +272,8 @@ CREATE TABLE Riegos (
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdMetodoRiego) REFERENCES Catalogos(Id),
-    FOREIGN KEY (IdFuenteAgua) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdFuenteAgua) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Fertilizaciones (
@@ -275,13 +284,16 @@ CREATE TABLE Fertilizaciones (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     CantidadKgHa DECIMAL(10,2) NULL,
     IdNutriente INT NULL,
     IdTipoFertilizante INT NULL,
     DosisKgHa DECIMAL(10,2) NULL,
     Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdMetodoAplicacion INT NOT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -293,7 +305,8 @@ CREATE TABLE Fertilizaciones (
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdNutriente) REFERENCES Catalogos(Id),
     FOREIGN KEY (IdTipoFertilizante) REFERENCES Catalogos(Id),
-    FOREIGN KEY (IdMetodoAplicacion) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdMetodoAplicacion) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Pulverizaciones (
@@ -304,12 +317,15 @@ CREATE TABLE Pulverizaciones (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     VolumenLitrosHa DECIMAL(10,2) NULL,
     Dosis DECIMAL(10,2) NULL,
     CondicionesClimaticas NVARCHAR(200) NULL,
     Costo DECIMAL(18,2) NULL,
-    IdProductoAgroquimico INT NOT NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
+    IdProductoAgroquimico INT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -319,7 +335,8 @@ CREATE TABLE Pulverizaciones (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id),
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdProductoAgroquimico) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdProductoAgroquimico) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Monitoreos (
@@ -328,12 +345,16 @@ CREATE TABLE Monitoreos (
     IdLicencia INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Observacion NVARCHAR(MAX) NULL,
+    Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     IdInsumo INT NULL,
     IdEstadoFenologico INT NULL,
     IdTipoMonitoreo INT NOT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -345,7 +366,8 @@ CREATE TABLE Monitoreos (
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdInsumo) REFERENCES Insumos(Id),
     FOREIGN KEY (IdEstadoFenologico) REFERENCES EstadosFenologicos(Id),
-    FOREIGN KEY (IdTipoMonitoreo) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdTipoMonitoreo) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE AnalisisSuelos (
@@ -356,7 +378,7 @@ CREATE TABLE AnalisisSuelos (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     ProfundidadCm DECIMAL(10,2) NULL,
     PH DECIMAL(5,2) NULL,
     MateriaOrganica DECIMAL(10,2) NULL,
@@ -366,7 +388,11 @@ CREATE TABLE AnalisisSuelos (
     ConductividadElectrica DECIMAL(10,2) NULL,
     CIC DECIMAL(10,2) NULL,
     Textura NVARCHAR(50) NULL,
+    Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdLaboratorio INT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -376,7 +402,8 @@ CREATE TABLE AnalisisSuelos (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id),
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdLaboratorio) REFERENCES Catalogos(Id)
+    FOREIGN KEY (IdLaboratorio) REFERENCES Catalogos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Cosechas (
@@ -387,11 +414,15 @@ CREATE TABLE Cosechas (
     Observacion NVARCHAR(MAX) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
     RendimientoTonHa DECIMAL(10,2) NULL,
     HumedadGrano DECIMAL(5,2) NULL,
     SuperficieCosechadaHa DECIMAL(10,2) NULL,
+    Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdCultivo INT NOT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -401,7 +432,8 @@ CREATE TABLE Cosechas (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id),
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id)
+    FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE OtrasLabores (
@@ -410,9 +442,13 @@ CREATE TABLE OtrasLabores (
     IdLicencia INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Observacion NVARCHAR(MAX) NULL,
+    Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
-    IdUsuario INT NOT NULL,
+    IdUsuario INT NULL,
+	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
@@ -421,7 +457,8 @@ CREATE TABLE OtrasLabores (
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id),
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id)
+    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION
 );
 
 

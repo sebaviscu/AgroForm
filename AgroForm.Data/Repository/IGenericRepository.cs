@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -19,6 +20,7 @@ namespace AgroForm.Data.Repository
         Task<bool> DeleteAsync(TEntity entidad);
         Task<bool> DeleteRangeAsync(IEnumerable<TEntity> entidades);
         IQueryable<TEntity> Query();
-
+        Task<TEntity?> GetByIdAsync(object id);
+        Task<bool> DeleteByIdAsync(object id);
     }
 }

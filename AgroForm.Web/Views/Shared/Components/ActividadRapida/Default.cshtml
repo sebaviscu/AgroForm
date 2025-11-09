@@ -153,10 +153,19 @@
                         </div>
                     </div>
                     <div class="col-md-4">
+
                         <div class="mb-3">
                             <label for="costoSiembra" class="form-label">Costo</label>
-                            <input type="number" class="form-control" id="costoSiembra" name="CostoSiembra"
-                                   min="0" step="0.01">
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoSiembra">$</span>
+                                <input type="number" class="form-control" id="costoSiembra"
+                                       min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoSiembra">
+                                    <label class="form-check-label" for="switchMonedaCostoSiembra">USD</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,7 +183,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="horasRiego" class="form-label">Horas de Riego</label>
                             <input type="number" class="form-control" id="horasRiego" name="HorasRiego"
@@ -188,14 +197,19 @@
                                    min="0.1" step="0.1">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="mb-3">
                             <label for="costoRiegoTotal" class="form-label">Costo</label>
+
                             <div class="input-group">
-                                <span class="input-group-text text-muted">$</span>
+                                <span class="input-group-text" id="labelMonedaCostoRiego">$</span>
                                 <input type="number" class="form-control" id="costoRiegoTotal"
-                                       name="Costo" min="0.01" step="0.01"
-                                       placeholder="Costo">
+                                       min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoRiego">
+                                    <label class="form-check-label" for="switchMonedaCostoRiego">USD</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -230,7 +244,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="cantidadKgHa" class="form-label">Cantidad (Kg/Ha) </label>
                             <input type="number" class="form-control" id="cantidadKgHa" name="CantidadKgHa"
@@ -244,11 +258,20 @@
                                    min="0.01" step="0.01">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="mb-3">
                             <label for="costoFertilizado" class="form-label">Costo</label>
-                            <input type="number" class="form-control" id="costoFertilizado" name="CostoFertilizacion"
-                                   min="0" step="0.01">
+
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoFertilizacion">$</span>
+                                <input type="number" class="form-control" id="costoFertilizado" name="CostoFertilizacion"
+                                       min="0" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoFertilizacion">
+                                    <label class="form-check-label" for="switchMonedaCostoFertilizacion">USD</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -289,7 +312,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="volumenLitrosHa" class="form-label">Volumen (Lt/Ha)</label>
                             <input type="number" class="form-control" id="volumenLitrosHa" name="VolumenLitrosHa"
@@ -303,14 +326,19 @@
                                    min="0.01" step="0.01">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="mb-3">
                             <label for="costoPulverizacionTotal" class="form-label">Costo</label>
+
                             <div class="input-group">
-                                <span class="input-group-text text-muted">$</span>
+                                <span class="input-group-text" id="labelMonedaCostoPulverizacion">$</span>
                                 <input type="number" class="form-control" id="costoPulverizacionTotal"
-                                       name="Costo" min="0.01" step="0.01"
-                                       placeholder="Costo">
+                                       name="Costo" min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoPulverizacion">
+                                    <label class="form-check-label" for="switchMonedaCostoPulverizacion">USD</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -335,6 +363,38 @@
         </div>
     </div>
 
+    <!-- OtraLabor -->
+    <div id="templateOtrasLabores">
+        <div class="card mb-3">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-wrench me-1"></i>Datos de Otras Labores
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label for="costoOtraLaborTotal" class="form-label">Costo</label>
+
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoOtraLabor">$</span>
+                                <input type="number" class="form-control" id="costoOtraLaborTotal"
+                                       name="Costo" min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoOtraLabor">
+                                    <label class="form-check-label" for="switchMonedaCostoOtraLabor">USD</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MONITOREO -->
     <div id="templateMonitoreo">
         <div class="card mb-3">
@@ -345,10 +405,11 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label for="idMonitoreo" class="form-label">Tipo de Monitoreo </label>
                             <select class="form-select" id="idMonitoreo" name="Textura">
+                                <option value="" selected disabled></option>
                                 <option value="10">Plaga</option>
                                 <option value="11">Maleza</option>
                                 <option value="12">Enfermedad</option>
@@ -362,13 +423,30 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    @* <div class="col-md-4">
                         <div class="mb-3">
                             <label for="idEstadoFenologico" class="form-label">Estado Fenológico</label>
                             <select class="form-select" id="idEstadoFenologico" name="IdEstadoFenologico">
                             </select>
                         </div>
+                    </div> *@
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label for="costoMonitoreoTotal" class="form-label">Costo</label>
+
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoMonitoreo">$</span>
+                                <input type="number" class="form-control" id="costoMonitoreoTotal"
+                                       name="Costo" min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoMonitoreo">
+                                    <label class="form-check-label" for="switchMonedaCostoMonitoreo">USD</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -448,6 +526,7 @@
                         <div class="mb-3">
                             <label for="textura" class="form-label">Textura</label>
                             <select class="form-select" id="textura" name="Textura">
+                                <option value="" selected disabled></option>
                                 <option value="Arenosa">Arenosa</option>
                                 <option value="Franca">Franca</option>
                                 <option value="Arcillosa">Arcillosa</option>
@@ -463,6 +542,22 @@
                             <label for="idLaboratorio" class="form-label">Laboratorio</label>
                             <select class="form-select" id="idLaboratorio" name="IdLaboratorio">
                             </select>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label for="costoAnalisisSueloTotal" class="form-label">Costo</label>
+
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoAnalisisSuelo">$</span>
+                                <input type="number" class="form-control" id="costoAnalisisSueloTotal"
+                                       name="Costo" min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoAnalisisSuelo">
+                                    <label class="form-check-label" for="switchMonedaCostoAnalisisSuelo">USD</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -506,10 +601,27 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="idCultivoCosecha" class="form-label">Cultivo </label>
-                            <select class="form-select" id="idCultivoCosecha" name="IdCultivo" >
+                            <select class="form-select" id="idCultivoCosecha" name="IdCultivo">
                             </select>
                         </div>
                     </div>
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label for="costoCosechaTotal" class="form-label">Costo</label>
+
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoCosecha">$</span>
+                                <input type="number" class="form-control" id="costoCosechaTotal"
+                                       name="Costo" min="0.01" step="0.01">
+
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoCosecha">
+                                    <label class="form-check-label" for="switchMonedaCostoCosecha">USD</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -532,23 +644,23 @@
                 <div class="modal-body">
                     <!-- Selector de Campo (Lote) -->
                     <div class="row">
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label for="fechaClima" class="form-label">Fecha *</label>
-                                    <input type="date" class="form-control" id="fechaClima" name="Fecha"
-                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
-                                    <div class="invalid-feedback">Por favor ingrese la fecha.</div>
-                                </div>
+                        <div class="col-4">
+                            <div class="mb-3">
+                                <label for="fechaClima" class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" id="fechaClima" name="Fecha"
+                                       value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                <div class="invalid-feedback">Por favor ingrese la fecha.</div>
                             </div>
-                            <div class="col-8">
-                                <div class="mb-3">
-                                    <label for="campoClima" class="form-label">Campo *</label>
-                                    <select class="form-select" id="campoClima" name="idCampo" required>
-                                        <!-- Aquí se cargarán los lotes/campos -->
-                                    </select>
-                                    <div class="invalid-feedback">Por favor seleccione un campo.</div>
-                                </div>
+                        </div>
+                        <div class="col-8">
+                            <div class="mb-3">
+                                <label for="campoClima" class="form-label">Campo *</label>
+                                <select class="form-select" id="campoClima" name="idCampo" required>
+                                    <!-- Aquí se cargarán los lotes/campos -->
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione un campo.</div>
                             </div>
+                        </div>
                     </div>
 
                     <!-- Fila para Tipo de Clima y Milímetros -->

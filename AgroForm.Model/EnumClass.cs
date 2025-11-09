@@ -16,6 +16,13 @@ namespace AgroForm.Model
             Operador,
             Tecnico
         }
+
+        public enum Monedas
+        {
+            Peso = 1,
+            Dolar = 2
+        }
+
         public enum EstadosCamapaña
         {
             [Display(Name = "En Curso")]
@@ -30,6 +37,20 @@ namespace AgroForm.Model
         {
             Lluvia,
             Granizo
+        }
+
+        public enum TipoActividadEnum
+        {
+            [Display(Name = "Analisis de suelo")]
+            AnalisisSuelo = 1,
+            Siembra = 2,
+            Pulverizacion = 3,
+            Fertilizado = 4,
+            Riego = 5,
+            Monitoreo = 6,
+            Cosecha = 7, 
+            [Display(Name = "Otras Labores")]
+            OtrasLabores = 8
         }
 
         public enum TipoCatalogo

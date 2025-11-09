@@ -74,7 +74,7 @@
                 border-bottom: none;
             }
 
-    .actividad-item {
+    .actividad-reciente-reciente-item {
         border-left: 3px solid transparent;
         transition: all 0.2s ease;
         padding: 0.5rem 0.75rem;
@@ -111,13 +111,13 @@
     }
 
     /* Estados de filtro */
-    .actividad-item[data-filter="today"] .actividad-fecha {
-        color: #198754;
+    .actividad-reciente-item[data-filter="today"] .actividad-fecha {
+        color: #33c625;
         font-weight: 500;
     }
 
-    .actividad-item[data-filter="week"] .actividad-fecha {
-        color: #fd7e14;
+    .actividad-reciente-item[data-filter="week"] .actividad-fecha {
+        color: #000000;
     }
 </style>
 
@@ -176,7 +176,7 @@
         var filtroClase = actividad.filtroTiempo || '';
 
         return `
-            <div class="list-group-item px-0 actividad-item" data-filter="${filtroClase}">
+            <div class="list-group-item px-0 actividad-reciente-item" data-filter="${filtroClase}">
                 <div class="d-flex align-items-start ms-2 me-2">
 
                     <div class="actividad-icono me-2 flex-shrink-0">
@@ -236,7 +236,7 @@
     }
 
     function aplicarFiltro(filtro) {
-        $('.actividad-item').each(function() {
+        $('.actividad-reciente-item').each(function() {
             var item = $(this);
             var itemFiltro = item.data('filter');
 

@@ -200,6 +200,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(a => a.IdCampania)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Riego
@@ -242,6 +247,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(a => a.Campania)
                     .WithMany()
                     .HasForeignKey(a => a.IdCampania)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -291,6 +301,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(a => a.IdCampania)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Pulverizacion
@@ -327,6 +342,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(a => a.Usuario)
                     .WithMany()
                     .HasForeignKey(a => a.IdUsuario);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Monitoreo
@@ -365,6 +385,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(a => a.Usuario)
                     .WithMany()
                     .HasForeignKey(a => a.IdUsuario);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<AnalisisSuelo>(entity =>
@@ -408,6 +433,11 @@ namespace AgroForm.Data.DBContext
                     .HasForeignKey(a => a.IdLaboratorio)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
 
@@ -445,6 +475,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(a => a.Usuario)
                     .WithMany()
                     .HasForeignKey(a => a.IdUsuario);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<OtraLabor>(entity =>
@@ -471,6 +506,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(a => a.Campania)
                     .WithMany()
                     .HasForeignKey(a => a.IdCampania)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

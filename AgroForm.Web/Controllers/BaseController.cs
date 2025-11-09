@@ -68,6 +68,23 @@ namespace AgroForm.Web.Controllers
             return Ok(gResponse);
         }
 
+        [HttpGet]
+        public virtual async Task<IActionResult> GetAllWithDetailsAsync()
+        {
+            var result = await _service.GetAllWithDetailsAsync();
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.ListObject = Map<List<TEntity>, List<TDto>>(result.Data);
+            gResponse.Message = "Datos obtenidos correctamente";
+            return Ok(gResponse);
+        }
+
 
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetById(int id)
