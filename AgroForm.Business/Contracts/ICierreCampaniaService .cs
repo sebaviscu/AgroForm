@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Business.Contracts
 {
-    public interface ICierreCampaniaService
+    public interface ICierreCampaniaService : IServiceBase<ReporteCierreCampania>
     {
         Task<ReporteCierreCampania> GenerarReporteCierreAsync(int idCampania);
         Task<byte[]> GenerarPdfReporteAsync(int idCampania);
