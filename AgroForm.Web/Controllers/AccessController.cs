@@ -28,44 +28,81 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
         {
+            if (Environment.IsDevelopment())
+            {
+                if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+                {
+                    var isValid = await _authService.ValidateUserAsync(email, password);
+                    if (isValid)
+                    {
+                        var user = await _authService.GetUserByEmailAsync(email);
+                        var campania = await _campaniaService.GetCurrent();
+        
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
+                            new Claim(ClaimTypes.Name, user.Nombre),
+                            new Claim("Licencia", user.IdLicencia.ToString()),
+                            new Claim("Campania", campania.Data?.Id.ToString() ?? "1"),
+                            new Claim(ClaimTypes.Role, user.Rol.ToString())
+                        };
+        
+                        await CreateAuthenticationCookie(claims, rememberMe);
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+        
+                var campaniaDev = await _campaniaService.GetCurrent();
+                
+                var devClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, "999"),
+                    new Claim(ClaimTypes.Name, "Usuario Desarrollo"),
+                    new Claim("Licencia", "1"),
+                    new Claim("Campania", campaniaDev.Data?.Id.ToString() ?? "1"),
+                    new Claim(ClaimTypes.Role, "0")
+                };
+        
+                await CreateAuthenticationCookie(devClaims, true);
+                
+                return RedirectToAction("Index", "Home");
+            }
+        
+            // Código de producción
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 ViewBag.Error = "Email y contraseña son requeridos";
                 return View();
             }
-
-            //var isValid = await _authService.ValidateUserAsync(email, password);
-
-            //if (!isValid)
-            //{
-            //    ViewBag.Error = "Credenciales inválidas";
-            //    return View();
-            //}
-
-            var campania = await _campaniaService.GetCurrent();
-
-            //var user = await _authService.GetUserByEmailAsync(email);
-
-            //var claims = new List<Claim>
-            //    {
-            //        new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
-            //        new Claim(ClaimTypes.Name, user.Nombre),
-            //        new Claim("Licencia", user.IdLicencia.ToString()),
-            //        new Claim(ClaimTypes.Role, user.Rol.ToString())
-            //    };
-
-
-            var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, "1"),
-                    new Claim(ClaimTypes.Name, "seba"),
-                    new Claim("Licencia", "1"),
-                    new Claim("Campania", campania.Data != null ? campania.Data.Id.ToString() : "1"),
-                    new Claim(ClaimTypes.Role, "0")
-                };
-
+        
+            var isValidProd = await _authService.ValidateUserAsync(email, password);
+        
+            if (!isValidProd)
+            {
+                ViewBag.Error = "Credenciales inválidas";
+                return View();
+            }
+        
+            var userProd = await _authService.GetUserByEmailAsync(email);
+            var campaniaProd = await _campaniaService.GetCurrent();
+        
+            var prodClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userProd!.Id.ToString()),
+                new Claim(ClaimTypes.Name, userProd.Nombre),
+                new Claim("Licencia", userProd.IdLicencia.ToString()),
+                new Claim("Campania", campaniaProd.Data?.Id.ToString() ?? "1"),
+                new Claim(ClaimTypes.Role, userProd.Rol.ToString())
+            };
+        
+            await CreateAuthenticationCookie(prodClaims, rememberMe);
+            return RedirectToAction("Index", "Home");
+        }
+        
+        private async Task CreateAuthenticationCookie(List<Claim> claims, bool rememberMe)
+        {
             var claimsIdentity = new ClaimsIdentity(claims, "AgroFormAuth");
-
+        
             await HttpContext.SignInAsync(
                 "AgroFormAuth",
                 new ClaimsPrincipal(claimsIdentity),
@@ -74,12 +111,9 @@ namespace AgroForm.Web.Controllers
                     IsPersistent = rememberMe,
                     ExpiresUtc = rememberMe
                         ? DateTimeOffset.UtcNow.AddDays(30)
-                        : DateTimeOffset.UtcNow.AddHours(1)
+                        : DateTimeOffset.UtcNow.AddHours(12)
                 }
             );
-
-
-            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
