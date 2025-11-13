@@ -13,18 +13,26 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
-    public class CierreCampaniaService : ICierreCampaniaService
+     public class CierreCampaniaService : ServiceBase<ReporteCierreCampania>, ICierreCampaniaService 
     {
-        private readonly AppDbContext _context;
 
-        public CierreCampaniaService(AppDbContext context)
+        private readonly IGenericRepository<Campania> _campaniaRepo;
+
+        public CierreCampaniaService(
+        IDbContextFactory<AppDbContext> contextFactory, 
+        ILogger<ServiceBase<ReporteCierreCampania>> logger, 
+        IHttpContextAccessor httpContextAccessor,
+        IUnitOfWork unitOfWork)
+            : base(contextFactory, logger, httpContextAccessor)
         {
-            _context = context;
+            var _campaniaRepo = unitOfWork.Repository<Campania >();
+
         }
 
-        public async Task<ReporteCierreCampania> GenerarReporteCierreAsync(int idCampania)
+
+     public async Task<ReporteCierreCampania> GenerarReporteCierreAsync(int idCampania)
         {
-            var campania = await _context.Campanias
+            var campania = await _campaniaRepo
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.AnalisisSuelos)
                 .Include(c => c.Lotes)
@@ -75,12 +83,14 @@ namespace AgroForm.Business.Services
         {
             var lotes = campania.Lotes.ToList();
 
-            // Superficie y producción
-            reporte.SuperficieTotalHa = lotes.Sum(l => l.SuperficieHectareas ?? 0);
-
             // Obtener cosechas para calcular producción
             var cosechas = lotes.SelectMany(_=>_.Cosechas).ToList();
             reporte.ToneladasProducidas = cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
+
+
+            // Superficie y producción
+            reporte.SuperficieTotalHa = cosechas.Sum(c => c.SuperficieCosechadaHa) ?? 0;
+
 
             reporte.CostoCosechasArs= cosechas.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoCosechasUsd= cosechas.Sum(_ => _.CostoUSD.GetValueOrDefault());
@@ -167,21 +177,18 @@ namespace AgroForm.Business.Services
 
             reporte.LluviaAcumuladaTotal = registrosClima.Sum(r => r.Milimetros);
 
-            // Agrupar lluvias por mes
             var lluviasPorMes = registrosClima
-                .GroupBy(r => r.Fecha.ToString("yyyy-MM"))
+                .GroupBy(r => r.Fecha.ToString("MM-yyyy"))
                 .Select(g => new { Mes = g.Key, Lluvia = g.Sum(r => r.Milimetros) })
                 .ToList();
 
             reporte.LluviasPorMesJson = JsonSerializer.Serialize(lluviasPorMes);
 
-            // Identificar eventos extremos (heladas, sequías, etc.)
             var eventosExtremos = registrosClima
                 .Where(r => r.TipoClima != TipoClima.Lluvia)
                 .Select(r => new {
                     Fecha = r.Fecha,
-                    Tipo = r.TipoClima.ToString(),
-                    Observaciones = r.Observaciones
+                    Tipo = r.TipoClima.ToString()
                 })
                 .ToList();
 
@@ -190,8 +197,7 @@ namespace AgroForm.Business.Services
 
         public async Task<byte[]> GenerarPdfReporteAsync(int idCampania)
         {
-            var reporte = await _context.ReportesCierreCampania
-                .FirstOrDefaultAsync(r => r.IdCampania == idCampania);
+            var reporte = await GetByIdAsync(idCampania);
 
             if (reporte == null)
             {
@@ -204,11 +210,12 @@ namespace AgroForm.Business.Services
 
         public async Task<List<ReporteCierreCampania>> ObtenerReportesAnterioresAsync(int idLicencia)
         {
-            return await _context.ReportesCierreCampania
+            return await GetQuery()
                 .Include(r => r.Campania)
                 .Where(r => r.IdLicencia == idLicencia && r.EsDefinitivo)
                 .OrderByDescending(r => r.FechaFin)
                 .ToListAsync();
         }
     }
+}
 }
