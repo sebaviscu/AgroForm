@@ -5,6 +5,9 @@ namespace AgroForm.Web.Models.IndexVM
 {
     public class ActividadRapidaVM
     {
+        public int? IdLabor { get; set; }
+        public int? idLote { get; set; }
+
         [Required(ErrorMessage = "La fecha es requerida")]
         public DateTime Fecha { get; set; } = DateTime.Now;
 

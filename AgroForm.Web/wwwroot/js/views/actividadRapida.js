@@ -406,8 +406,12 @@
 
     // Inicializar Select2 cuando el modal se muestra
     $('#modalActividadRapida').on('shown.bs.modal', function () {
+        $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Crear Labor');
+        $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
         inicializarSelectConIconos();
         inicializarSelectLotes();
+        $('#tipoidActividad').prop('disabled', false);
+        $('#IdLote').prop('disabled', false);
 
         $('#tipoidActividad').trigger('change.select2');
     });
@@ -535,6 +539,9 @@
         var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
         var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
 
+        var actividadId = $('#actividadId').val();
+        var esEdicion = actividadId && actividadId > 0;
+
         var data = {
             fecha: $('#fecha').val(),
             lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
@@ -543,17 +550,21 @@
             tipoidActividad: parseInt($('#tipoidActividad').val()),
             observacion: $('#observacion').val(),
             tipoActividad: tipoActividadNombre,
-            datosEspecificos: dataEspecifica
+            datosEspecificos: dataEspecifica,
+            idLabor: esEdicion ? parseInt(actividadId) : null,
+            idLote: esEdicion ? parseInt($('#IdLote').val()[0]) : null
         };
 
         // Mostrar loading en el botón
         var submitBtn = form.find('button[type="submit"]');
         var originalText = submitBtn.html();
-        submitBtn.html('<i class="ph ph-hourglass me-1"></i>Guardando...').prop('disabled', true);
+        submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+        var url = esEdicion ? '/Actividad/EditarLabor' : '/Actividad/CrearLabor';
+        var mensajeExito = esEdicion ? 'Actividad actualizada correctamente' : 'Actividad creada correctamente';
 
         // Enviar al servidor
         $.ajax({
-            url: '/Actividad/CrearRapida',
+            url: url,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -563,13 +574,13 @@
             success: function (result) {
                 if (result.success) {
                     $('#modalActividadRapida').modal('hide');
-                    mostrarExito('Actividad creada correctamente');
+                    mostrarExito(mensajeExito);
 
                     setTimeout(function () {
                         window.location.reload();
                     }, 500);
                 } else {
-                    mostrarError(result.message || 'Error al crear actividad', 'error');
+                    mostrarError(result.message || (esEdicion ? 'Error al actualizar actividad' : 'Error al crear actividad'));
                     submitBtn.html(originalText).prop('disabled', false);
                 }
             },

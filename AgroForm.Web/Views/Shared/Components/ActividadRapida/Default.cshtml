@@ -31,11 +31,13 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="modalActividadRapidaLabel">
-                    <i class="ph ph-tractor me-2"></i>Labor
+                    <i class="ph ph-tractor me-2"></i>Crear Labor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formActividadRapida" method="post" novalidate>
+
+                <input type="hidden" id="actividadId">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-3">
@@ -94,7 +96,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="ph ph-check-circle me-1"></i>Guardar Actividad
+                        <i class="ph ph-check-circle me-1"></i>Guardar Labor
                     </button>
                 </div>
             </form>

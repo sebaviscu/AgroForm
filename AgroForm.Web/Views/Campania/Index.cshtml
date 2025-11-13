@@ -4,23 +4,16 @@
     ViewData["Title"] = "Campañas";
 }
 
-<!-- Filtros y botón nueva campaña -->
-<div class="row mb-3">
-    <div class="col-md-4">
-        <select id="estadoFilter" class="form-select">
-            <option value="">Todos los estados</option>
-            <option value="EnCurso">En curso</option>
-            <option value="Finalizada">Finalizada</option>
-            <option value="Cancelada">Cancelada</option>
-        </select>
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">
+            <i class="ph ph-calendar-blank text-primary me-2"></i>Campañas
+        </h1>
+        <p class="text-muted mb-0">Organización por temporadas productivas</p>
     </div>
-    <div class="col-md-2">
-        <button id="btnResetFilters" class="btn btn-secondary btn-sm w-100">
-            <i class="ph ph-arrow-counter-clockwise"></i> Resetear
-        </button>
-    </div>
-    <div class="col-md-3 offset-md-3 text-end">
-        <button id="btnNuevaCampania" class="btn btn-primary btn-sm">
+    <div>
+        <button id="btnNuevaCampania" class="btn btn-primary">
             <i class="ph ph-plus-circle me-1"></i> Nueva Campaña
         </button>
     </div>

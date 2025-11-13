@@ -22,7 +22,7 @@ public class CampaniasViewComponent : ViewComponent
 
             if (campañasResponse.Success)
             {
-                return View(campañasResponse.Data);
+                return View(campañasResponse.Data.Where(_=>_.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso).ToList());
             }
 
             return View(new List<Campania>());

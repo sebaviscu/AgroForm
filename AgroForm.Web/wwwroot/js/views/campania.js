@@ -90,6 +90,11 @@ function inicializarDataTable() {
                                     title="Eliminar campaña" data-id="${data}">
                                 <i class="ph ph-trash"></i>
                             </button>
+                            <button type="button" class="btn btn-warning btn-sm btn-finalizar ms-3"
+                                    title="Finalizar campaña" data-id="${data}">
+                                <i class="ph ph-lock-key"></i>
+                                <span class="d-none d-sm-inline">Cerrar Campaña</span>
+                            </button>
                         </div>
                     `;
                 }
@@ -104,17 +109,6 @@ function inicializarDataTable() {
         return `<span class="badge bg-${color}">${data}</span>`;
     }
 
-    // Filtrar por estado
-    $('#estadoFilter').change(function () {
-        var estado = $(this).val();
-        table.columns(1).search(estado).draw();
-    });
-
-    // Restablecer filtros
-    $('#btnResetFilters').click(function () {
-        $('#estadoFilter').val('');
-        table.search('').columns().search('').draw();
-    });
 }
 
 // ========== FUNCIONES DE LA GRILLA ==========
@@ -133,6 +127,12 @@ function configurarEventosGrilla() {
     $('#tblCampanias tbody').on('click', '.btn-delete', function () {
         var id = $(this).data('id');
         eliminarCampania(id);
+    });
+
+    $('#tblCampanias tbody').on('click', '.btn-finalizar', function () {
+        var id = $(this).data('id');
+        var nombre = $(this).data('nombre');
+        finalizarCampania(id, nombre);
     });
 }
 
@@ -212,9 +212,12 @@ function inicializarModalCreacion() {
     // Cargar datos iniciales
     cargarCampos().then(function () {
         configurarEventosModal();
-        configurarValidacionFechas();
         // Renderizar con template CON botones eliminar
         renderizarCamposConLotes(false); // <- Pasar false para modo creación
+
+        const añoActual = new Date().getFullYear().toString().slice(-2)
+        const añoSiguiente = (parseInt(añoActual) + 1).toString().padStart(2, '0')
+        $('#nombre').val(`Campaña ${añoActual}/${añoSiguiente}`)
     });
 }
 
@@ -753,6 +756,38 @@ function guardarCampania() {
             cerrarAlertas();
             console.error('Error:', error);
             mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
+
+function finalizarCampania(id, nombre) {
+    mostrarConfirmacion(
+        'Esta acción generará un reporte final y cerrará la campaña. ¿Continuar?',
+        'Cerrar ' + nombre
+    ).then((result) => {
+        if (result.isConfirmed) {
+
+            mostrarLoading();
+            $.ajax({
+                url: '/Campania/Finalizar/' + id,
+                type: 'PUT',
+                success: function (response) {
+                    cerrarAlertas();
+                    if (response.success) {
+
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 500);
+
+                    } else {
+                        mostrarError(response.message || 'Error cerrar la campaña');
+                    }
+                },
+                error: function () {
+                    cerrarAlertas();
+                    mostrarError('Error al conectar con el servidor');
+                }
+            });
         }
     });
 }

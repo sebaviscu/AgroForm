@@ -1,8 +1,8 @@
 /* Variables */
 :root {
-    --sidebar-width: 230px;
+    --sidebar-width: 250px;
     --sidebar-width-collapsed: 80px;
-    --top-navbar-height: 68px;
+    --top-navbar-height: 70px;
     --transition-speed: 0.3s;
 }
 
@@ -10,40 +10,52 @@
 .wrapper {
     display: flex;
     width: 100%;
-    align-items: stretch;
     min-height: 100vh;
+}
+
+.content .main-content {
+    padding: 75px 30px 20px 30px;
+    /*padding-top: var(--top-navbar-height);*/
 }
 
 /* Sidebar Styles */
 .sidebar {
     min-width: var(--sidebar-width);
     max-width: var(--sidebar-width);
-    background: #2c3e50 !important; /* Cambié de bg-dark a este color para mejor control */
+    background: #2c3e50 !important;
     color: #fff;
     transition: all var(--transition-speed);
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 999;
+    z-index: 1000;
     overflow-y: auto;
 }
 
+    /* ESTADO CERRADO EN DESKTOP */
     .sidebar.active {
         min-width: var(--sidebar-width-collapsed);
         max-width: var(--sidebar-width-collapsed);
         text-align: center;
     }
 
+    /* ESTADO ABIERTO EN MÓVIL */
+    .sidebar.mobile-active {
+        margin-left: 0 !important;
+        transform: translateX(0);
+    }
+
 .sidebar-header {
-    background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important; /* Verde agrícola */
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 1001;
 }
 
 .sidebar-content {
-    padding-bottom: 2rem;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
 }
 
 /* Sidebar Links */
@@ -62,7 +74,6 @@
         color: #fff;
         background: rgba(255, 255, 255, 0.1);
         border-left-color: #20c997;
-        text-decoration: none;
     }
 
     .sidebar-link.active {
@@ -76,6 +87,7 @@
         font-size: 1.1em;
     }
 
+/* Cuando el sidebar está colapsado */
 .sidebar.active .sidebar-link span {
     display: none;
 }
@@ -103,16 +115,15 @@
     .sidebar-subitem:hover {
         color: #fff;
         background: rgba(255, 255, 255, 0.05);
-        text-decoration: none;
     }
 
+/* Cuando el sidebar está colapsado, ocultar submenús */
 .sidebar.active .sidebar-subitem {
-    padding: 10px;
-    text-align: center;
+    display: none;
 }
 
 .sidebar.active .collapse {
-    display: none;
+    display: none !important;
 }
 
 /* Content Area */
@@ -128,12 +139,6 @@
         margin-left: var(--sidebar-width-collapsed);
     }
 
-.main-content {
-    margin-top: var(--top-navbar-height);
-    min-height: calc(100vh - var(--top-navbar-height));
-    padding: 20px;
-}
-
 /* Navbar Styles */
 .navbar {
     height: var(--top-navbar-height);
@@ -141,28 +146,120 @@
     top: 0;
     right: 0;
     left: var(--sidebar-width);
-    z-index: 800;
+    z-index: 999;
     transition: all var(--transition-speed);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     background: white !important;
+    padding: 0.5rem 1rem;
 }
 
 .content.active .navbar {
     left: var(--sidebar-width-collapsed);
 }
 
-/* Mobile Styles */
+/* Mobile navbar adjustments */
+@media (max-width: 991.98px) {
+    .navbar {
+        left: 0 !important;
+        padding: 0.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+
+    /* Asegurar que el componente Campanias sea responsive */
+    .navbar .campanias-component {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* Botón circular + */
+.btn-circle {
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* User avatar improvements */
+.user-avatar {
+    transition: all 0.3s ease;
+}
+
+    .user-avatar:hover {
+        transform: scale(1.05);
+    }
+
+/* Dropdown menu improvements */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    border-radius: 6px;
+    margin: 0.1rem 0;
+    transition: all 0.2s ease;
+}
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(2px);
+    }
+
+/* Navbar brand adjustments */
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Ensure Campanias component is properly sized */
+.campanias-component .form-select {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+    .navbar {
+        height: 60px;
+    }
+
+    .campanias-component .form-select {
+        max-width: 180px;
+        font-size: 0.85rem;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Smooth transitions for navbar elements */
+.navbar * {
+    transition: all 0.3s ease;
+}
+
+/* ========== MOBILE STYLES ========== */
 @media (max-width: 991.98px) {
     .sidebar {
-        margin-left: -var(--sidebar-width);
+        margin-left: -250px;
+        transform: translateX(-100%);
     }
 
         .sidebar.mobile-active {
             margin-left: 0;
+            transform: translateX(0);
         }
 
     .content {
         margin-left: 0 !important;
+        width: 100%;
     }
 
         .content.active {
@@ -173,30 +270,60 @@
         left: 0 !important;
     }
 
-}
-
-/* Dropdown Styles */
-.dropdown-menu {
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border-radius: 8px;
-}
-
-.dropdown-item {
-    padding: 8px 16px;
-    transition: all 0.2s;
-}
-
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
     }
 
-/* User Avatar */
-.user-avatar {
-    background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+    /* En móvil, el estado active no aplica */
+    .sidebar.active {
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        text-align: left;
+        margin-left: -250px;
+        transform: translateX(-100%);
+    }
+
+        .sidebar.active .sidebar-link span {
+            display: inline-block;
+        }
+
+        .sidebar.active .sidebar-link {
+            justify-content: flex-start;
+            padding: 12px 20px;
+        }
+
+            .sidebar.active .sidebar-link i {
+                margin-right: 12px;
+                font-size: 1.1em;
+            }
+
+        .sidebar.active .sidebar-subitem {
+            display: block;
+        }
+
+        .sidebar.active .collapse {
+            display: block !important;
+        }
 }
 
-/* Scrollbar Styles */
+/* Dropdown arrows */
+.dropdown-toggle::after {
+    float: right;
+    margin-top: 8px;
+}
+
+/* Scrollbar */
 .sidebar::-webkit-scrollbar {
     width: 5px;
 }
@@ -214,36 +341,7 @@
         background: #20c997;
     }
 
-/* Animation for logo text */
-.sidebar-logo-text {
-    transition: all var(--transition-speed);
-    display: inline-block;
-}
-
-/* Button Styles */
-#sidebarCollapse, #sidebarCollapseMobile {
-    border: none;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    transition: all 0.3s;
-}
-
-    #sidebarCollapse:hover, #sidebarCollapseMobile:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-/* Main content adjustments */
-.main-content {
-    padding: 20px;
-}
-
-@media (max-width: 768px) {
-    .main-content {
-        padding: 15px;
-    }
-}
-
-/* Home Page Specific Styles */
+/* Resto de tus estilos se mantienen igual... */
 .dashboard-stats {
     background: white;
     border-radius: 10px;
@@ -284,7 +382,6 @@
     font-size: 0.9rem;
 }
 
-
 .lote-card {
     transition: all 0.3s ease;
     border: 2px solid transparent;
@@ -306,7 +403,6 @@
     color: #6c757d;
 }
 
-
 .actividad-icono {
     width: 24px;
     height: 24px;
@@ -316,17 +412,4 @@
     border-radius: 50%;
     background-color: #e9ecef;
     font-size: 0.875rem;
-}
-
-.select2-container--default.select2-container--focus .select2-selection--single,
-.select2-container--default .select2-selection--single.is-invalid,
-.is-invalid + .select2-container--default .select2-selection--single {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25) !important;
-}
-
-.select2-container--default .select2-selection--multiple.is-invalid,
-.is-invalid + .select2-container--default .select2-selection--multiple {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25) !important;
 }

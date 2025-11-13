@@ -129,7 +129,153 @@ namespace AgroForm.Web.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CrearRapida([FromBody] ActividadRapidaVM model)
+        public async Task<IActionResult> EditarLabor([FromBody] ActividadRapidaVM model)
+        {
+            var gResponse = new GenericResponse<int>();
+            try
+            {
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    gResponse.Success = false;
+                    gResponse.Message = $"Ah ocurrido un error: {string.Join(", ", errors)}";
+                    return BadRequest(gResponse);
+                }
+
+                var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
+
+                var actividad = ArmarLabor(model, user, tipoCambioUSD);
+
+                await _service.UpdateActividadAsync(actividad);
+
+                gResponse.Success = true;
+                gResponse.Message = "Labor editada correctamente";
+
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear labor rápida");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+        }
+
+        private static ILabor ArmarLabor(ActividadRapidaVM model, UserAuth user, decimal tipoCambioUSD)
+        {
+            ILabor actividad = null;
+
+            switch (model.TipoActividad?.ToLower())
+            {
+                case "siembra":
+                    actividad = new Siembra
+                    {
+                        SuperficieHa = model.DatosEspecificos?.SuperficieHa,
+                        DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa,
+                        IdVariedad = model.DatosEspecificos?.IdVariedad,
+                        IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra,
+                        IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la siembra")
+                    };
+                    break;
+
+                case "riego":
+                    actividad = new Riego
+                    {
+                        HorasRiego = model.DatosEspecificos?.HorasRiego,
+                        VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3,
+                        IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego,
+                        IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua
+                    };
+                    break;
+
+                case "fertilizado":
+                    actividad = new Fertilizacion
+                    {
+                        CantidadKgHa = model.DatosEspecificos?.CantidadKgHa,
+                        DosisKgHa = model.DatosEspecificos?.DosisKgHa,
+                        IdNutriente = model.DatosEspecificos?.IdNutriente,
+                        IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante,
+                        IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion,
+                    };
+                    break;
+
+                case "pulverizacion":
+                    actividad = new Pulverizacion
+                    {
+                        VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa,
+                        Dosis = model.DatosEspecificos?.Dosis,
+                        CondicionesClimaticas = model.DatosEspecificos?.CondicionesClimaticas ?? string.Empty,
+                        IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico
+                    };
+                    break;
+
+                case "monitoreo":
+                    actividad = new Monitoreo
+                    {
+                        IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo,
+                        IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico
+                    };
+                    break;
+
+                case "analisissuelo":
+                    actividad = new AnalisisSuelo
+                    {
+                        ProfundidadCm = model.DatosEspecificos?.ProfundidadCm,
+                        PH = model.DatosEspecificos?.PH,
+                        MateriaOrganica = model.DatosEspecificos?.MateriaOrganica,
+                        Nitrogeno = model.DatosEspecificos?.Nitrogeno,
+                        Fosforo = model.DatosEspecificos?.Fosforo,
+                        Potasio = model.DatosEspecificos?.Potasio,
+                        ConductividadElectrica = model.DatosEspecificos?.ConductividadElectrica,
+                        CIC = model.DatosEspecificos?.CIC,
+                        Textura = model.DatosEspecificos?.Textura ?? string.Empty,
+                        IdLaboratorio = model.DatosEspecificos?.IdLaboratorio
+
+                    };
+                    break;
+
+                case "cosecha":
+                    actividad = new Cosecha
+                    {
+                        RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa,
+                        HumedadGrano = model.DatosEspecificos?.HumedadGrano,
+                        SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa,
+                        IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la cosecha")
+                    };
+                    break;
+
+                case "otras labores":
+                    actividad = new OtraLabor
+                    {
+
+                    };
+                    break;
+            }
+
+            var esDolar = model.DatosEspecificos?.EsDolar == true;
+            //actividad.IdUsuario = user.IdUsuario,;
+            actividad.Id = model.IdLabor ?? throw new Exception("No se envió Id de la labor.");
+            actividad.IdCampania = user.IdCampaña;
+            actividad.RegistrationDate = TimeHelper.GetArgentinaTime();
+            actividad.RegistrationUser = user.UserName;
+            actividad.IdLicencia = user.IdLicencia;
+            actividad.Costo = model.DatosEspecificos?.Costo;
+            actividad.IdMoneda = esDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
+            actividad.Fecha = model.Fecha;
+            actividad.IdTipoActividad = model.TipoidActividad;
+            actividad.Observacion = model.Observacion ?? string.Empty;
+            actividad.IdLote = model.idLote ?? throw new Exception("No se envió Id del lote.");
+            actividad.CostoARS = UtilidadService.CalcularCostoARS(actividad.Costo, esDolar, tipoCambioUSD);
+            actividad.CostoUSD = UtilidadService.CalcularCostoUSD(actividad.Costo, esDolar, tipoCambioUSD);
+
+            return actividad;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearLabor([FromBody] ActividadRapidaVM model)
         {
             var gResponse = new GenericResponse<int>();
             try
@@ -149,118 +295,14 @@ namespace AgroForm.Web.Controllers
 
                 foreach (var loteId in model.LotesIds)
                 {
-                    ILabor actividad = null;
-
-                    switch (model.TipoActividad?.ToLower())
-                    {
-                        case "siembra":
-                            actividad = new Siembra
-                            {
-                                SuperficieHa = model.DatosEspecificos?.SuperficieHa,
-                                DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa,
-                                IdVariedad = model.DatosEspecificos?.IdVariedad,
-                                IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra,
-                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la siembra")
-                            };
-                            break;
-
-                        case "riego":
-                            actividad = new Riego
-                            {
-                                HorasRiego = model.DatosEspecificos?.HorasRiego,
-                                VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3,
-                                IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego,
-                                IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua
-                            };
-                            break;
-
-                        case "fertilizado":
-                            actividad = new Fertilizacion
-                            {
-                                CantidadKgHa = model.DatosEspecificos?.CantidadKgHa,
-                                DosisKgHa = model.DatosEspecificos?.DosisKgHa,
-                                IdNutriente = model.DatosEspecificos?.IdNutriente,
-                                IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante,
-                                IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion,
-                            };
-                            break;
-
-                        case "pulverizacion":
-                            actividad = new Pulverizacion
-                            {
-                                VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa,
-                                Dosis = model.DatosEspecificos?.Dosis,
-                                CondicionesClimaticas = model.DatosEspecificos?.CondicionesClimaticas ?? string.Empty,
-                                IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico
-                            };
-                            break;
-
-                        case "monitoreo":
-                            actividad = new Monitoreo
-                            {
-                                IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo,
-                                IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico
-                            };
-                            break;
-
-                        case "analisissuelo":
-                            actividad = new AnalisisSuelo
-                            {
-                                ProfundidadCm = model.DatosEspecificos?.ProfundidadCm,
-                                PH = model.DatosEspecificos?.PH,
-                                MateriaOrganica = model.DatosEspecificos?.MateriaOrganica,
-                                Nitrogeno = model.DatosEspecificos?.Nitrogeno,
-                                Fosforo = model.DatosEspecificos?.Fosforo,
-                                Potasio = model.DatosEspecificos?.Potasio,
-                                ConductividadElectrica = model.DatosEspecificos?.ConductividadElectrica,
-                                CIC = model.DatosEspecificos?.CIC,
-                                Textura = model.DatosEspecificos?.Textura ?? string.Empty,
-                                IdLaboratorio = model.DatosEspecificos?.IdLaboratorio
-
-                            };
-                            break;
-
-                        case "cosecha":
-                            actividad = new Cosecha
-                            {
-                                RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa,
-                                HumedadGrano = model.DatosEspecificos?.HumedadGrano,
-                                SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa,
-                                IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la cosecha")
-                            };
-                            break;
-
-                        case "otras labores":
-                            actividad = new OtraLabor
-                            {
-
-                            };
-                            break;
-                    }
-
-                    var esDolar = model.DatosEspecificos?.EsDolar == true;
-                    //actividad.IdUsuario = user.IdUsuario,;
-                    actividad.IdCampania = user.IdCampaña;
-                    actividad.RegistrationDate = TimeHelper.GetArgentinaTime();
-                    actividad.RegistrationUser = user.UserName;
-                    actividad.IdLicencia = user.IdLicencia;
-                    actividad.Costo = model.DatosEspecificos?.Costo;
-                    actividad.IdMoneda = esDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
-                    actividad.Fecha = model.Fecha;
-                    actividad.IdTipoActividad = model.TipoidActividad;
-                    actividad.Observacion = model.Observacion ?? string.Empty;
-                    actividad.IdLote = loteId;
-                    actividad.CostoARS = UtilidadService.CalcularCostoARS(actividad.Costo, esDolar, tipoCambioUSD);
-                    actividad.CostoUSD = UtilidadService.CalcularCostoUSD(actividad.Costo, esDolar, tipoCambioUSD);
+                    var actividad = ArmarLabor(model, user, tipoCambioUSD);
                     actividades.Add(actividad);
                 }
 
                 await _service.SaveActividadAsync(actividades);
 
-                // Actualizar stock de insumo si se usó
-
                 gResponse.Success = true;
-                gResponse.Message = "Actividad creada correctamente";
+                gResponse.Message = "Labor creada correctamente";
 
                 return Ok(gResponse);
             }
@@ -293,6 +335,30 @@ namespace AgroForm.Web.Controllers
             gResponse.ListObject = result.Data;
             gResponse.Message = "Datos obtenidos correctamente";
             return Ok(gResponse);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBy(int id, int idTipoActividad)
+        {
+            var gResponse = new GenericResponse<object>();
+
+            try
+            {
+                var entity = await _service.GetLaboresByAsync(id, (TipoActividadEnum)idTipoActividad);
+
+                gResponse.Success = true;
+                gResponse.Object = entity;
+                gResponse.Message = "Labor recuperado correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al recuperar labor");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+
         }
 
         [HttpDelete]

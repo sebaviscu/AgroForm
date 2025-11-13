@@ -92,12 +92,44 @@ namespace AgroForm.Business.Services
             {
                 var campania = await GetQuery().Include(_=>_.Lotes).ThenInclude(_=>_.Campo).SingleAsync(_ => _.Id == id);
 
+                if (campania == null)
+                {
+                    return OperationResult<Campania>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                }
+
                 return OperationResult<Campania>.SuccessResult(campania);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al leer el registro con ID {Id}", id);
                 return OperationResult<Campania>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
+        public async Task<OperationResult<bool>> FinalizarCampaña(long id)
+        {
+            try
+            {
+                var response = await GetByIdAsync(id);
+
+
+                if (response == null)
+                {
+                    return OperationResult<bool>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                }
+                var campania = response.Data;
+
+                campania.EstadosCampania = EnumClass.EstadosCamapaña.Finalizada;
+                campania.FechaFin = TimeHelper.GetArgentinaTime();
+
+                var updateResult = await UpdateAsync(campania);
+
+                return OperationResult<bool>.SuccessResult(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer el registro con ID {Id}", id);
+                return OperationResult<bool>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
     }

@@ -32,85 +32,93 @@
 
         <!-- Page Content -->
         <div id="content" class="content">
+
             <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom py-2">
                 <div class="container-fluid">
                     <!-- Mobile toggle button -->
-                    <button type="button" id="sidebarCollapseMobile" class="btn btn-outline-secondary d-lg-none">
+                    <button type="button" id="sidebarCollapseMobile" class="btn btn-outline-secondary btn-sm d-lg-none me-2">
                         <i class="ph ph-list"></i>
                     </button>
 
-                    <!-- Left spacer -->
-                    <div class="flex-grow-1 d-lg-block d-none"></div>
+                    <!-- Espaciador izquierdo -->
+                    <div class="d-none d-lg-block flex-grow-1"></div>
 
-                    <!-- Centered content: Campañas -->
-                    @* <div class="d-flex justify-content-center flex-grow-1"> *@
-                    <div class="flex-grow-1 me-3">
-
+                    <!-- Campañas (centrado) -->
+                    <div class="navbar-brand m-0 p-0 mx-lg-3 flex-grow-1 flex-lg-grow-0 text-center">
                         @await Component.InvokeAsync("Campanias")
                     </div>
 
-                    <!-- Right spacer -->
-                    <div class="flex-grow-1 d-lg-block d-none"></div>
+                    <!-- Espaciador derecho -->
+                    <div class="d-none d-lg-block flex-grow-1"></div>
 
-                    <!-- Botón circular "+" -->
-                    <div class="dropdown me-2">
-                        <button class="btn btn-success dropdown-toggle d-flex align-items-center btn-circle me-2"
-                                type="button" id="accionesDropdown"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="ph ph-plus me-1"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="accionesDropdown">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="#" id="btnAddActividad">
-                                    <i class="ph ph-tractor me-2 text-success"></i>
-                                    Labores
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="#" id="btnClima">
-                                    <i class="ph ph-cloud-rain me-2 text-primary"></i>
-                                    Clima
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- Botones de acción -->
+                    <div class="d-flex align-items-center">
+                        <!-- Botón circular "+" -->
+                        <div class="dropdown me-2 ms-2">
+                            <button class="btn btn-success btn-sm rounded-circle d-flex align-items-center justify-content-center"
+                                    type="button"
+                                    id="accionesDropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    style="width: 38px; height: 38px; padding: 0;">
+                                <i class="ph ph-plus" style="font-size: 18px;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="accionesDropdown">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center py-2" href="#" id="btnAddActividad">
+                                        <i class="ph ph-tractor me-2 text-success"></i>
+                                        <span>Labores</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center py-2" href="#" id="btnClima">
+                                        <i class="ph ph-cloud-rain me-2 text-primary"></i>
+                                        <span>Clima</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <!-- User Menu -->
-                    <div class="dropdown">
-                        <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center"
-                                type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                                 style="width: 35px; height: 35px;">
-                                <i class="ph ph-user text-white"></i>
-                            </div>
-                            <span class="text-dark">@User.Identity?.Name</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="ph ph-user me-2"></i>Mi Perfil
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="ph ph-gear me-2"></i>Configuración
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="post" asp-controller="Access" asp-action="Logout" id="logoutForm">
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="ph ph-sign-out me-2"></i>Cerrar Sesión
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                        <!-- User Menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0"
+                                    type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 36px; height: 36px;">
+                                    <i class="ph ph-user text-white" style="font-size: 16px;"></i>
+                                </div>
+                                <span class="text-dark ms-2 d-none d-md-inline" style="font-size: 0.9rem;">@User.Identity?.Name</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                                        <i class="ph ph-user me-2"></i>
+                                        <span>Mi Perfil</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                                        <i class="ph ph-gear me-2"></i>
+                                        <span>Configuración</span>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <form method="post" asp-controller="Access" asp-action="Logout" id="logoutForm">
+                                        <button type="submit" class="dropdown-item d-flex align-items-center py-2 text-danger">
+                                            <i class="ph ph-sign-out me-2"></i>
+                                            <span>Cerrar Sesión</span>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </nav>
 
-            <main class="main-content p-3">
+            <main class="main-content">
                 @RenderBody()
             </main>
 

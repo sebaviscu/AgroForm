@@ -7,34 +7,39 @@
     const $sidebarLogoIcon = $('.sidebar-logo-icon');
     const $sidebarOverlay = $('#sidebarOverlay');
 
+    console.log('Sidebar script loaded - Fixed version');
+
     // Estado inicial - verificar si está en móvil
     function checkMobile() {
         return window.innerWidth < 992;
     }
 
-    // Inicializar estado - EN MÓVIL EMPEZAR CERRADO
+    // Inicializar sidebar
     function initializeSidebar() {
         if (checkMobile()) {
-            $sidebar.removeClass('mobile-active'); // Asegurar que esté cerrado en móvil
+            // En móvil: empezar cerrado
+            $sidebar.removeClass('active mobile-active');
+            $content.removeClass('active');
+            $sidebarOverlay.removeClass('active');
+            // Asegurar que el logo se vea
             $sidebarLogoText.show();
-            if ($sidebarLogoIcon.length) {
-                $sidebarLogoIcon.show();
-            }
+            $sidebarLogoIcon.show();
         } else {
-            // En desktop, estado normal
-            if (!$sidebar.hasClass('active')) {
-                $sidebarLogoText.show();
-                if ($sidebarLogoIcon.length) {
-                    $sidebarLogoIcon.show();
-                }
-            }
+            // En desktop: empezar abierto
+            $sidebar.removeClass('mobile-active');
+            $content.removeClass('active');
+            $sidebarOverlay.removeClass('active');
+            $sidebarLogoText.show();
+            $sidebarLogoIcon.show();
         }
     }
 
     // Toggle sidebar for desktop
     $sidebarCollapse.on('click', function (e) {
         e.stopPropagation();
-        toggleSidebar();
+        if (!checkMobile()) {
+            toggleSidebar();
+        }
     });
 
     // Toggle sidebar for mobile
@@ -50,89 +55,114 @@
     // Overlay click para móvil
     $sidebarOverlay.on('click', function () {
         if (checkMobile()) {
-            $sidebar.removeClass('mobile-active');
+            closeMobileSidebar();
+        }
+    });
+
+    // Close button en móvil
+    $('#sidebarClose').on('click', function () {
+        if (checkMobile()) {
+            closeMobileSidebar();
         }
     });
 
     function toggleSidebar() {
+        console.log('Toggling desktop sidebar');
         $sidebar.toggleClass('active');
         $content.toggleClass('active');
 
-        // Ocultar/mostrar logo text e icono
+        // Ocultar/mostrar logo text cuando está colapsado
         if ($sidebar.hasClass('active')) {
             $sidebarLogoText.hide();
-            if ($sidebarLogoIcon.length) {
-                $sidebarLogoIcon.hide();
-            }
+            $sidebarLogoIcon.hide();
         } else {
             $sidebarLogoText.show();
-            if ($sidebarLogoIcon.length) {
-                $sidebarLogoIcon.show();
-            }
+            $sidebarLogoIcon.show();
         }
     }
 
     function toggleMobileSidebar() {
-        $sidebar.toggleClass('mobile-active');
-
-        // En móvil, siempre mostrar el logo cuando está activo
+        console.log('Toggling mobile sidebar');
         if ($sidebar.hasClass('mobile-active')) {
-            $sidebarLogoText.show();
-            if ($sidebarLogoIcon.length) {
-                $sidebarLogoIcon.show();
-            }
+            closeMobileSidebar();
+        } else {
+            openMobileSidebar();
         }
+    }
+
+    function openMobileSidebar() {
+        $sidebar.addClass('mobile-active');
+        $sidebarOverlay.addClass('active');
+        $('body').addClass('sidebar-open');
+        // Asegurar que el logo se vea en móvil
+        $sidebarLogoText.show();
+        $sidebarLogoIcon.show();
+    }
+
+    function closeMobileSidebar() {
+        $sidebar.removeClass('mobile-active');
+        $sidebarOverlay.removeClass('active');
+        $('body').removeClass('sidebar-open');
     }
 
     // Close sidebar when clicking outside on mobile
     $(document).on('click', function (event) {
-        const isMobile = checkMobile();
+        if (!checkMobile()) return;
+
         const isClickInsideSidebar = $sidebar.has(event.target).length > 0 || $sidebar.is(event.target);
         const isClickInsideToggle = $sidebarCollapseMobile.has(event.target).length > 0 || $sidebarCollapseMobile.is(event.target);
-        const isClickInsideDesktopToggle = $sidebarCollapse.has(event.target).length > 0 || $sidebarCollapse.is(event.target);
+        const isClickInsideClose = $('#sidebarClose').has(event.target).length > 0 || $('#sidebarClose').is(event.target);
 
-        if (isMobile && !isClickInsideSidebar && !isClickInsideToggle && $sidebar.hasClass('mobile-active')) {
-            $sidebar.removeClass('mobile-active');
+        if (!isClickInsideSidebar && !isClickInsideToggle && !isClickInsideClose && $sidebar.hasClass('mobile-active')) {
+            closeMobileSidebar();
         }
     });
 
     // Close mobile sidebar when clicking on a link
     $sidebar.on('click', 'a', function (event) {
         if (checkMobile()) {
-            $sidebar.removeClass('mobile-active');
+            // Si el enlace abre un submenu, no cerrar el sidebar
+            if ($(this).hasClass('dropdown-toggle')) {
+                event.stopPropagation();
+                return;
+            }
+            closeMobileSidebar();
         }
     });
+
 
     // Handle window resize
     $(window).on('resize', function () {
         if (window.innerWidth >= 992) {
-            // En desktop, asegurar que no tenga clase mobile-active
-            $sidebar.removeClass('mobile-active');
+            // En desktop: cerrar modo móvil si está activo
+            closeMobileSidebar();
 
             // Restaurar estado normal en desktop
             if (!$sidebar.hasClass('active')) {
                 $sidebarLogoText.show();
-                if ($sidebarLogoIcon.length) {
-                    $sidebarLogoIcon.show();
-                }
+                $sidebarLogoIcon.show();
             }
         } else {
-            // En móvil, asegurar que esté cerrado por defecto
-            if (!$sidebar.hasClass('mobile-active')) {
-                $sidebarLogoText.show();
-                if ($sidebarLogoIcon.length) {
-                    $sidebarLogoIcon.show();
-                }
-            }
+            // En móvil: cerrar modo desktop si está activo
+            $sidebar.removeClass('active');
+            $content.removeClass('active');
+            $sidebarLogoText.show();
+            $sidebarLogoIcon.show();
+        }
+    });
+
+    // Cerrar con ESC key
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape' && checkMobile() && $sidebar.hasClass('mobile-active')) {
+            closeMobileSidebar();
         }
     });
 
     // Inicializar estado al cargar
     initializeSidebar();
-
 });
 
-// ========== FUNCIONES DE UTILIDAD MEJORADAS ==========
+// ========== FUNCIONES DE UTILIDAD (se mantienen igual) ==========
 function mostrarConfirmacion(mensaje, titulo = 'Confirmar') {
     return Swal.fire({
         title: titulo,
@@ -183,7 +213,6 @@ function mostrarInfo(mensaje, titulo = 'Información') {
     });
 }
 
-// Función de loading
 function mostrarLoading(mensaje = 'Procesando...') {
     Swal.fire({
         title: mensaje,
@@ -196,7 +225,6 @@ function mostrarLoading(mensaje = 'Procesando...') {
     });
 }
 
-// Cerrar cualquier SweetAlert abierto
 function cerrarAlertas() {
     Swal.close();
 }

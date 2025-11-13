@@ -2,6 +2,7 @@
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
+using AgroForm.Web.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,25 +28,26 @@ namespace AgroForm.Web.Controllers
             {
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
-                var campanias = await _service.GetAllWithDetailsAsync();
+                //var campanias = await _service.GetAllWithDetailsAsync();
 
-                if (!campanias.Success)
-                {
-                    return BadRequest(campanias.ErrorMessage);
-                }
+                //if (!campanias.Success)
+                //{
+                //    return BadRequest(campanias.ErrorMessage);
+                //}
 
-                var vm = new CampaniasIndexVM
-                {
-                    Campanias = Map<List<Campania>, List<CampaniaVM>>(campanias.Data),
-                    Estados = new List<SelectListItem>
-                {
-                    new SelectListItem { Value = "EnCurso", Text = "En Curso" },
-                    new SelectListItem { Value = "Finalizada", Text = "Finalizada" },
-                    new SelectListItem { Value = "Cancelada", Text = "Cancelada" }
-                }
-                };
+                //var vm = new CampaniasIndexVM
+                //{
+                //    Campanias = Map<List<Campania>, List<CampaniaVM>>(campanias.Data),
+                //    Estados = new List<SelectListItem>
+                //{
+                //    new SelectListItem { Value = "EnCurso", Text = "En Curso" },
+                //    new SelectListItem { Value = "Finalizada", Text = "Finalizada" },
+                //    new SelectListItem { Value = "Cancelada", Text = "Cancelada" }
+                //}
+                //};
 
-                return View(vm);
+                //return View(vm);
+                return View();
             }
             catch (UnauthorizedAccessException)
             {
@@ -55,6 +57,23 @@ namespace AgroForm.Web.Controllers
             {
                 return HandleException(ex,"Error al iniciar la pagina", "Index");
             }
+        }
+
+
+        [HttpGet]
+        public override async Task<IActionResult> GetAllDataTable()
+        {
+            var result = await _service.GetAllWithDetailsAsync();
+            if (!result.Success)
+                return BadRequest(result.ErrorMessage);
+
+            var dataVM = Map<List<Campania>, List<CampaniaVM>>(result.Data);
+
+            return Json(new
+            {
+                success = true,
+                data = dataVM
+            });
         }
 
         [HttpPut("{id}")]
@@ -76,6 +95,28 @@ namespace AgroForm.Web.Controllers
             gResponse.Object = Map<Campania, CampaniaVM>(result.Data);
             gResponse.Message = "Registro actualizado correctamente";
             return Ok(gResponse);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Finalizar(int id)
+        {
+            var gResponse = new GenericResponse<int>();
+
+            try
+            {
+
+                gResponse.Success = true;
+                gResponse.Message = "Campaña finalizada";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al borrar labor");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+
         }
     }
 }

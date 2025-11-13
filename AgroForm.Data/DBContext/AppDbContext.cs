@@ -43,6 +43,7 @@ namespace AgroForm.Data.DBContext
         public DbSet<AnalisisSuelo> AnalisisSuelos { get; set; }
         public DbSet<Cosecha> Cosechas { get; set; }
         public DbSet<OtraLabor> OtrasLabores { get; set; }
+        public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

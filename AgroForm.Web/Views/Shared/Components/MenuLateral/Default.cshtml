@@ -3,9 +3,12 @@
         <div class="d-flex align-items-center justify-content-between p-3">
             <h4 class="text-white mb-0">
                 <i class="ph ph-tree me-2 sidebar-logo-icon"></i>
-                <span class="sidebar-logo-text">AgroForm</span>
+                <span class="sidebar-logo-text">AgroLab</span>
             </h4>
-            <button type="button" id="sidebarCollapse" class="btn btn-light sidebar-toggle">
+            <button type="button" id="sidebarClose" class="btn btn-light sidebar-close d-lg-none">
+                <i class="ph ph-x"></i>
+            </button>
+            <button type="button" id="sidebarCollapse" class="btn btn-light sidebar-toggle d-none d-lg-block">
                 <i class="ph ph-list"></i>
             </button>
         </div>
@@ -23,31 +26,21 @@
                 <a href="#gestionSubmenu" data-bs-toggle="collapse" aria-expanded="false"
                    class="sidebar-link dropdown-toggle">
                     <i class="ph ph-clipboard-text me-3"></i>
-                    <span>Gestion</span>
+                    <span>Gestión</span>
                 </a>
                 <ul class="collapse list-unstyled" id="gestionSubmenu">
                     <li>
                         <a href="/Actividad/Index" class="sidebar-subitem">
-                            </i>Actividades
+                            Actividades
                         </a>
                     </li>
-@*                     <li>
-                        <a href="/Insumo/Index" class="sidebar-subitem">
-                            Insumos
-                        </a>
-                    </li> 
-                     <li>
-                        <a href="/Gasto/Index" class="sidebar-subitem">
-                            Gastos
-                        </a>
-                    </li> *@
                 </ul>
             </li>
             <li>
                 <a href="#administracionSubmenu" data-bs-toggle="collapse" aria-expanded="false"
                    class="sidebar-link dropdown-toggle">
                     <i class="ph ph-building me-3"></i>
-                    <span>Administracion</span>
+                    <span>Administración</span>
                 </a>
                 <ul class="collapse list-unstyled" id="administracionSubmenu">
                     <li>
@@ -60,19 +53,8 @@
                             Campañas
                         </a>
                     </li>
-                    @* <li>
-                        <a href="/Finanza/Index" class="sidebar-subitem">
-                            Finanzas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/Usuario/Index" class="sidebar-subitem">
-                            Usuarios
-                        </a>
-                    </li> *@
                 </ul>
             </li>
-
             <li>
                 <a href="#reportesSubmenu" data-bs-toggle="collapse" aria-expanded="false"
                    class="sidebar-link dropdown-toggle">
@@ -97,7 +79,6 @@
                     </li>
                 </ul>
             </li>
-
             <li>
                 <a href="/Configuracion/Index" class="sidebar-link">
                     <i class="ph ph-sliders me-3"></i>

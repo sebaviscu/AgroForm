@@ -23,6 +23,7 @@ namespace AgroForm.Model.Actividades
 
         public int IdMoneda { get; set; }
         public Moneda Moneda { get; set; }
+        public bool EsDolar => true;
 
         public int IdLote { get; set; }
         public Lote? Lote { get; set; }

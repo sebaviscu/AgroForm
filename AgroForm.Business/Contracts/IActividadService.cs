@@ -13,13 +13,10 @@ namespace AgroForm.Business.Contracts
     public interface IActividadService
     {
         Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? IdCampania = null, int? IdLote = null, List<int> IdsLotes = null);
-
         Task SaveActividadAsync(List<ILabor> actividades);
         Task DeteleActividadAsync(int idActividad, TipoActividadEnum IdTipoActividad);
-
-        //Task<List<Actividad>> GetByidCampoAsync(List<int> lotesId);
-
-        //Task<OperationResult<List<Actividad>>> GetRecentAsync();
+        Task<object> GetLaboresByAsync(int idActividad, TipoActividadEnum idTipoActividad);
+        Task<OperationResult<ILabor>> UpdateActividadAsync(ILabor actividad);
 
     }
 }
