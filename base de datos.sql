@@ -511,7 +511,62 @@ CREATE TABLE HistoricosPrecioInsumo (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
-
+CREATE TABLE [dbo].[ReporteCierreCampania](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [IdLicencia] [int] NOT NULL,
+    [FechaCreacion] [datetime2](7) NOT NULL,
+    [FechaModificacion] [datetime2](7) NULL,
+    [UsuarioCreacion] [nvarchar](256) NULL,
+    [UsuarioModificacion] [nvarchar](256) NULL,
+    [Activo] [bit] NOT NULL,
+    
+    [IdCampania] [int] NOT NULL,
+    
+    [NombreCampania] [nvarchar](500) NOT NULL,
+    [FechaInicio] [datetime2](7) NOT NULL,
+    [FechaFin] [datetime2](7) NOT NULL,
+    
+    [SuperficieTotalHa] [decimal](18,2) NOT NULL,
+    [ToneladasProducidas] [decimal](18,2) NOT NULL,
+    [CostoPorHa] [decimal](18,2) NOT NULL,
+    [CostoPorTonelada] [decimal](18,2) NOT NULL,
+    [RendimientoPromedioHa] [decimal](18,2) NOT NULL,
+    
+    [AnalisisSueloArs] [decimal](18,2) NOT NULL,
+    [CostoSiembrasArs] [decimal](18,2) NOT NULL,
+    [CostoRiegosArs] [decimal](18,2) NOT NULL,
+    [CostoPulverizacionesArs] [decimal](18,2) NOT NULL,
+    [CostoCosechasArs] [decimal](18,2) NOT NULL,
+    [CostoMonitoreosArs] [decimal](18,2) NOT NULL,
+    [CostoFertilizantesArs] [decimal](18,2) NOT NULL,
+    [CostoOtrasLaboresArs] [decimal](18,2) NOT NULL,
+    
+    [AnalisisSueloUsd] [decimal](18,2) NOT NULL,
+    [CostoSiembrasUsd] [decimal](18,2) NOT NULL,
+    [CostoRiegosUsd] [decimal](18,2) NOT NULL,
+    [CostoPulverizacionesUsd] [decimal](18,2) NOT NULL,
+    [CostoCosechasUsd] [decimal](18,2) NOT NULL,
+    [CostoMonitoreosUsd] [decimal](18,2) NOT NULL,
+    [CostoFertilizantesUsd] [decimal](18,2) NOT NULL,
+    [CostoOtrasLaboresUsd] [decimal](18,2) NOT NULL,
+    
+    [LluviaAcumuladaTotal] [decimal](18,2) NOT NULL,
+    [LluviasPorMesJson] [nvarchar](max) NULL,
+    [EventosExtremosJson] [nvarchar](max) NULL,
+    
+    [ResumenPorCultivoJson] [nvarchar](max) NULL,
+    [ResumenPorCampoJson] [nvarchar](max) NULL,
+    [ResumenPorLoteJson] [nvarchar](max) NULL,
+    
+    [EsDefinitivo] [bit] NOT NULL,
+    
+    -- Constraints
+    CONSTRAINT [PK_ReporteCierreCampania] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_ReporteCierreCampania_Campania_IdCampania] FOREIGN KEY ([IdCampania]) 
+        REFERENCES [dbo].[Campania] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_ReporteCierreCampania_Licencia_IdLicencia] FOREIGN KEY ([IdLicencia]) 
+        REFERENCES [dbo].[Licencia] ([Id])
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY];
 
 
 
