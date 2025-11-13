@@ -15,5 +15,9 @@ namespace AgroForm.Model
         public string? Observaciones { get; set; }
         public int IdLote { get; set; }
         public Lote Lote { get; set; } = null!;
+
+        
+        //public int IdCampo { get; set; }
+        //public Campo Campo { get; set; } = null!;
     }
 }
