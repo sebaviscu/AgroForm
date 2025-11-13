@@ -11,6 +11,9 @@ namespace AgroForm.Web.Models
         public string? Observaciones { get; set; }
         public int IdLote { get; set; }
         public int IdCampo { get; set; }
-
+        
+        public string CampoLote { get; set; }
+        
+        public string TipoClimaString => TipoClima.ToString();
     }
 }
