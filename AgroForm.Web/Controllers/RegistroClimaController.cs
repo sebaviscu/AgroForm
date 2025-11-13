@@ -14,16 +14,59 @@ namespace AgroForm.Web.Controllers
     public class RegistroClimaController : BaseController<RegistroClima, RegistroClimaVM, IRegistroClimaService>
     {
         private readonly ILoteService _loteService;
-        public RegistroClimaController(ILogger<RegistroClimaController> logger, IMapper mapper, IRegistroClimaService service, ILoteService loteService)
+        private readonly ICampoService _campoService;
+        public RegistroClimaController(ILogger<RegistroClimaController> logger, IMapper mapper, IRegistroClimaService service, ILoteService loteService, ICampoService campoService)
             : base(logger, mapper, service)
         {
             _loteService = loteService;
+            _campoService = campoService;
         }
 
-        public IActionResult Index()
+public async Task<IActionResult> Index()
         {
-            return View();
+            try
+            {
+                ValidarAutorizacion(new[] { Roles.Administrador });
+
+                var campos = await _campoService.GetAllAsync();
+
+                //var climas = await _service.GetAll(IdsLotes: idsLotes);
+
+                //if (!climas.Success)
+                //{
+                //    return BadRequest(actividades.ErrorMessage);
+                //}
+
+                if (!campos.Success)
+                {
+                    return BadRequest(campos.ErrorMessage);
+                }
+
+                var vm = new RegistroClimaIndexVM
+                {
+                    Campos = campos.Data.Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Nombre
+                    }).ToList(),
+                    //Climas  = climas.Data
+                };
+
+                // Agregar opción "TODOS"
+                vm.Campos.Insert(0, new SelectListItem { Value = "", Text = "TODOS", Selected = true });
+
+                return View(vm);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return RedirectToAction("Login", "Access");
+            }
+            //catch (Exception ex)
+            //{
+            //    return HandleException(ex, "Error al cargar actividades", "Index");
+            //}
         }
+
 
         [HttpPost]
         public override async Task<IActionResult> Create([FromBody] RegistroClimaVM dto)
