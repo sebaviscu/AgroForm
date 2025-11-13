@@ -1,0 +1,82 @@
+﻿@using AgroForm.Web.Models.IndexVM
+@model RegistroClimaIndexVM
+
+@{
+    ViewData["Title"] = "Clima";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph ph-cloud-rain text-primary me-2"></i>Clima
+            </h1>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Filtrar por Campo:</label>
+                    <select id="campoFilter" class="form-select">
+                        @foreach (var campo in Model.Campos)
+                        {
+                            <option value="@campo.Text" selected="@campo.Selected">@campo.Text</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Clima -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblClima" class="table table-hover table-striped w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Milimetros</th>
+                            <th>Campo</th>
+                            <th>Observaciones</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var clima in Model.Climas)
+                        {
+                            <tr>
+                                <td data-order="@clima.Fecha.ToString("yyyyMMdd")">
+                                    @clima.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>@clima.TipoClimaString </td>
+                                <td>@clima.Milimetros </td>
+                                <td>@clima.CampoLote</td>
+                                <td>@clima.Observacion</td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary btn-edit" data-id="@clima.Id" data-tipoClima="@clima.TipoClima">
+                                            <i class="ph ph-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-delete" data-id="@clima.Id" data-id="@clima.Id">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/views/clima.js" asp-append-version="true"></script>
+}
