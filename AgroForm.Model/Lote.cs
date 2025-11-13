@@ -18,7 +18,7 @@ namespace AgroForm.Model
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;
 
-        public List<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
+        //public List<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
                
         public List<Siembra> Siembras { get; set; } = new();
         public List<Riego> Riegos { get; set; } = new();

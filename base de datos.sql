@@ -467,14 +467,14 @@ CREATE TABLE RegistrosClima (
     IdLicencia INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Milimetros DECIMAL(10,2) NOT NULL,
-    IdLote INT NOT NULL,
+    IdCampo INT NOT NULL,
     TipoClima INT NOT NULL,
     Observaciones NVARCHAR(MAX) NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
 
@@ -559,6 +559,11 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [ResumenPorLoteJson] [nvarchar](max) NULL,
     
     [EsDefinitivo] [bit] NOT NULL,
+	
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL,
     
     -- Constraints
     CONSTRAINT [PK_ReporteCierreCampania] PRIMARY KEY CLUSTERED ([Id] ASC),

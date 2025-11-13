@@ -1,5 +1,4 @@
-﻿using AgroForm.Model.Actividades;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AgroForm.Web.Models.IndexVM
 {

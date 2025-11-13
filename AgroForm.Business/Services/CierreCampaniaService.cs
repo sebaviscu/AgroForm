@@ -1,8 +1,12 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
+using AgroForm.Data.Repository;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
+using AlbaServicios.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +23,8 @@ namespace AgroForm.Business.Services
         private readonly IGenericRepository<Campania> _campaniaRepo;
 
         public CierreCampaniaService(
-        IDbContextFactory<AppDbContext> contextFactory, 
-        ILogger<ServiceBase<ReporteCierreCampania>> logger, 
+        IDbContextFactory<AppDbContext> contextFactory,
+        ILogger<ServiceBase<ReporteCierreCampania>> logger,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork)
             : base(contextFactory, logger, httpContextAccessor)
@@ -32,7 +36,7 @@ namespace AgroForm.Business.Services
 
      public async Task<ReporteCierreCampania> GenerarReporteCierreAsync(int idCampania)
         {
-            var campania = await _campaniaRepo
+            var campania = await _campaniaRepo.Query()
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.AnalisisSuelos)
                 .Include(c => c.Lotes)
@@ -51,6 +55,7 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Pulverizaciones)
                 .Include(c => c.Lotes)
+                    .ThenInclude(l => l.Campo)
                     .ThenInclude(l => l.RegistrosClima)
                 .FirstOrDefaultAsync(c => c.Id == idCampania);
 
@@ -173,7 +178,9 @@ namespace AgroForm.Business.Services
 
         private void CalcularDatosClimaticosAsync(Campania campania, ReporteCierreCampania reporte)
         {
-            var registrosClima = campania.Lotes.SelectMany(l => l.RegistrosClima).ToList();
+            var campos = campania.Lotes.Select(l => l.Campo).ToList();
+
+            var registrosClima = campos.SelectMany(l => l.RegistrosClima).ToList();
 
             reporte.LluviaAcumuladaTotal = registrosClima.Sum(r => r.Milimetros);
 
@@ -197,12 +204,12 @@ namespace AgroForm.Business.Services
 
         public async Task<byte[]> GenerarPdfReporteAsync(int idCampania)
         {
-            var reporte = await GetByIdAsync(idCampania);
+            var reporte = await base.GetByIdAsync(idCampania);
 
-            if (reporte == null)
-            {
-                reporte = await GenerarReporteCierreAsync(idCampania);
-            }
+            //if (reporte == null)
+            //{
+            //    reporte = await GenerarReporteCierreAsync(idCampania);
+            //}
 
             //return await _pdfService.GenerarPdfCierreCampaniaAsync(reporte);
             return default;
@@ -210,7 +217,7 @@ namespace AgroForm.Business.Services
 
         public async Task<List<ReporteCierreCampania>> ObtenerReportesAnterioresAsync(int idLicencia)
         {
-            return await GetQuery()
+            return await base.GetQuery()
                 .Include(r => r.Campania)
                 .Where(r => r.IdLicencia == idLicencia && r.EsDefinitivo)
                 .OrderByDescending(r => r.FechaFin)
@@ -218,4 +225,4 @@ namespace AgroForm.Business.Services
         }
     }
 }
-}
+

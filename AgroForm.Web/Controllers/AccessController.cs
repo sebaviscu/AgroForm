@@ -1,9 +1,6 @@
 ﻿using AgroForm.Business.Contracts;
-using AgroForm.Business.Services;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -28,7 +25,7 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
         {
-            if (Environment.IsDevelopment())
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                 {

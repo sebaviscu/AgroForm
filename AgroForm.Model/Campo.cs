@@ -17,5 +17,6 @@ namespace AgroForm.Model
 
 
         public List<Lote> Lotes { get; set; } = new List<Lote>();
+        public List<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
     }
 }

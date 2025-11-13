@@ -28,14 +28,11 @@ namespace AgroForm.Business.Services
                     .Where(rc => rc.IdLicencia == _userAuth.IdLicencia)
                     .Where(rc => rc.Fecha >= fechaInicio)
                     .Where(rc => rc.TipoClima == TipoClima.Lluvia || rc.TipoClima == TipoClima.Granizo)
-                    .Include(rc => rc.Lote)
-                        .ThenInclude(l => l.Campo)
-
                     .AsNoTracking();
 
                 if (idCampo > 0)
                 {
-                    query = query.Where(rc => rc.Lote.IdCampo == idCampo);
+                    query = query.Where(rc => rc.IdCampo == idCampo);
                 }
                 var lista = await query.ToListAsync();
                 return OperationResult<List<RegistroClima>>.SuccessResult(lista);

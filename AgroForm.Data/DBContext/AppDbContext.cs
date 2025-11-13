@@ -102,9 +102,9 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Milimetros).HasColumnType("decimal(10,2)");
                 entity.HasIndex(e => e.IdLicencia);
 
-                entity.HasOne(r => r.Lote)
+                entity.HasOne(r => r.Campo)
                     .WithMany(l => l.RegistrosClima)
-                    .HasForeignKey(r => r.IdLote)
+                    .HasForeignKey(r => r.IdCampo)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

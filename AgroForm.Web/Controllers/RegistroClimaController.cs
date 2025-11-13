@@ -2,10 +2,12 @@
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Models;
+using AgroForm.Web.Models.IndexVM;
 using AutoMapper;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
@@ -22,7 +24,7 @@ namespace AgroForm.Web.Controllers
             _campoService = campoService;
         }
 
-public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index()
         {
             try
             {
@@ -30,12 +32,12 @@ public async Task<IActionResult> Index()
 
                 var campos = await _campoService.GetAllAsync();
 
-                //var climas = await _service.GetAll(IdsLotes: idsLotes);
+                var climas = await _service.GetAllAsync();
 
-                //if (!climas.Success)
-                //{
-                //    return BadRequest(actividades.ErrorMessage);
-                //}
+                if (!climas.Success)
+                {
+                    return BadRequest(climas.ErrorMessage);
+                }
 
                 if (!campos.Success)
                 {
@@ -49,10 +51,9 @@ public async Task<IActionResult> Index()
                         Value = c.Id.ToString(),
                         Text = c.Nombre
                     }).ToList(),
-                    //Climas  = climas.Data
+                    Climas = Map<List<RegistroClima>, List<RegistroClimaVM>>(climas.Data)
                 };
 
-                // Agregar opción "TODOS"
                 vm.Campos.Insert(0, new SelectListItem { Value = "", Text = "TODOS", Selected = true });
 
                 return View(vm);
@@ -89,11 +90,12 @@ public async Task<IActionResult> Index()
                 {
                     var rl = new RegistroClima()
                     {
-                        IdLote = item.Id,
+                        //IdLote = item.Id,
                         Observaciones = dto.Observaciones,
                         Milimetros = dto.Milimetros,
                         TipoClima = dto.TipoClima,
-                        Fecha = dto.Fecha
+                        Fecha = dto.Fecha,
+                        IdCampo = dto.IdCampo,
                     };
                     registrosLluvia.Add(rl);
                 }
