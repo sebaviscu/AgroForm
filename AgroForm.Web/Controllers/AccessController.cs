@@ -10,10 +10,13 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ICampaniaService _campaniaService;
-        public AccessController(IAuthService authService, ICampaniaService campaniaService)
+        private readonly IWebHostEnvironment _env;
+
+        public AccessController(IAuthService authService, ICampaniaService campaniaService, IWebHostEnvironment env)
         {
             _authService = authService;
             _campaniaService = campaniaService;
+            _env = env;
         }
 
         [HttpGet]
@@ -25,7 +28,7 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
         {
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            if (_env.IsDevelopment())
             {
                 if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                 {
@@ -33,14 +36,14 @@ namespace AgroForm.Web.Controllers
                     if (isValid)
                     {
                         var user = await _authService.GetUserByEmailAsync(email);
-                        var campania = await _campaniaService.GetCurrent();
+                        var campania = await _campaniaService.GetCurrentByLicencia(user.IdLicencia);
         
                         var claims = new List<Claim>
                         {
                             new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
                             new Claim(ClaimTypes.Name, user.Nombre),
                             new Claim("Licencia", user.IdLicencia.ToString()),
-                            new Claim("Campania", campania.Data?.Id.ToString() ?? "1"),
+                            new Claim("Campania", campania.Data?.Id.ToString() ?? null),
                             new Claim(ClaimTypes.Role, user.Rol.ToString())
                         };
         
@@ -48,9 +51,9 @@ namespace AgroForm.Web.Controllers
                         return RedirectToAction("Index", "Home");
                     }
                 }
-        
-                var campaniaDev = await _campaniaService.GetCurrent();
-                
+
+                var campaniaDev = await _campaniaService.GetCurrentByLicencia(1);
+
                 var devClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, "999"),

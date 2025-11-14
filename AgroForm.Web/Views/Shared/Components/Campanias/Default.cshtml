@@ -1,7 +1,7 @@
 ﻿@using AgroForm.Model
 @model List<Campania>
 
-<div class="dropdown-campania">
+<div class="dropdown-campania" style="position: relative;">
     <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center w-100 justify-content-between py-2"
             type="button" id="campañasDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="ph ph-calendar me-2"></i>
@@ -29,7 +29,7 @@
                     </a>
                 </li>
             }
-            <li><hr class="dropdown-divider"></li>
+            @* <li><hr class="dropdown-divider"></li> *@
         }
         @* <li>
             <a class="dropdown-item text-primary" href="@Url.Action("Index", "Campania")">

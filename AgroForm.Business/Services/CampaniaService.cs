@@ -69,8 +69,27 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.IdLicencia == _userAuth.IdLicencia &&
-                                                                _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso);
+                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.Id == _userAuth.IdCampaña);
+
+                if (campania == null)
+                {
+                    return OperationResult<Campania>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                }
+
+                return OperationResult<Campania>.SuccessResult(campania);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al reuperar campaña en cusro Campania");
+                return OperationResult<Campania>.Failure($"Ocurrió un problema al  reuperar campaña en cusro Campania: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
+        public async Task<OperationResult<Campania>> GetCurrentByLicencia(int idLicencia)
+        {
+            try
+            {
+                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
                 if (campania == null)
                 {

@@ -248,7 +248,7 @@ function guardarCampo() {
     var originalText = submitBtn.html();
     submitBtn.html('<i class="ph ph-hourglass me-1"></i>Guardando...').prop('disabled', true);
 
-    var url = datos.Id ? '/Campo/Update/' + datos.Id : '/Campo/Create';
+    var url = datos.Id ? '/Campo/Update' : '/Campo/Create';
     var metodo = datos.Id ? 'PUT' : 'POST';
 
     $.ajax({

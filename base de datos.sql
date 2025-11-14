@@ -348,6 +348,7 @@ CREATE TABLE Monitoreos (
     Costo DECIMAL(18,2) NULL,
 	CostoARS DECIMAL(18,2) NULL,
     CostoUSD DECIMAL(18,2) NULL,
+	IdMonitoreo INT NOT NULL,
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
     IdUsuario INT NULL,
@@ -572,26 +573,6 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     CONSTRAINT [FK_ReporteCierreCampania_Licencia_IdLicencia] FOREIGN KEY ([IdLicencia]) 
         REFERENCES [dbo].[Licencia] ([Id])
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY];
-
-
--- 1. Primero eliminar la foreign key existente de IdLote
-ALTER TABLE RegistrosClima 
-DROP CONSTRAINT FK__RegistrosClima__IdLote;
-
--- 2. Eliminar la columna IdLote
-ALTER TABLE RegistrosClima 
-DROP COLUMN IdLote;
-
--- 3. Agregar nueva columna Campo (ajusta el tipo de dato según necesites)
-ALTER TABLE RegistrosClima 
-ADD IdCampo INT NOT NULL;
-
--- 4. Agregar la nueva foreign key para Campo
-ALTER TABLE RegistrosClima 
-ADD CONSTRAINT FK_RegistrosClima_Campo 
-FOREIGN KEY (IdCampo) REFERENCES Campos(Id);
-
-
 
 
 -- Primero, cambiar a otra base de datos

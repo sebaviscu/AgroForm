@@ -76,7 +76,7 @@ namespace AgroForm.Web.Controllers
             });
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         public override async Task<IActionResult> Update([FromBody] CampaniaVM dto)
         {
             var entity = Map<CampaniaVM, Campania>(dto);

@@ -40,9 +40,16 @@ namespace AgroForm.Business.Services
             }
         }
 
-        public async Task<OperationResult<List<Lote>>> GetByidCampoAsync(int idCampo)
+        public async Task<OperationResult<List<Lote>>> GetByIdCampoAsync(int idCampo)
         {
             var query = GetQuery().Include(_=>_.Campo).AsQueryable().Where(_=>_.IdCampo == idCampo && _.IdCampania == _userAuth.IdCampaña);
+            var list = await query.ToListAsync();
+            return OperationResult<List<Lote>>.SuccessResult(list);
+        }
+
+        public async Task<OperationResult<List<Lote>>> GetByIds(List<int> idsLotes)
+        {
+            var query = GetQuery().Include(_=>_.Campo).AsQueryable().Where(_=> idsLotes.Contains(_.Id) && _.IdCampania == _userAuth.IdCampaña);
             var list = await query.ToListAsync();
             return OperationResult<List<Lote>>.SuccessResult(list);
         }

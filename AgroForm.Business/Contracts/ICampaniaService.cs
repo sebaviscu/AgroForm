@@ -11,5 +11,6 @@ namespace AgroForm.Business.Contracts
     public interface ICampaniaService : IServiceBase<Campania>
     {
         Task<OperationResult<Campania>> GetCurrent();
+        Task<OperationResult<Campania>> GetCurrentByLicencia(int idLicencia);
     }
 }

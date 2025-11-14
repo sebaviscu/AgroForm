@@ -71,7 +71,7 @@ function configurarEventosGrilla() {
 
 function eliminarActividad(id, idTipoActividad) {
     mostrarConfirmacion(
-        '¿Está seguro de que desea eliminar esta labor? Esta acción no se puede deshacer.',
+        '¿Está seguro de que desea eliminar esta labor?',
         'Eliminar labor'
     ).then((result) => {
         if (result.isConfirmed) {
@@ -227,6 +227,7 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             break;
 
         case 'Monitoreo':
+            if (datosEspecificos.IdMonitoreo != null) $('#idMonitoreo').val(datosEspecificos.idMonitoreo).trigger('change');
             if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
             if (datosEspecificos.idEstadoFenologico != null) $('#idEstadoFenologico').val(datosEspecificos.idEstadoFenologico).trigger('change');
             if (datosEspecificos.costo != null) $('#costoMonitoreoTotal').val(datosEspecificos.costo);

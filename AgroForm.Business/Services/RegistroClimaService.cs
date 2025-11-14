@@ -16,6 +16,17 @@ namespace AgroForm.Business.Services
         {
         }
 
+        public override async Task<OperationResult<List<RegistroClima>>> GetAllWithDetailsAsync()
+        {
+            var campos = await base.GetQuery()
+                     .Where(c => c.IdLicencia == _userAuth.IdLicencia)
+                     .Include(c => c.Campo)
+                     .AsNoTracking()
+                     .ToListAsync();
+
+            return OperationResult<List<RegistroClima>>.SuccessResult(campos);
+        }
+
         public async Task<OperationResult<List<RegistroClima>>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0)
         {
             try

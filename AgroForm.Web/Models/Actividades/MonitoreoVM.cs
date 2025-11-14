@@ -1,9 +1,12 @@
 ﻿using AgroForm.Model;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Models
 {
     public class MonitoreoVM : ActividadVM
     {
+        public IdMonitoreoEnum IdMonitoreo { get; set; }
+
         public int? IdEstadoFenologico { get; set; }
         public EstadoFenologicoVM? EstadoFenologico { get; set; }
 

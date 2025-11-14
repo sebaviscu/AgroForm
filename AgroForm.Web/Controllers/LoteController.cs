@@ -25,7 +25,7 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                var lotes = await _service.GetByidCampoAsync(idCampo);
+                var lotes = await _service.GetByIdCampoAsync(idCampo);
                 if (!lotes.Success)
                     return Json(new { success = false, message = lotes.ErrorMessage });
 

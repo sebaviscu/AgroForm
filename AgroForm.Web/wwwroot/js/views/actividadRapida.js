@@ -233,6 +233,8 @@
     $('#btnClima').on('click', function () {
         cargarCamposParaClima();
         $('#modalClima').modal('show');
+        $('#modalClimaLabel').html('<i class="ph ph-pencil me-2"></i>Crear Registro de Clima');
+        $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
     });
 
     $('#tipoClima').on('change', function () {
@@ -265,6 +267,8 @@
         } else {
             $('#milimetros').removeClass('is-invalid');
         }
+        var registroClimaId = $('#registroClimaId').val();
+        var esEdicion = registroClimaId && registroClimaId > 0;
 
         var data = {
             IdCampo: parseInt($('#campoClima').val()),
@@ -272,15 +276,20 @@
             Milimetros: $('#milimetros').val() ? parseFloat($('#milimetros').val()) : 0,
             Fecha: $('#fechaClima').val(),
             Observaciones: $('#observacionesClima').val(),
+            id: esEdicion ? parseInt(registroClimaId) : null,
         };
 
         var submitBtn = $('#formClima').find('button[type="submit"]');
         var originalText = submitBtn.html();
         submitBtn.html('<i class="ph ph-hourglass me-1"></i>Guardando...').prop('disabled', true);
 
+        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+        var url = esEdicion ? '/RegistroClima/Update' : '/RegistroClima/Create';
+        var mensajeExito = esEdicion ? 'Registro de Clima actualizado correctamente' : 'Registro de Clima creado correctamente';
+
         $.ajax({
-            url: '/RegistroClima/Create',
-            type: 'POST',
+            url: url,
+            type: esEdicion ? 'PUT' : 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
             headers: {
@@ -288,7 +297,7 @@
             },
             success: function (result) {
                 if (result.success) {
-                    mostrarMensaje('Registro de clima guardado correctamente', 'success');
+                    mostrarMensaje(mensajeExito, 'success');
                     $('#modalClima').modal('hide');
                     setTimeout(function () {
                         window.location.reload();
@@ -645,6 +654,7 @@
             case 'Monitoreo':
                 datos = {
                     IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
+                    IdMonitoreo: parseInt($('#idMonitoreo').val()),
                     IdEstadoFenologico: $('#idEstadoFenologico').val() ? parseInt($('#idEstadoFenologico').val()) : null,
                     Costo: parseFloat($('#costoMonitoreoTotal').val()) || 0,
                     EsDolar: $('#switchMonedaCostoMonitoreo').is(':checked')

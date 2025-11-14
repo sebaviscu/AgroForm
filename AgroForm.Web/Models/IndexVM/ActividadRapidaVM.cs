@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Models.IndexVM
 {
@@ -68,6 +69,7 @@ namespace AgroForm.Web.Models.IndexVM
         // Monitoreo
         public int? IdTipoMonitoreo { get; set; }
         public int? IdEstadoFenologico { get; set; }
+        public IdMonitoreoEnum? IdMonitoreo { get; set; }
 
         // Análisis de Suelo
         public decimal? ProfundidadCm { get; set; }

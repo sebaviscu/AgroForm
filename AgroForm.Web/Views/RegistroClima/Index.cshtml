@@ -55,15 +55,15 @@
                                     @clima.Fecha.ToString("dd/MM/yyyy")
                                 </td>
                                 <td>@clima.TipoClimaString </td>
-                                <td>@clima.Milimetros </td>
-                                <td>@clima.CampoLote</td>
+                                <td>@(clima.EsLluvia? clima.Milimetros: "-")</td>
+                                <td>@clima.Campo?.Nombre</td>
                                 <td>@clima.Observaciones</td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary btn-edit" data-id="@clima.Id" data-tipoClima="@clima.TipoClima">
+                                        <button type="button" class="btn btn-outline-primary btn-edit" data-id="@clima.Id">
                                             <i class="ph ph-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger btn-delete" data-id="@clima.Id" data-id="@clima.Id">
+                                        <button type="button" class="btn btn-outline-danger btn-delete" data-id="@clima.Id">
                                             <i class="ph ph-trash"></i>
                                         </button>
                                     </div>
@@ -78,5 +78,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/views/clima.js" asp-append-version="true"></script>
+    <script src="~/js/views/registroClima.js" asp-append-version="true"></script>
 }

@@ -55,6 +55,7 @@ function inicializarDataTable() {
                 data: 'estadoDisplay',
                 render: function (data, type, row) {
                     const estadoColors = {
+                        'Iniciada': 'secondary',
                         'En Curso': 'info',
                         'Finalizada': 'success',
                         'Cancelada': 'danger'
@@ -80,25 +81,56 @@ function inicializarDataTable() {
                 className: 'text-center',
                 orderable: false,
                 render: function (data, type, row) {
-                    return `
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-primary btn-edit"
-                                    title="Ver campaña" data-id="${data}">
-                                <i class="ph ph-pencil"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger btn-delete" 
-                                    title="Eliminar campaña" data-id="${data}">
-                                <i class="ph ph-trash"></i>
-                            </button>
-                            <button type="button" class="btn btn-warning btn-sm btn-finalizar ms-3"
-                                    title="Finalizar campaña" data-id="${data}">
-                                <i class="ph ph-lock-key"></i>
-                                <span class="d-none d-sm-inline">Cerrar Campaña</span>
-                            </button>
-                        </div>
+
+                    const estado = row.estadoDisplay; // ← muy importante
+
+                    let botones = `<div class="btn-group btn-group-sm">`;
+
+                    // ----- ESTADO: INICIADA -----
+                    if (estado === 'Iniciada') {
+                        botones += `
+                        <button type="button" class="btn btn-outline-primary btn-edit"
+                                title="Editar" data-id="${data}">
+                            <i class="ph ph-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-delete"
+                                title="Eliminar" data-id="${data}">
+                            <i class="ph ph-trash"></i>
+                        </button>
                     `;
+                    }
+
+                    // ----- ESTADO: EN CURSO -----
+                    if (estado === 'En Curso') {
+                        botones += `
+                        <button type="button" class="btn btn-outline-primary btn-edit"
+                                title="Editar" data-id="${data}">
+                            <i class="ph ph-pencil"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-warning btn-finalizar ms-2"
+                                title="Cerrar campaña" data-id="${data}">
+                            <i class="ph ph-lock-key"></i>
+                            <span class="d-none d-sm-inline">Cerrar</span>
+                        </button>
+                    `;
+                    }
+
+                    // ----- ESTADO: FINALIZADA o CANCELADA → SOLO VER -----
+                    if (estado === 'Finalizada' || estado === 'Cancelada') {
+                        botones += `
+                        <button type="button" class="btn btn-outline-secondary btn-ver"
+                                title="Ver campaña" data-id="${data}">
+                            <i class="ph ph-eye"></i>
+                        </button>
+                    `;
+                    }
+
+                    botones += `</div>`;
+                    return botones;
                 }
             }
+
         ],
         order: [[0, 'desc']],
         pageLength: 25,
@@ -731,7 +763,7 @@ function guardarCampania() {
 
     mostrarLoading(esEdicion ? 'Actualizando campaña...' : 'Creando campaña...');
 
-    var url = esEdicion ? '/Campania/Update/' + data.Id : '/Campania/Create';
+    var url = esEdicion ? '/Campania/Update' : '/Campania/Create';
     var metodo = esEdicion ? 'PUT' : 'POST';
 
     $.ajax({

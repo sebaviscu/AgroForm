@@ -638,11 +638,13 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="modalClimaLabel">
-                    <i class="ph ph-cloud-rain me-2"></i>Registrar Clima
+                    <i class="ph ph-cloud-rain me-2"></i>Crear Registro de Clima
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formClima" method="post" novalidate>
+                <input type="hidden" id="registroClimaId">
+
                 <div class="modal-body">
                     <!-- Selector de Campo (Lote) -->
                     <div class="row">

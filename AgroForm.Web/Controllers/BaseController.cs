@@ -122,7 +122,7 @@ namespace AgroForm.Web.Controllers
             return Ok(gResponse);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         public virtual async Task<IActionResult> Update([FromBody] TDto dto)
         {
             var entity = Map<TDto, TEntity>(dto);

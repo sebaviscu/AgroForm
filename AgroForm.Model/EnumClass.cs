@@ -25,6 +25,7 @@ namespace AgroForm.Model
 
         public enum EstadosCamapaña
         {
+            Iniciada,
             [Display(Name = "En Curso")]
             EnCurso,
             [Display(Name = "Finalizada")]
@@ -86,6 +87,12 @@ namespace AgroForm.Model
             Descarte
         }
 
+        public enum IdMonitoreoEnum
+        {
+            Plaga = 10,
+            Maleza = 11,
+            Enfermedad = 12
+        }
     }
 
     public static class EnumExtensions

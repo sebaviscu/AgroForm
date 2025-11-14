@@ -45,39 +45,48 @@
                         <div class="spinner-border spinner-border-sm text-info" role="status">
                             <span class="visually-hidden">Cargando...</span>
                         </div>
-                        <small class="text-muted ms-2">Cargando Luvias...</small>
+                        <small class="text-muted ms-2">Cargando Lluvias...</small>
                     </div>
 
-                    <div class="col-md-9">
-                        <div id="lluviaChart" style="min-height: 300px;"></div>
+                    <!-- Grafico ocupa mas espacio -->
+                    <div class="col-md-12 mb-4">
+                        <div id="lluviaChart" style="min-height: 380px;"></div>
                     </div>
-                    <div class="col-md-3">
+
+                    <!-- Estadisticas debajo del grafico -->
+                    <div class="col-md-12">
                         <div class="lluvia-stats">
-                            <h6 class="text-muted mb-3">Estadísticas</h6>
-                            <div class="row text-center">
-                                <div class="col-12 mb-3">
+                            <div class="row text-center justify-content-center">
+
+                                <div class="col-4 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-info fw-bold" id="totalLluvia">0.0 mm</div>
                                         <div class="stat-label small text-muted">Total Lluvia</div>
                                     </div>
                                 </div>
-                                <div class="col-12 mb-3">
+
+                                <div class="col-4 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-primary fw-bold" id="promedioMensual">0.0 mm</div>
                                         <div class="stat-label small text-muted">Promedio Mensual Lluvia</div>
                                     </div>
                                 </div>
-                                <div class="col-12 mb-3">
+
+                                <div class="col-4 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-secondary fw-bold" id="totalGranizo">0</div>
                                         <div class="stat-label small text-muted">Eventos de Granizo</div>
                                     </div>
                                 </div>
+
                             </div>
+
                         </div>
                     </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 </div>

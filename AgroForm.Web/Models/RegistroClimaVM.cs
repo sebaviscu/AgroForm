@@ -9,11 +9,10 @@ namespace AgroForm.Web.Models
         public decimal Milimetros { get; set; } = 0m;
         public TipoClima TipoClima { get; set; }
         public string? Observaciones { get; set; }
-        public int IdLote { get; set; }
         public int IdCampo { get; set; }
-        
-        public string CampoLote { get; set; }
-        
+        public CampoVM? Campo { get; set; }
+
+        public bool EsLluvia => TipoClima == TipoClima.Lluvia;
         public string TipoClimaString => TipoClima.ToString();
     }
 }

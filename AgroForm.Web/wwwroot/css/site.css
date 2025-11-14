@@ -14,7 +14,7 @@
 }
 
 .content .main-content {
-    padding: 75px 30px 20px 30px;
+    padding: 100px 30px 20px 30px;
     /*padding-top: var(--top-navbar-height);*/
 }
 
@@ -207,10 +207,10 @@
     transition: all 0.2s ease;
 }
 
-    .dropdown-item:hover {
+/*    .dropdown-item:hover {
         background-color: #f8f9fa;
         transform: translateX(2px);
-    }
+    }*/
 
 /* Navbar brand adjustments */
 .navbar-brand {

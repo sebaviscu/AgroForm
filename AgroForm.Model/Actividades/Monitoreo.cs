@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model.Actividades
 {
@@ -13,7 +14,7 @@ namespace AgroForm.Model.Actividades
         public decimal? Costo { get; set; }
         public decimal? CostoARS { get; set; }
         public decimal? CostoUSD { get; set; }
-
+        public IdMonitoreoEnum IdMonitoreo { get; set; }
 
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;

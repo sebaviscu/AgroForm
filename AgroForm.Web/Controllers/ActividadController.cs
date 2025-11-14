@@ -25,9 +25,10 @@ namespace AgroForm.Web.Controllers
         protected readonly IMapper _mapper;
         protected readonly IActividadService _service;
         private readonly IMonedaService _monedaService;
+        private readonly ICampaniaService _campaniaService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService, IMonedaService monedaService)
+        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService, IMonedaService monedaService, ICampaniaService campaniaService)
         {
             _logger = logger;
             _mapper = mapper;
@@ -35,8 +36,8 @@ namespace AgroForm.Web.Controllers
             _campoService = campoService;
             _loteService = loteService;
             _monedaService = monedaService;
+            _campaniaService = campaniaService;
         }
-
 
         public async Task<IActionResult> Index()
         {
@@ -216,7 +217,8 @@ namespace AgroForm.Web.Controllers
                     actividad = new Monitoreo
                     {
                         IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo,
-                        IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico
+                        IdEstadoFenologico = model.DatosEspecificos?.IdEstadoFenologico,
+                        IdMonitoreo = model.DatosEspecificos.IdMonitoreo.Value
                     };
                     break;
 
@@ -257,7 +259,9 @@ namespace AgroForm.Web.Controllers
 
             var esDolar = model.DatosEspecificos?.EsDolar == true;
             //actividad.IdUsuario = user.IdUsuario,;
-            actividad.Id = model.IdLabor ?? throw new Exception("No se envió Id de la labor.");
+            if (model.IdLabor.HasValue)
+                actividad.Id = model.IdLabor.GetValueOrDefault();
+
             actividad.IdCampania = user.IdCampaña;
             actividad.RegistrationDate = TimeHelper.GetArgentinaTime();
             actividad.RegistrationUser = user.UserName;
@@ -293,10 +297,29 @@ namespace AgroForm.Web.Controllers
                 var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
                 var actividades = new List<ILabor>();
 
+                // TODO
+                //if(model.LotesIds.Count > 1)
+                //{
+                //    var costo = model.DatosEspecificos?.Costo;
+                //    var lotes = await _loteService.GetByIds(model.LotesIds);
+                //    if(lotes.Success)
+                //    {
+                //        var sumaSup = lotes.Data.Sum(l => l.SuperficieHectareas);
+                //    }
+                //}
+
                 foreach (var loteId in model.LotesIds)
                 {
+                    model.idLote = loteId;
                     var actividad = ArmarLabor(model, user, tipoCambioUSD);
                     actividades.Add(actividad);
+                }
+
+                var campania = await _campaniaService.GetCurrent();
+                if (campania.Success && campania.Data.EstadosCampania == EstadosCamapaña.Iniciada)
+                {
+                    campania.Data.EstadosCampania = EstadosCamapaña.EnCurso;
+                    await _campaniaService.UpdateAsync(campania.Data);
                 }
 
                 await _service.SaveActividadAsync(actividades);

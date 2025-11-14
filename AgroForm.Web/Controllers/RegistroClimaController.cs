@@ -30,9 +30,9 @@ namespace AgroForm.Web.Controllers
             {
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
-                var campos = await _campoService.GetAllAsync();
+                var campos = await _campoService.GetAllWithDetailsAsync();
 
-                var climas = await _service.GetAllAsync();
+                var climas = await _service.GetAllWithDetailsAsync();
 
                 if (!climas.Success)
                 {
@@ -76,31 +76,16 @@ namespace AgroForm.Web.Controllers
             {
                 var entity = Map<RegistroClimaVM, RegistroClima>(dto);
 
-                var lotes = await _loteService.GetByidCampoAsync(dto.IdCampo);
-                if (!lotes.Success)
+                var registroLluvia = new RegistroClima()
                 {
-                    gResponse.Success = false;
-                    gResponse.Message = lotes.ErrorMessage;
-                    return NotFound(gResponse);
-                }
+                    Observaciones = dto.Observaciones,
+                    Milimetros = dto.Milimetros,
+                    TipoClima = dto.TipoClima,
+                    Fecha = dto.Fecha,
+                    IdCampo = dto.IdCampo,
+                };
 
-                var registrosLluvia = new List<RegistroClima>();
-
-                foreach (var item in lotes.Data)
-                {
-                    var rl = new RegistroClima()
-                    {
-                        //IdLote = item.Id,
-                        Observaciones = dto.Observaciones,
-                        Milimetros = dto.Milimetros,
-                        TipoClima = dto.TipoClima,
-                        Fecha = dto.Fecha,
-                        IdCampo = dto.IdCampo,
-                    };
-                    registrosLluvia.Add(rl);
-                }
-
-                var result = await _service.CreateRangeAsync(registrosLluvia);
+                var result = await _service.CreateAsync(entity);
 
                 if (!result.Success)
                 {
