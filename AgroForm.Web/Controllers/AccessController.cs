@@ -8,11 +8,11 @@ namespace AgroForm.Web.Controllers
 {
     public class AccessController : Controller
     {
-        private readonly IAuthService _authService;
+        private readonly IUsuarioService _userService;
         private readonly ICampaniaService _campaniaService;
-        public AccessController(IAuthService authService, ICampaniaService campaniaService)
+        public AccessController(IUsuarioService userService, ICampaniaService campaniaService)
         {
-            _authService = authService;
+            _userService = userService;
             _campaniaService = campaniaService;
         }
 
@@ -29,10 +29,10 @@ namespace AgroForm.Web.Controllers
             {
                 if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                 {
-                    var isValid = await _authService.ValidateUserAsync(email, password);
+                    var isValid = await _userService.ValidateUserAsync(email, password);
                     if (isValid)
                     {
-                        var user = await _authService.GetUserByEmailAsync(email);
+                        var user = await _userService.GetUserByEmailAsync(email);
                         var campania = await _campaniaService.GetCurrent();
         
                         var claims = new List<Claim>
@@ -72,7 +72,7 @@ namespace AgroForm.Web.Controllers
                 return View();
             }
         
-            var isValidProd = await _authService.ValidateUserAsync(email, password);
+            var isValidProd = await _userService.ValidateUserAsync(email, password);
         
             if (!isValidProd)
             {
@@ -80,7 +80,7 @@ namespace AgroForm.Web.Controllers
                 return View();
             }
         
-            var userProd = await _authService.GetUserByEmailAsync(email);
+            var userProd = await _userService.GetUserByEmailAsync(email);
             var campaniaProd = await _campaniaService.GetCurrent();
         
             var prodClaims = new List<Claim>

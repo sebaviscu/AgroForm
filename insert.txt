@@ -1,10 +1,10 @@
 
 
-INSERT INTO Licencias (RazonSocial, NombreContacto, NumeroContacto, RegistrationDate)
-VALUES ('AgroForm S.A.', 'Administrador', '0000-000000', GETDATE());
+INSERT INTO Licencias (RazonSocial, NombreContacto, NumeroContacto, TipoLicencia, EsPrueba, Activo, RegistrationDate)
+VALUES ('AgroForm S.A.', 'Administrador', '0000-000000',1, 0, 1, GETDATE());
 
 INSERT INTO Usuarios 
-(IdLicencia, Nombre, Email, Rol, Activo, PasswordHash, PasswordSalt, EmailConfirmed, RegistrationDate, RegistrationUser)
+(IdLicencia, Nombre, Email, Rol, Activo, PasswordHash, PasswordSalt, EmailConfirmed, RegistrationDate,SuperAdmin, RegistrationUser)
 VALUES
 (
     1, 
@@ -16,6 +16,7 @@ VALUES
     0x77168C588E15B95C907FCFB6E51EB6C481A23D79C17167EA3ABAE95DCA1DAFB5D1EE681A763C4CD7190582F853FA7F842C006209F83882B5CF5AE5308E850B4E696337E6000BC1A4EBB8736EE4B4EE416DC140F1B5729E099EFD0D1E4ACB63DAC809575FA861EF36308BA33F392A95750823FBFB94A12FACE79E8DC6D1344701
     ,1,
     GETDATE(),
+	1,
     'System'
 );
 
@@ -24,102 +25,17 @@ INSERT INTO Monedas (Codigo, Nombre, Simbolo, TipoCambioReferencia, Registration
 ('USD', 'Dólar Estadounidense', 'US$', 1500, GETDATE(), 'System');
 
 
--- Insertar tipos de insumos
-INSERT INTO TiposInsumo (Nombre, RegistrationDate, RegistrationUser)
-VALUES 
-('Fertilizantes', GETDATE(), 'System'),
-('Plaguicidas', GETDATE(), 'System'),
-('Herbicidas', GETDATE(), 'System'),
-('Sustratos', GETDATE(), 'System'),
-('Equipamiento', GETDATE(), 'System'),
-('Otros', GETDATE(), 'System');
 
--- Obtener el ID de la moneda ARS y el ID de licencia por defecto
-DECLARE @IdMonedaARS INT = (SELECT Id FROM Monedas WHERE Codigo = 'ARS');
-DECLARE @IdLicencia INT = (SELECT TOP 1 Id FROM Licencias);
-
--- Insertar insumos con todos los campos requeridos
-INSERT INTO Insumos (Nombre, Descripcion, UnidadMedida, IdTipoInsumo, IdMoneda, IdLicencia, Activo, StockActual, StockMinimo, PrecioActual, RegistrationDate, RegistrationUser)
+INSERT INTO TiposActividad (Nombre, Icono, ColorIcono)
 VALUES
--- Fertilizantes
-('Urea', 'Fertilizante nitrogenado', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 150.00, GETDATE(), 'System'),
-('Superfosfato Triple', 'Fertilizante fosfatado', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 180.00, GETDATE(), 'System'),
-('Nitrato de Amonio', 'Fuente de nitrógeno para cultivos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 200.00, GETDATE(), 'System'),
-('Fosfato Diamónico (DAP)', 'Fertilizante NPK 18-46-0', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 220.00, GETDATE(), 'System'),
-('Sulfato de Potasio', 'Fertilizante potásico', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 190.00, GETDATE(), 'System'),
-('Cal Dolomítica', 'Enmienda caliza para suelos ácidos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 80.00, GETDATE(), 'System'),
-
--- Plaguicidas/Insecticidas
-('Insecticida Cipermetrina', 'Control de insectos en cultivos', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 1200.00, GETDATE(), 'System'),
-('Insecticida Imidacloprid', 'Control de plagas chupadoras', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 1500.00, GETDATE(), 'System'),
-('Fungicida Mancozeb', 'Control de hongos en soja y girasol', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 800.00, GETDATE(), 'System'),
-('Fungicida Azoxistrobin', 'Control de enfermedades foliares', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 2500.00, GETDATE(), 'System'),
-('Acaricida Abamectina', 'Control de ácaros en cultivos', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 1800.00, GETDATE(), 'System'),
-
--- Herbicidas
-('Glifosato', 'Herbicida total para malezas', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Herbicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 900.00, GETDATE(), 'System'),
-('2,4-D', 'Herbicida selectivo para malezas de hoja ancha', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Herbicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 700.00, GETDATE(), 'System'),
-('S-metolacloro', 'Herbicida para malezas gramíneas', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Herbicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 1100.00, GETDATE(), 'System'),
-('Atrazina', 'Herbicida para control de malezas en soja', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Herbicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 950.00, GETDATE(), 'System'),
-('Pendimetalina', 'Herbicida residual preemergente', 'L', (SELECT Id FROM TiposInsumo WHERE Nombre='Herbicidas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 850.00, GETDATE(), 'System'),
-
--- Sustratos y enmiendas
-('Turba', 'Sustrato para germinación y semilleros', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Sustratos'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 300.00, GETDATE(), 'System'),
-('Perlita', 'Mejora aireación de sustratos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Sustratos'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 250.00, GETDATE(), 'System'),
-('Vermiculita', 'Retención de humedad en sustratos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Sustratos'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 280.00, GETDATE(), 'System'),
-('Compost', 'Enmienda orgánica para suelos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Sustratos'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 150.00, GETDATE(), 'System'),
-
--- Equipamiento
-('Manguera de riego', 'Para sistemas de riego por goteo', 'm', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 120.00, GETDATE(), 'System'),
-('Atomizador manual', 'Para aplicación de productos', 'unidad', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 2500.00, GETDATE(), 'System'),
-('Bomba de mochila', 'Para fumigación manual', 'unidad', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 3500.00, GETDATE(), 'System'),
-('Sistema de riego por goteo', 'Para cultivos intensivos', 'unidad', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 5000.00, GETDATE(), 'System'),
-
--- Otros
-('Marcadores de plantación', 'Señalización de surcos y parcelas', 'unidad', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 50.00, GETDATE(), 'System'),
-('Cinta métrica', 'Medición de parcelas y siembras', 'unidad', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 800.00, GETDATE(), 'System'),
-('Guantes de trabajo', 'Protección personal', 'par', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 350.00, GETDATE(), 'System'),
-('Botas de goma', 'Protección para campo húmedo', 'par', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 1500.00, GETDATE(), 'System'),
-
--- Cultivos (sin la palabra "semilla")
-('Soja RR', 'Variedad resistente a glifosato', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 450.00, GETDATE(), 'System'),
-('Soja convencional', 'Variedad para siembra tradicional', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 420.00, GETDATE(), 'System'),
-('Soja temprana', 'Variedad de ciclo corto', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 480.00, GETDATE(), 'System'),
-('Soja tardía', 'Variedad de ciclo largo', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 460.00, GETDATE(), 'System'),
-('Soja alta proteína', 'Variedad con alto contenido proteico', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 500.00, GETDATE(), 'System'),
-
--- Girasol
-('Girasol Híbrido', 'Variedad alta producción', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 380.00, GETDATE(), 'System'),
-('Girasol Convencional', 'Variedad adaptada a la región', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 350.00, GETDATE(), 'System'),
-('Girasol Oleico', 'Variedad con aceite oleico', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 400.00, GETDATE(), 'System'),
-('Girasol Alta Altura', 'Variedad para suelos fértiles', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 370.00, GETDATE(), 'System'),
-
--- Maíz
-('Maíz Híbrido', 'Variedad de alto rendimiento', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 520.00, GETDATE(), 'System'),
-('Maíz Tardío', 'Variedad de ciclo largo', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 500.00, GETDATE(), 'System'),
-('Maíz Temprano', 'Variedad de ciclo corto', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 480.00, GETDATE(), 'System'),
-('Maíz Amarillo', 'Variedad para alimentación animal', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 450.00, GETDATE(), 'System'),
-('Maíz Dulce', 'Variedad para consumo humano', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 550.00, GETDATE(), 'System'),
-
--- Trigo y otros cultivos
-('Trigo Pan', 'Variedad para panadería', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 300.00, GETDATE(), 'System'),
-('Trigo Candeal', 'Variedad para pastas', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 320.00, GETDATE(), 'System'),
-('Cebada', 'Variedad para cerveza y forraje', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 280.00, GETDATE(), 'System'),
-('Centeno', 'Variedad para cobertura de suelos', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 250.00, GETDATE(), 'System'),
-('Sorgo', 'Variedad para ensilaje', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 270.00, GETDATE(), 'System'),
-('Lino', 'Variedad para fibra y aceite', 'kg', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas'), @IdMonedaARS, @IdLicencia, 1, 0, 0, 350.00, GETDATE(), 'System'); 
-
-
-INSERT INTO TiposActividad (Nombre, Icono, ColorIcono, IdTipoInsumo)
-VALUES
-('Analisis de suelo', 'ph-flask', '#607D8B', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
-('Siembra', 'ph-leaf', '#4CAF50', (SELECT Id FROM TiposInsumo WHERE Nombre='Semillas')),
-('Pulverizacion', 'ph-spray-bottle', '#FF9800', (SELECT Id FROM TiposInsumo WHERE Nombre='Plaguicidas')),
-('Fertilizado', 'ph-test-tube', '#9C27B0', (SELECT Id FROM TiposInsumo WHERE Nombre='Fertilizantes')),
-('Riego', 'ph-drop', '#03A9F4', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
-('Monitoreo', 'ph-magnifying-glass', '#795548', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
-('Cosecha', 'ph-grains', '#FFC107', (SELECT Id FROM TiposInsumo WHERE Nombre='Otros')),
-('Otras labores', 'ph-wrench', '#9E9E9E', (SELECT Id FROM TiposInsumo WHERE Nombre='Equipamiento'));
+('Analisis de suelo', 'ph-flask', '#607D8B'),
+('Siembra', 'ph-leaf', '#4CAF50'),
+('Pulverizacion', 'ph-spray-bottle', '#FF9800'),
+('Fertilizado', 'ph-test-tube', '#9C27B0'),
+('Riego', 'ph-drop', '#03A9F4'),
+('Monitoreo', 'ph-magnifying-glass', '#795548'),
+('Cosecha', 'ph-grains', '#FFC107'),
+('Otras labores', 'ph-wrench', '#9E9E9E');
 
 
 -- Insertar Cultivos (sin IDs explícitos y sin Descripcion)

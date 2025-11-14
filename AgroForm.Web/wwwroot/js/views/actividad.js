@@ -71,7 +71,7 @@ function configurarEventosGrilla() {
 
 function eliminarActividad(id, idTipoActividad) {
     mostrarConfirmacion(
-        '¿Está seguro de que desea eliminar esta labor? Esta acción no se puede deshacer.',
+        '¿Está seguro de que desea eliminar esta labor?',
         'Eliminar labor'
     ).then((result) => {
         if (result.isConfirmed) {

@@ -14,7 +14,7 @@ namespace AgroForm.Model
 
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
-        public TipoVariedad Tipo { get; set; } = TipoVariedad.Variedad;
+        public TipoVariedadEnum Tipo { get; set; } = TipoVariedadEnum.Variedad;
         public bool Activo { get; set; } = true;
     }
 

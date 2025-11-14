@@ -9,29 +9,19 @@ namespace AgroForm.Web.Components
     public class ActividadRapidaViewComponent : ViewComponent
     {
         private readonly ITipoActividadService _tipoActividadService;
-        private readonly IInsumoService _insumoService;
         private readonly ILoteService _loteService;
         public ActividadRapidaViewComponent(
             ITipoActividadService tipoActividadService,
-            IInsumoService insumoService,
             ILoteService loteService)
         {
             _tipoActividadService = tipoActividadService;
-            _insumoService = insumoService;
             _loteService = loteService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var tiposActividad = await _tipoActividadService.GetAllAsync();
-            //var insumos = await _insumoService.GetAllAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
-
-            //var analisisSuelo = tiposActividad.Data.First(_ => _.Nombre == "Analisis de suelo");
-            //analisisSuelo.Nombre = "AnalisisSuelo";
-
-            //var otrasLabores = tiposActividad.Data.First(_ => _.Nombre == "Otras labores");
-            //otrasLabores.Nombre = "OtrasLabores";
 
             var vm = new ActividadRapidaVM
             {
@@ -48,8 +38,7 @@ namespace AgroForm.Web.Components
                     Id = t.Id,
                     TipoActividad = t.Nombre,
                     IconoTipoActividad = t.Icono,
-                    IconoColorTipoActividad = t.ColorIcono,
-                    IdTipoInsumo = t.IdTipoInsumo?.ToString() ?? ""
+                    IconoColorTipoActividad = t.ColorIcono
                 }).ToList() ?? new List<ActividadVM>()
             };
 

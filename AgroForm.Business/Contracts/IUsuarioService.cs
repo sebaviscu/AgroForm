@@ -9,5 +9,7 @@ namespace AgroForm.Business.Contracts
 {
     public interface IUsuarioService : IServiceBase<Usuario>
     {
+        Task<bool> ValidateUserAsync(string email, string password);
+        Task<Usuario?> GetUserByEmailAsync(string email);
     }
 }

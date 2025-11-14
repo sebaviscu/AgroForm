@@ -1,0 +1,464 @@
+﻿@{
+    ViewData["Title"] = "Administrador";
+    Layout = null;
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph potted-plant  text-primary me-2"></i>Administración del Sistema
+            </h1>
+            <p class="text-muted mb-0">Gestione las licencias y catálogos del sistema</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="licencias-tab" data-bs-toggle="tab"
+                            data-bs-target="#licencias" type="button" role="tab"
+                            aria-controls="licencias" aria-selected="true">
+                        <i class="ph ph-license me-2"></i>Licencias
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="catalogos-tab" data-bs-toggle="tab"
+                            data-bs-target="#catalogos" type="button" role="tab"
+                            aria-controls="catalogos" aria-selected="false">
+                        <i class="ph ph-list-checks me-2"></i>Catálogos
+                    </button>
+                </li>
+
+
+            </ul>
+        </div>
+
+
+
+        <div class="card-body">
+            <div class="tab-content" id="adminTabsContent">
+
+
+                <!-- Tab Licencias -->
+                <div class="tab-pane fade show active" id="licencias" role="tabpanel"
+                     aria-labelledby="licencias-tab" tabindex="0">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">Lista de Licencias</h5>
+                            <p class="text-muted small mb-0">Gestione todas las licencias del sistema</p>
+                        </div>
+                        <button id="btnNuevaLicencia" class="btn btn-primary">
+                            <i class="ph ph-plus-circle me-2"></i>Nueva Licencia
+                        </button>
+                    </div>
+
+                    <!-- Tabla de Licencias -->
+                    <div class="table-responsive">
+                        <table id="tblLicencias" class="table table-striped table-hover w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Razón Social</th>
+                                    <th>Contacto</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Prueba</th>
+                                    <th>Fin Prueba</th>
+                                    <th>Último Pago</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+
+                <!-- Tab Catálogos -->
+                <div class="tab-pane fade" id="catalogos" role="tabpanel"
+                     aria-labelledby="catalogos-tab" tabindex="0">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">Catálogos del Sistema</h5>
+                            <p class="text-muted small mb-0">Administre los elementos de los catálogos</p>
+                        </div>
+                        <button id="btnNuevoCatalogo" class="btn btn-primary">
+                            <i class="ph ph-plus-circle me-2"></i>Nuevo Catálogo
+                        </button>
+                    </div>
+
+                    <!-- Tabla de Catálogos -->
+                    <div class="table-responsive">
+                        <table id="tblCatalogos" class="table table-striped table-hover w-100">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Licencia -->
+<div class="modal fade" id="modalLicencia" tabindex="-1" aria-labelledby="modalLicenciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLicenciaLabel">
+                    <i class="ph ph-license me-2"></i>Registrar Licencia
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formLicencia" method="post" novalidate>
+                <div class="modal-body">
+                    <!-- Información de la Licencia -->
+                    <h6 class="mb-3 text-primary">Información de la Licencia</h6>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="razonSocial" class="form-label">Razón Social *</label>
+                                <input type="text" class="form-control" id="razonSocial" name="RazonSocial"
+                                       placeholder="Ingrese la razón social" required>
+                                <div class="invalid-feedback">Por favor ingrese la razón social.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tipoLicencia" class="form-label">Tipo de Licencia *</label>
+                                <select class="form-select" id="tipoLicencia" name="TipoLicencia" required>
+                                    <option value="0">Básica</option>
+                                    <option value="1">Premium</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione el tipo de licencia.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nombreContacto" class="form-label">Nombre de Contacto</label>
+                                <input type="text" class="form-control" id="nombreContacto" name="NombreContacto"
+                                       placeholder="Ingrese el nombre de contacto">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="numeroContacto" class="form-label">Número de Contacto</label>
+                                <input type="tel" class="form-control" id="numeroContacto" name="NumeroContacto"
+                                       placeholder="Ingrese el número de contacto">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="esPrueba" name="EsPrueba">
+                                    <label class="form-check-label" for="esPrueba">Licencia de Prueba</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3" id="fechaPruebaGroup" style="display: none;">
+                                <label for="fechaFinPrueba" class="form-label">Fecha Fin de Prueba *</label>
+                                <input type="date" class="form-control" id="fechaFinPrueba" name="FechaFinPrueba">
+                                <div class="invalid-feedback">Por favor ingrese la fecha de fin de prueba.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del Usuario (solo en creación) -->
+                    <div id="usuarioSection">
+                        <hr class="my-4">
+                        <h6 class="mb-3 text-primary">Información del Usuario Administrador</h6>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombreUsuario" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombreUsuario" name="Usuario.Nombre"
+                                           placeholder="Ingrese el nombre completo" required>
+                                    <div class="invalid-feedback">Por favor ingrese el nombre del usuario.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="emailUsuario" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="emailUsuario" name="Usuario.Email"
+                                           placeholder="usuario@ejemplo.com" required>
+                                    <div class="invalid-feedback">Por favor ingrese un email válido.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="telefonoUsuario" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefonoUsuario" name="Usuario.PhoneNumber"
+                                           placeholder="Ingrese el número de teléfono">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contrasenaUsuario" class="form-label">Contraseña *</label>
+                                    <input type="password" class="form-control" id="contrasenaUsuario" name="Usuario.Password"
+                                           placeholder="Ingrese la contraseña" required>
+                                    <div class="invalid-feedback">Por favor ingrese una contraseña.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-check-circle me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pagos Licencia -->
+<div class="modal fade" id="modalPagosLicencia" tabindex="-1" aria-labelledby="modalPagosLicenciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalPagosLicenciaLabel">
+                    <i class="ph ph-currency-dollar me-2"></i>Gestión de Pagos
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Información de la Licencia -->
+                <div class="row mb-4" id="infoLicencia">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body py-3">
+                                <h6 class="card-title mb-1">Razón Social</h6>
+                                <p class="card-text fw-bold" id="infoRazonSocial">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body py-3">
+                                <h6 class="card-title mb-1">Tipo</h6>
+                                <p class="card-text" id="infoTipoLicencia">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body py-3">
+                                <h6 class="card-title mb-1">Estado</h6>
+                                <p class="card-text" id="infoEstado">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-light">
+                            <div class="card-body py-3">
+                                <h6 class="card-title mb-1">Total Pagado</h6>
+                                <p class="card-text fw-bold text-success" id="infoTotalPagado">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario para agregar pago -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">
+                            <i class="ph ph-plus-circle me-2"></i>Agregar Nuevo Pago
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="formPagoLicencia" novalidate>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="tipoPago" class="form-label">Tipo de Pago *</label>
+                                        <select class="form-select" id="tipoPago" name="TipoPagoLicencia" required>
+                                            <option value="0">Mantenimiento</option>
+                                        </select>
+                                        <div class="invalid-feedback">Por favor seleccione el tipo de pago.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="precioPago" class="form-label">Precio *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="precioPago" name="Precio"
+                                                   step="0.01" min="0" placeholder="0.00" required>
+                                        </div>
+                                        <div class="invalid-feedback">Por favor ingrese el precio.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="fechaPago" class="form-label">Fecha *</label>
+                                        <input type="date" class="form-control" id="fechaPago" name="Fecha"
+                                               value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                        <div class="invalid-feedback">Por favor ingrese la fecha.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="ph ph-plus me-1"></i>Agregar Pago
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Grilla de Pagos -->
+                <div class="card">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="ph ph-list me-2"></i>Historial de Pagos
+                        </h6>
+                        <span class="badge bg-primary" id="contadorPagos">0 pagos</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="tblPagosLicencia" class="table table-sm table-striped table-hover w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Precio</th>
+                                        <th>Fecha Registro</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Catalogo -->
+<div class="modal fade" id="modalCatalogo" tabindex="-1" aria-labelledby="modalCatalogoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalCatalogoLabel">
+                    <i class="ph ph-list-checks me-2"></i>Registrar Catálogo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formCatalogo" method="post" novalidate>
+                <input type="hidden" id="idCatalogo">
+
+                <div class="modal-body">
+                    <!-- Tipo de Catálogo -->
+                    <div class="mb-3">
+                        <label for="tipoCatalogo" class="form-label">Tipo *</label>
+                        <select class="form-select" id="tipoCatalogo" name="Tipo" required>
+                            <option value="" selected disabled>Seleccione un tipo</option>
+                            <optgroup label="Monitoreo">
+                                <option value="10">Plaga</option>
+                                <option value="11">Maleza</option>
+                                <option value="12">Enfermedad</option>
+                            </optgroup>
+                            <optgroup label="Fertilización y Productos">
+                                <option value="20">Tipo de Fertilizante</option>
+                                <option value="21">Nutriente</option>
+                                <option value="22">Producto Agroquímico</option>
+                            </optgroup>
+                            <optgroup label="Actividades y Operaciones">
+                                <option value="30">Método de Siembra</option>
+                                <option value="31">Método de Riego</option>
+                                <option value="32">Método de Aplicación</option>
+                            </optgroup>
+                            <optgroup label="Infraestructura y Personas">
+                                <option value="40">Maquinaria</option>
+                                <option value="41">Fuente de Agua</option>
+                            </optgroup>
+                            <optgroup label="Otros">
+                                <option value="50">Laboratorio</option>
+                                <option value="99">Otro</option>
+                            </optgroup>
+                        </select>
+                        <div class="invalid-feedback">Por favor seleccione el tipo de catálogo.</div>
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label for="nombreCatalogo" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombreCatalogo" name="Nombre"
+                               placeholder="Ingrese el nombre del elemento" required>
+                        <div class="invalid-feedback">Por favor ingrese el nombre.</div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="mb-3">
+                        <label for="descripcionCatalogo" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionCatalogo" name="Descripcion"
+                                  rows="3" placeholder="Ingrese una descripción opcional..."></textarea>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label for="estadoCatalogo" class="form-label">Estado</label>
+                        <select class="form-select" id="estadoCatalogo" name="Activo">
+                            <option value="true" selected>Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-check-circle me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/js/administradorLicencias.js"></script>
+}

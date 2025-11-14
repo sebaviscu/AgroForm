@@ -23,7 +23,7 @@ namespace AgroForm.Business.Services
         public async Task<decimal> ObtenerTipoCambioActualAsync()
         {
             var monedaUSD = await GetQuery().FirstAsync(m => m.Codigo == "USD");
-            return monedaUSD.TipoCambioReferencia ?? 1;
+            return monedaUSD.TipoCambioReferencia;
         }
     }
 }

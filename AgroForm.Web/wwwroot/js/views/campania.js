@@ -160,7 +160,7 @@ function abrirModalCampania(id, accion) {
 
 function eliminarCampania(id) {
     mostrarConfirmacion(
-        '¿Está seguro de que desea eliminar esta campaña? Esta acción no se puede deshacer.',
+        '¿Está seguro de que desea eliminar esta campaña?',
         'Eliminar Campaña'
     ).then((result) => {
         if (result.isConfirmed) {
