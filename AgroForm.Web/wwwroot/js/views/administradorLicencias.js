@@ -750,7 +750,7 @@ function inicializarDataTableCatalogos() {
                 }
             }
         ],
-        order: [[1, 'asc']],
+        order: [[0, 'asc'], [1, 'asc']],
         pageLength: 25,
         responsive: true
     });

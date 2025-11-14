@@ -101,17 +101,25 @@ function inicializarDataTable() {
                     }
 
                     // ----- ESTADO: EN CURSO -----
+                    //if (estado === 'En Curso') {
+                    //    botones += `
+                    //    <button type="button" class="btn btn-outline-primary btn-edit"
+                    //            title="Editar" data-id="${data}">
+                    //        <i class="ph ph-pencil"></i>
+                    //    </button>
+
+                    //    <button type="button" class="btn btn-warning btn-finalizar ms-2"
+                    //            title="Cerrar campaña" data-id="${data}" data-nombre="${row.nombre}">
+                    //        <i class="ph ph-lock-key"></i>
+                    //        <span class="d-none d-sm-inline">Cerrar</span>
+                    //    </button>
+                    //`;
+                    //}
                     if (estado === 'En Curso') {
                         botones += `
                         <button type="button" class="btn btn-outline-primary btn-edit"
                                 title="Editar" data-id="${data}">
                             <i class="ph ph-pencil"></i>
-                        </button>
-
-                        <button type="button" class="btn btn-warning btn-finalizar ms-2"
-                                title="Cerrar campaña" data-id="${data}">
-                            <i class="ph ph-lock-key"></i>
-                            <span class="d-none d-sm-inline">Cerrar</span>
                         </button>
                     `;
                     }

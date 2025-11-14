@@ -10,10 +10,9 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IUsuarioService _userService;
         private readonly ICampaniaService _campaniaService;
-        public AccessController(IUsuarioService userService, ICampaniaService campaniaService)
         private readonly IWebHostEnvironment _env;
 
-        public AccessController(IAuthService authService, ICampaniaService campaniaService, IWebHostEnvironment env)
+        public AccessController(IUsuarioService userService, ICampaniaService campaniaService, IWebHostEnvironment env)
         {
             _userService = userService;
             _campaniaService = campaniaService;
@@ -57,7 +56,7 @@ namespace AgroForm.Web.Controllers
 
                 var devClaims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier, "999"),
+                    new Claim(ClaimTypes.NameIdentifier, "1"),
                     new Claim(ClaimTypes.Name, "Usuario Desarrollo"),
                     new Claim("Licencia", "1"),
                     new Claim("Campania", campaniaDev.Data?.Id.ToString() ?? "1"),

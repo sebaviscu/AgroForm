@@ -227,8 +227,10 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             break;
 
         case 'Monitoreo':
-            if (datosEspecificos.IdMonitoreo != null) $('#idMonitoreo').val(datosEspecificos.idMonitoreo).trigger('change');
-            if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
+            if (datosEspecificos.idMonitoreo != null) $('#idMonitoreo').val(datosEspecificos.idMonitoreo).trigger('change');
+            setTimeout(function () {
+                if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
+            }, 500);
             if (datosEspecificos.idEstadoFenologico != null) $('#idEstadoFenologico').val(datosEspecificos.idEstadoFenologico).trigger('change');
             if (datosEspecificos.costo != null) $('#costoMonitoreoTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoMonitoreo').prop('checked', !!datosEspecificos.esDolar).trigger('change');

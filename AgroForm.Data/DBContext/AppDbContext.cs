@@ -15,6 +15,7 @@ namespace AgroForm.Data.DBContext
             _logger = logger;
         }
 
+        public DbSet<Licencia> Licencias { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Campo> Campos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
@@ -524,6 +525,13 @@ namespace AgroForm.Data.DBContext
             modelBuilder.Entity<TipoActividad>(entity =>
             {
                 entity.ToTable("TiposActividad");
+                entity.HasKey(e => e.Id);
+
+            });
+
+            modelBuilder.Entity<Licencia>(entity =>
+            {
+                entity.ToTable("Licencias");
                 entity.HasKey(e => e.Id);
 
             });

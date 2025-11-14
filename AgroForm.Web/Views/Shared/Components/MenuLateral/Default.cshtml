@@ -1,4 +1,31 @@
-﻿<nav id="sidebar" class="sidebar bg-dark">
+﻿<style>
+    #sidebar {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .sidebar-footer {
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #sidebar.collapsed .sidebar-footer span {
+        display: none !important;
+    }
+
+    #sidebar.collapsed .sidebar-footer .dropdown-menu {
+        left: 60px !important;
+    }
+</style>
+
+<nav id="sidebar" class="sidebar bg-dark">
+
     <div class="sidebar-header bg-primary">
         <div class="d-flex align-items-center justify-content-between p-3">
             <h4 class="text-white mb-0">
@@ -58,6 +85,11 @@
                             Campañas
                         </a>
                     </li>
+                    <li>
+                        <a href="/Usuario/Index" class="sidebar-subitem">
+                            Usuarios
+                        </a>
+                    </li>
                 </ul>
             </li>
             @* <li>
@@ -91,5 +123,48 @@
                 </a>
             </li> *@
         </ul>
+    </div>
+
+    <div class="sidebar-footer p-3 border-top">
+        <div class="dropdown w-100">
+            <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0 w-100"
+                    type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                     style="width: 36px; height: 36px;">
+                    <i class="ph ph-user text-white" style="font-size: 16px;"></i>
+                </div>
+
+                <span class="text-white ms-2" style="font-size: 0.9rem;">
+                    @User.Identity?.Name
+                </span>
+
+            </button>
+
+            <ul class="dropdown-menu shadow border-0 w-100" aria-labelledby="userDropdown">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                        <i class="ph ph-user me-2"></i>
+                        <span>Mi Perfil</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                        <i class="ph ph-gear me-2"></i>
+                        <span>Configuracion</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <form method="post" asp-controller="Access" asp-action="Logout" id="logoutForm">
+                        <button type="submit" class="dropdown-item d-flex align-items-center py-2 text-danger">
+                            <i class="ph ph-sign-out me-2"></i>
+                            <span>Cerrar Sesion</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+
+        </div>
     </div>
 </nav>
