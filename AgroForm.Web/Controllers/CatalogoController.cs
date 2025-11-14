@@ -18,7 +18,7 @@ namespace AgroForm.Web.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetByTipo(TipoCatalogo tipo)
+        public async Task<IActionResult> GetByTipo(TipoCatalogoEnum tipo)
         {
             try
             {

@@ -54,7 +54,7 @@ namespace AgroForm.Model
             OtrasLabores = 8
         }
 
-        public enum TipoCatalogo
+        public enum TipoCatalogoEnum
         {
             // Monitoreo
             Plaga = 10,
@@ -80,7 +80,7 @@ namespace AgroForm.Model
             Otro = 99
         }
 
-        public enum TipoVariedad
+        public enum TipoVariedadEnum
         {
             Variedad,
             Subproducto,
@@ -92,6 +92,16 @@ namespace AgroForm.Model
             Plaga = 10,
             Maleza = 11,
             Enfermedad = 12
+        }
+        public enum TipoPagoLicenciaEnum
+        {
+            Mantenimiento
+        }
+
+        public enum TipoLicenciaEnum
+        {
+            Basica,
+            Premium
         }
     }
 

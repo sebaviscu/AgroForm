@@ -15,6 +15,7 @@ namespace AgroForm.Model
         public Roles Rol { get; set; }
         public bool Activo { get; set; } = true;
         public bool EmailConfirmed { get; set; } = true;
+        public bool SuperAdmin { get; set; } = false;
 
         public string PasswordHash { get; set; } = string.Empty;
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();

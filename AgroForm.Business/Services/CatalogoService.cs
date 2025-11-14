@@ -18,7 +18,7 @@ namespace AgroForm.Business.Services
 
         }
 
-        public async Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogo tipo)
+        public async Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogoEnum tipo)
         {
             try
             {

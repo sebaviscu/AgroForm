@@ -12,6 +12,6 @@ namespace AgroForm.Business.Contracts
     public interface ICatalogoService : IServiceBase<Catalogo>
     {
 
-        Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogo tipo);
+        Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogoEnum tipo);
     }
 }

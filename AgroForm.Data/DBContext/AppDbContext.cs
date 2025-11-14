@@ -21,20 +21,13 @@ namespace AgroForm.Data.DBContext
         public DbSet<Campania> Campanias { get; set; }
         public DbSet<RegistroClima> RegistrosClima { get; set; }
         public DbSet<TipoActividad> TiposActividad { get; set; }
-        // ELIMINADO: public DbSet<Actividad> Actividades { get; set; }
-        public DbSet<Insumo> Insumos { get; set; }
-        public DbSet<HistoricoPrecioInsumo> HistoricosPrecioInsumo { get; set; }
         public DbSet<Moneda> Monedas { get; set; }
-        public DbSet<Marca> Marcas { get; set; }
-        public DbSet<Proveedor> Proveedores { get; set; }
 
-        // NUEVAS CLASES
         public DbSet<Cultivo> Cultivos { get; set; }
         public DbSet<Variedad> Variedades { get; set; }
         public DbSet<EstadoFenologico> EstadosFenologicos { get; set; }
         public DbSet<Catalogo> Catalogos { get; set; }
 
-        // NUEVAS ACTIVIDADES ESPECÍFICAS
         public DbSet<Siembra> Siembras { get; set; }
         public DbSet<Riego> Riegos { get; set; }
         public DbSet<Fertilizacion> Fertilizaciones { get; set; }
@@ -515,25 +508,6 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-
-            modelBuilder.Entity<HistoricoPrecioInsumo>(entity =>
-            {
-                entity.ToTable("HistoricosPrecioInsumo");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Precio).HasColumnType("decimal(18,2)");
-                entity.HasIndex(e => e.IdLicencia);
-
-                entity.HasOne(h => h.Insumo)
-                    .WithMany(i => i.HistoricoPrecios)
-                    .HasForeignKey(h => h.IdInsumo)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(h => h.Moneda)
-                    .WithMany(m => m.HistoricoPrecios)
-                    .HasForeignKey(h => h.IdMoneda)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.ToTable("Usuarios");
@@ -547,50 +521,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasIndex(e => e.IdLicencia);
             });
 
-            modelBuilder.Entity<Insumo>(entity =>
-            {
-                entity.ToTable("Insumos");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
-                entity.Property(e => e.Descripcion).HasMaxLength(500);
-                entity.Property(e => e.UnidadMedida).HasMaxLength(50);
-
-                entity.HasOne(i => i.Marca)
-                    .WithMany(m => m.Insumos)
-                    .HasForeignKey(i => i.IdMarca)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(i => i.Proveedor)
-                    .WithMany(p => p.Insumos)
-                    .HasForeignKey(i => i.IdProveedor)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(i => i.TipoInsumo)
-                    .WithMany(t => t.Insumos)
-                    .HasForeignKey(i => i.IdTipoInsumo)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(i => i.Moneda)
-                   .WithMany()
-                   .HasForeignKey(i => i.IdMoneda)
-                   .OnDelete(DeleteBehavior.Restrict);
-            });
-
-            modelBuilder.Entity<TipoInsumo>(entity =>
-            {
-                entity.ToTable("TiposInsumo");
-                entity.HasKey(e => e.Id);
-            });
-
             modelBuilder.Entity<TipoActividad>(entity =>
             {
                 entity.ToTable("TiposActividad");
                 entity.HasKey(e => e.Id);
 
-                entity.HasOne(e => e.TipoInsumo)
-                  .WithMany(e => e.TiposActividad)
-                  .HasForeignKey(e => e.IdTipoInsumo)
-                  .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

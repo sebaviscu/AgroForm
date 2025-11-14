@@ -279,7 +279,7 @@ function guardarCampo() {
 
 function eliminarCampo(id) {
     mostrarConfirmacion(
-        '¿Está seguro de que desea eliminar este campo? Esta acción no se puede deshacer.',
+        '¿Está seguro de que desea eliminar este campo?',
         'Eliminar Campo'
     ).then((result) => {
         if (result.isConfirmed) {
