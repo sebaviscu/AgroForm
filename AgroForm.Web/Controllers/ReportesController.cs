@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using static AgroForm.Model.EnumClass;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("Reportes")]
+[Authorize(AuthenticationSchemes = "AgroFormAuth")]
+
 public class ReportesController : ControllerBase
 {
     private readonly ICierreCampaniaService _cierreCampaniaService;
@@ -21,35 +23,35 @@ public class ReportesController : ControllerBase
         _pdfService = pdfService;
     }
 
-    [HttpGet("cierre-campania/{idCampania}/pdf")]
-    public async Task<IActionResult> GenerarPdfCierreCampania(int idCampania)
+    [HttpGet("CierreCampania/{id}")]
+    public async Task<IActionResult> CierreCampania(int id)
     {
-        try
-        {
-            var pdfBytes = await _cierreCampaniaService.GenerarPdfReporteAsync(idCampania);
-            
-            return File(pdfBytes, "application/pdf", 
-                $"Reporte_Cierre_Campania_{idCampania}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error al generar PDF: {ex.Message}");
-        }
-    }
+        var gResponse = new GenericResponse<byte[]>();
 
-    [HttpGet("cierre-campania/{idCampania}/preview")]
-    public async Task<IActionResult> PreviewPdfCierreCampania(int idCampania)
-    {
         try
         {
-            var pdfBytes = await _cierreCampaniaService.GenerarPdfReporteAsync(idCampania);
-            
-            return File(pdfBytes, "application/pdf");
+            var result = await _cierreCampaniaService.GenerarPdfReporteAsync(id);
+
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = result.Data;
+            gResponse.Message = "Reporte creado";
+            return Ok(gResponse);
         }
         catch (Exception ex)
         {
-            return BadRequest($"Error al generar PDF: {ex.Message}");
+            gResponse.Success = false;
+            gResponse.Message = "Ah ocurrido un error";
+            return BadRequest(gResponse);
         }
+
     }
 }
 

@@ -535,6 +535,18 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
 
             });
+
+            modelBuilder.Entity<ReporteCierreCampania>(entity =>
+            {
+                entity.ToTable("ReporteCierreCampania");
+                entity.HasKey(e => e.Id);
+
+
+                entity.HasOne(rc => rc.Campania)
+                    .WithOne(c => c.ReporteCierreCampania)
+                    .HasForeignKey<ReporteCierreCampania>(rc => rc.IdCampania)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

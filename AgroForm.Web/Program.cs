@@ -153,11 +153,14 @@ public class Program
             }
 
             // ✅ CONFIGURACIÓN HTTPS
-            builder.Services.AddHttpsRedirection(options =>
+            if (builder.Environment.IsDevelopment())
             {
-                options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                options.HttpsPort = 443;
-            });
+                builder.Services.AddHttpsRedirection(options =>
+                {
+                    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+                    options.HttpsPort = 443;
+                });
+            }
 
             var app = builder.Build();
 
@@ -165,7 +168,6 @@ public class Program
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
@@ -173,7 +175,11 @@ public class Program
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
             app.UseResponseCompression();
             app.UseCors("NuevaPolitica");
 
@@ -257,8 +263,6 @@ public class Program
 
             // Endpoint de health check básico
             app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
-
-            app.UseHttpsRedirection();
 
             Log.Information("Aplicación iniciándose...");
             app.Run();

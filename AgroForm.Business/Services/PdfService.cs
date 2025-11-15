@@ -1,5 +1,6 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Model;
+using AlbaServicios.Services;
 using iText.IO.Font.Constants;
 using iText.IO.Image;
 using iText.Kernel.Colors;
@@ -24,39 +25,49 @@ namespace AgroForm.Business.Services
             _chartGenerator = chartGenerator;
         }
 
-        public async Task<byte[]> GenerarPdfCierreCampaniaAsync(ReporteCierreCampania reporte)
+        public async Task<OperationResult<byte[]>> GenerarPdfCierreCampaniaAsync(ReporteCierreCampania reporte)
         {
-            using var memoryStream = new MemoryStream();
-            var writer = new PdfWriter(memoryStream);
-            var pdf = new PdfDocument(writer);
-            var document = new Document(pdf, PageSize.A4);
+            try
+            {
+                using var memoryStream = new MemoryStream();
+                var writer = new PdfWriter(memoryStream);
+                var pdf = new PdfDocument(writer);
+                var document = new Document(pdf, PageSize.A4);
 
-            // Configurar márgenes
-            document.SetMargins(40, 40, 80, 40);
+                // Configurar márgenes
+                document.SetMargins(40, 40, 80, 40);
 
-            // Agregar header con logo y nombre
-            await AgregarHeader(document, pdf);
+                // Agregar header con logo y nombre
+                await AgregarHeader(document, pdf);
 
-            // Agregar sección de datos generales
-            AgregarDatosGenerales(document, reporte);
+                // Agregar sección de datos generales
+                AgregarDatosGenerales(document, reporte);
 
-            // Agregar gráficos después de los datos generales
-            await AgregarGraficosSection(document, reporte);
+                // Agregar gráficos después de los datos generales
+                await AgregarGraficosSection(document, reporte);
 
-            // Agregar sección por cultivo
-            AgregarDatosPorCultivo(document, reporte);
+                // Agregar sección por cultivo
+                AgregarDatosPorCultivo(document, reporte);
 
-            // Agregar sección por campo
-            AgregarDatosPorCampo(document, reporte);
+                // Agregar sección por campo
+                AgregarDatosPorCampo(document, reporte);
 
-            // Agregar sección climática
-            AgregarDatosClimaticos(document, reporte);
+                // Agregar sección climática
+                AgregarDatosClimaticos(document, reporte);
 
-            // Agregar footer
-            AgregarFooter(document, pdf);
+                // Agregar footer
+                AgregarFooter(document, pdf);
 
-            document.Close();
-            return memoryStream.ToArray();
+                document.Close();
+
+                return OperationResult<byte[]>.SuccessResult(memoryStream.ToArray());
+            }
+            catch (Exception e)
+            {
+
+                return OperationResult<byte[]>.Failure(e.Message);
+            }
+
         }
 
         private async Task AgregarHeader(Document document, PdfDocument pdf)

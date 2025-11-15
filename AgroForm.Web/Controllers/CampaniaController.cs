@@ -15,11 +15,13 @@ namespace AgroForm.Web.Controllers
     public class CampaniaController : BaseController<Campania, CampaniaVM, ICampaniaService>
     {
         private readonly ILoteService _loteService;
+        private readonly ICierreCampaniaService _cierreCampaniaService;
 
-        public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service, ILoteService loteService)
+        public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service, ILoteService loteService, ICierreCampaniaService cierreCampaniaService)
             : base(logger, mapper, service)
         {
             _loteService = loteService;
+            _cierreCampaniaService = cierreCampaniaService;
         }
 
         public async Task<IActionResult> Index()
@@ -28,34 +30,11 @@ namespace AgroForm.Web.Controllers
             {
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
-                //var campanias = await _service.GetAllWithDetailsAsync();
-
-                //if (!campanias.Success)
-                //{
-                //    return BadRequest(campanias.ErrorMessage);
-                //}
-
-                //var vm = new CampaniasIndexVM
-                //{
-                //    Campanias = Map<List<Campania>, List<CampaniaVM>>(campanias.Data),
-                //    Estados = new List<SelectListItem>
-                //{
-                //    new SelectListItem { Value = "EnCurso", Text = "En Curso" },
-                //    new SelectListItem { Value = "Finalizada", Text = "Finalizada" },
-                //    new SelectListItem { Value = "Cancelada", Text = "Cancelada" }
-                //}
-                //};
-
-                //return View(vm);
                 return View();
             }
             catch (UnauthorizedAccessException)
             {
                 return RedirectToAction("Login", "Access");
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex,"Error al iniciar la pagina", "Index");
             }
         }
 
@@ -97,21 +76,62 @@ namespace AgroForm.Web.Controllers
             return Ok(gResponse);
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Finalizar(int id)
         {
             var gResponse = new GenericResponse<int>();
 
             try
             {
+                var reporte = await _cierreCampaniaService.GenerarReporteCierreAsync(id);
+
+                if (!reporte.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = reporte.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
 
                 gResponse.Success = true;
+                gResponse.Object = reporte.Data.Id;
                 gResponse.Message = "Campaña finalizada";
                 return Ok(gResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al borrar labor");
+                _logger.LogError(ex, "Error al cerrar campaña");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GenerarPdf(int id)
+        {
+            var gResponse = new GenericResponse<byte[]>();
+
+            try
+            {
+                var result = await _cierreCampaniaService.GenerarPdfReporteAsync(id);
+
+
+                if (!result.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                gResponse.Success = true;
+                gResponse.Object = result.Data;
+                gResponse.Message = "Reporte creado";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar pdf");
                 gResponse.Success = false;
                 gResponse.Message = "Ah ocurrido un error";
                 return BadRequest(gResponse);

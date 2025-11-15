@@ -15,6 +15,7 @@ namespace AgroForm.Model
         public string NombreCampania { get; set; } = string.Empty;
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public DateTime FechaCreacion { get; set; }
 
         // Resumen global
         public decimal SuperficieTotalHa { get; set; }

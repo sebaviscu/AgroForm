@@ -1,4 +1,5 @@
 ﻿using AgroForm.Model;
+using AlbaServicios.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace AgroForm.Business.Contracts
 {
   public interface IPdfService
   {
-      Task<byte[]> GenerarPdfCierreCampaniaAsync(ReporteCierreCampania reporte);
+      Task<OperationResult<byte[]>> GenerarPdfCierreCampaniaAsync(ReporteCierreCampania reporte);
   }
   
 }

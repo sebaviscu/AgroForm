@@ -108,13 +108,14 @@ function inicializarDataTable() {
                     //        <i class="ph ph-pencil"></i>
                     //    </button>
 
-                    //    <button type="button" class="btn btn-warning btn-finalizar ms-2"
+                    //    <button type="button" class="btn btn-warning btn-finalizar ms-3"
                     //            title="Cerrar campaña" data-id="${data}" data-nombre="${row.nombre}">
                     //        <i class="ph ph-lock-key"></i>
-                    //        <span class="d-none d-sm-inline">Cerrar</span>
+                    //        <span class="d-none d-sm-inline">Finalizar</span>
                     //    </button>
                     //`;
                     //}
+
                     if (estado === 'En Curso') {
                         botones += `
                         <button type="button" class="btn btn-outline-primary btn-edit"
@@ -815,9 +816,7 @@ function finalizarCampania(id, nombre) {
                     cerrarAlertas();
                     if (response.success) {
 
-                        setTimeout(function () {
-                            window.location.reload();
-                        }, 500);
+                        generarPdf(response.object, nombre);
 
                     } else {
                         mostrarError(response.message || 'Error cerrar la campaña');
@@ -830,6 +829,49 @@ function finalizarCampania(id, nombre) {
             });
         }
     });
+}
+
+function generarPdf(id, nombre) {
+
+    mostrarLoading();
+    $.ajax({
+        url: '/Reportes/CierreCampania/' + id,
+        type: 'GET',
+        success: function (response) {
+            cerrarAlertas();
+            if (response.success) {
+
+                abrirPDF(response.object, 'Reporte_Campania_' + nombre + '.pdf');
+
+            } else {
+                mostrarError(response.message || 'Error al cerrar la campaña');
+            }
+        },
+        error: function () {
+            cerrarAlertas();
+            mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
+function abrirPDF(base64String, filename) {
+    try {
+        const binaryString = atob(base64String);
+
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+
+        const url = window.URL.createObjectURL(blob);
+
+        window.open(url, '_blank');
+
+    } catch (error) {
+        console.error('Error al abrir PDF:', error);
+        mostrarError('Error al abrir el PDF: ' + error.message);
+    }
 }
 
 function cargarDatosCampania(id) {

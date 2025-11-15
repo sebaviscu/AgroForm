@@ -17,24 +17,21 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
-     public class CierreCampaniaService : ServiceBase<ReporteCierreCampania>, ICierreCampaniaService 
+    public class CierreCampaniaService : ServiceBase<ReporteCierreCampania>, ICierreCampaniaService
     {
 
         private readonly IGenericRepository<Campania> _campaniaRepo;
+        private readonly IPdfService _pdfService;
 
-        public CierreCampaniaService(
-        IDbContextFactory<AppDbContext> contextFactory,
-        ILogger<ServiceBase<ReporteCierreCampania>> logger,
-        IHttpContextAccessor httpContextAccessor,
-        IUnitOfWork unitOfWork)
+        public CierreCampaniaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<ReporteCierreCampania>> logger, IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, IPdfService pdfService)
             : base(contextFactory, logger, httpContextAccessor)
         {
-            var _campaniaRepo = unitOfWork.Repository<Campania >();
-
+            _campaniaRepo = unitOfWork.Repository<Campania>();
+            _pdfService = pdfService;
         }
 
 
-     public async Task<ReporteCierreCampania> GenerarReporteCierreAsync(int idCampania)
+        public async Task<OperationResult<ReporteCierreCampania>> GenerarReporteCierreAsync(int idCampania)
         {
             var campania = await _campaniaRepo.Query()
                 .Include(c => c.Lotes)
@@ -66,7 +63,8 @@ namespace AgroForm.Business.Services
                 IdCampania = idCampania,
                 NombreCampania = campania.Nombre,
                 FechaInicio = campania.FechaInicio,
-                FechaFin = campania.FechaFin.GetValueOrDefault()
+                FechaFin = campania.FechaFin.GetValueOrDefault(),
+                FechaCreacion = TimeHelper.GetArgentinaTime()
             };
 
             // Calcular datos generales
@@ -81,7 +79,17 @@ namespace AgroForm.Business.Services
             // Calcular datos climáticos
             CalcularDatosClimaticosAsync(campania, reporte);
 
-            return reporte;
+            var result = await base.CreateAsync(reporte);
+
+            if(!result.Success)
+            {
+                return OperationResult<ReporteCierreCampania>.Failure(result.ErrorMessage, result.ErrorCode);
+            }
+
+            // cambiar estado campania
+            // cambair estado de las labores
+
+            return OperationResult<ReporteCierreCampania>.SuccessResult(result.Data);
         }
 
         private void CalcularDatosGeneralesAsync(Campania campania, ReporteCierreCampania reporte)
@@ -89,7 +97,7 @@ namespace AgroForm.Business.Services
             var lotes = campania.Lotes.ToList();
 
             // Obtener cosechas para calcular producción
-            var cosechas = lotes.SelectMany(_=>_.Cosechas).ToList();
+            var cosechas = lotes.SelectMany(_ => _.Cosechas).ToList();
             reporte.ToneladasProducidas = cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
 
 
@@ -97,34 +105,34 @@ namespace AgroForm.Business.Services
             reporte.SuperficieTotalHa = cosechas.Sum(c => c.SuperficieCosechadaHa) ?? 0;
 
 
-            reporte.CostoCosechasArs= cosechas.Sum(_ => _.CostoARS.GetValueOrDefault());
-            reporte.CostoCosechasUsd= cosechas.Sum(_ => _.CostoUSD.GetValueOrDefault());
+            reporte.CostoCosechasArs = cosechas.Sum(_ => _.CostoARS.GetValueOrDefault());
+            reporte.CostoCosechasUsd = cosechas.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var analisisSuelo = lotes.SelectMany(_=>_.AnalisisSuelos).ToList();
+            var analisisSuelo = lotes.SelectMany(_ => _.AnalisisSuelos).ToList();
             reporte.AnalisisSueloArs = analisisSuelo.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.AnalisisSueloUsd = analisisSuelo.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var riegos = lotes.SelectMany(_=>_.Riegos).ToList();
+            var riegos = lotes.SelectMany(_ => _.Riegos).ToList();
             reporte.CostoRiegosArs = riegos.Sum(_ => _.CostoARS.GetValueOrDefault());
-            reporte.CostoRiegosUsd= riegos.Sum(_ => _.CostoUSD.GetValueOrDefault());
+            reporte.CostoRiegosUsd = riegos.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var Siembras = lotes.SelectMany(_=>_.Siembras).ToList();
+            var Siembras = lotes.SelectMany(_ => _.Siembras).ToList();
             reporte.CostoSiembrasArs = Siembras.Sum(_ => _.CostoARS.GetValueOrDefault());
-            reporte.CostoSiembrasUsd= Siembras.Sum(_ => _.CostoUSD.GetValueOrDefault());
+            reporte.CostoSiembrasUsd = Siembras.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var Fertilizaciones = lotes.SelectMany(_=>_.Fertilizaciones).ToList();
+            var Fertilizaciones = lotes.SelectMany(_ => _.Fertilizaciones).ToList();
             reporte.CostoFertilizantesArs = Fertilizaciones.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoFertilizantesUsd = Fertilizaciones.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var OtrasLabores = lotes.SelectMany(_=>_.OtrasLabores).ToList();
+            var OtrasLabores = lotes.SelectMany(_ => _.OtrasLabores).ToList();
             reporte.CostoOtrasLaboresArs = OtrasLabores.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoOtrasLaboresUsd = OtrasLabores.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var Pulverizaciones = lotes.SelectMany(_=>_.Pulverizaciones).ToList();
+            var Pulverizaciones = lotes.SelectMany(_ => _.Pulverizaciones).ToList();
             reporte.CostoPulverizacionesArs = Pulverizaciones.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoPulverizacionesUsd = Pulverizaciones.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var Monitoreos = lotes.SelectMany(_=>_.Monitoreos).ToList();
+            var Monitoreos = lotes.SelectMany(_ => _.Monitoreos).ToList();
             reporte.CostoMonitoreosArs = Monitoreos.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoMonitoreosUsd = Monitoreos.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
@@ -156,7 +164,7 @@ namespace AgroForm.Business.Services
                 var resumen = new ResumenCultivo
                 {
                     // Aquí necesitarías obtener el nombre del cultivo desde la base de datos
-                    NombreCultivo = $"Cultivo {grupo.Key}",
+                    NombreCultivo = $"Cultivo {grupo.Key.Nombre}",
                     SuperficieHa = lotesGrupo.Sum(l => l.SuperficieHectareas ?? 0),
                     ToneladasProducidas = laboresGrupo
                         .Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
@@ -193,7 +201,8 @@ namespace AgroForm.Business.Services
 
             var eventosExtremos = registrosClima
                 .Where(r => r.TipoClima != TipoClima.Lluvia)
-                .Select(r => new {
+                .Select(r => new
+                {
                     Fecha = r.Fecha,
                     Tipo = r.TipoClima.ToString()
                 })
@@ -202,17 +211,22 @@ namespace AgroForm.Business.Services
             reporte.EventosExtremosJson = JsonSerializer.Serialize(eventosExtremos);
         }
 
-        public async Task<byte[]> GenerarPdfReporteAsync(int idCampania)
+
+        public async Task<OperationResult<byte[]>> GenerarPdfReporteAsync(ReporteCierreCampania reporteCierreCampania)
         {
-            var reporte = await base.GetByIdAsync(idCampania);
+            return await _pdfService.GenerarPdfCierreCampaniaAsync(reporteCierreCampania);
+        }
 
-            //if (reporte == null)
-            //{
-            //    reporte = await GenerarReporteCierreAsync(idCampania);
-            //}
+        public async Task<OperationResult<byte[]>> GenerarPdfReporteAsync(int idCampania)
+        {
+            var reporte = await base.GetQuery().FirstOrDefaultAsync(_ => _.Id == idCampania);
 
-            //return await _pdfService.GenerarPdfCierreCampaniaAsync(reporte);
-            return default;
+            if (reporte == null)
+            {
+                throw new Exception("No existe reporte creado");
+            }
+
+            return await _pdfService.GenerarPdfCierreCampaniaAsync(reporte);
         }
 
         public async Task<List<ReporteCierreCampania>> ObtenerReportesAnterioresAsync(int idLicencia)

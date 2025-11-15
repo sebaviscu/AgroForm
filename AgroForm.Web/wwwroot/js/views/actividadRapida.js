@@ -276,7 +276,7 @@
             Milimetros: $('#milimetros').val() ? parseFloat($('#milimetros').val()) : 0,
             Fecha: $('#fechaClima').val(),
             Observaciones: $('#observacionesClima').val(),
-            id: esEdicion ? parseInt(registroClimaId) : null,
+            id: esEdicion ? parseInt(registroClimaId) : 0,
         };
 
         var submitBtn = $('#formClima').find('button[type="submit"]');

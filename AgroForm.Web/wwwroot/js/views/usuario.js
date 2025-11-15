@@ -257,7 +257,7 @@ function guardarUsuario() {
     var originalText = submitBtn.html();
     submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (datos.Id ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
 
-    var url = datos.Id ? '/Usuario/Update/' + datos.Id : '/Usuario/Create';
+    var url = datos.Id ? '/Usuario/Update' : '/Usuario/Create';
     var metodo = datos.Id ? 'PUT' : 'POST';
 
     $.ajax({
