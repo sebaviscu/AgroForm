@@ -1,5 +1,80 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>aspnet-AgroForm.Web-b1ce66d4-7d1a-464c-a509-796049b13551</UserSecretsId>
+		<SatelliteResourceLanguages>es</SatelliteResourceLanguages>
+
+		<!-- OPTIMIZACIONES PARA PUBLICACIÓN -->
+		<PublishReadyToRun>false</PublishReadyToRun>
+		<PublishTrimmed>false</PublishTrimmed>
+		<PublishSingleFile>false</PublishSingleFile>
+		<SelfContained>false</SelfContained>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10" />
+
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AgroForm.Business\AgroForm.Business.csproj" />
+		<ProjectReference Include="..\AgroForm.Model\AgroForm.Model.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="logs\" />
+	</ItemGroup>
+
+	<!-- EXCLUIR ARCHIVOS INNECESARIOS DE PUBLICACIÓN -->
+	<ItemGroup>
+		<Content Remove="runtimes\**" />
+		<None Remove="runtimes\**" />
+		<Content Remove="wwwroot\**\*.map" />
+		<Content Remove="wwwroot\**\*.br" />
+		<Content Remove="wwwroot\**\*.gz" />
+		<Content Remove="wwwroot\**\*.pdb" />
+	</ItemGroup>
+
+	<Target Name="RemoveUnnecessaryFilesBeforePublish" BeforeTargets="ComputeFilesToPublish">
+		<ItemGroup>
+			<!-- Excluir archivos de debug -->
+			<FileWrites Remove="@(FileWrites)" Condition="'%(Extension)' == '.pdb'" />
+
+			<!-- Excluir archivos comprimidos y mapas -->
+			<FileWrites Remove="@(FileWrites)" Condition="'%(Extension)' == '.map'" />
+			<FileWrites Remove="@(FileWrites)" Condition="'%(Extension)' == '.br'" />
+			<FileWrites Remove="@(FileWrites)" Condition="'%(Extension)' == '.gz'" />
+
+			<!-- Excluir runtimes específicos que ocupan mucho espacio -->
+			<FileWrites Remove="@(FileWrites)" Condition="$([System.String]::Copy('%(FileWrites.Identity)').Contains('runtimes\win-'))" />
+			<FileWrites Remove="@(FileWrites)" Condition="$([System.String]::Copy('%(FileWrites.Identity)').Contains('runtimes\linux-'))" />
+			<FileWrites Remove="@(FileWrites)" Condition="$([System.String]::Copy('%(FileWrites.Identity)').Contains('runtimes\osx-'))" />
+			<FileWrites Remove="@(FileWrites)" Condition="$([System.String]::Copy('%(FileWrites.Identity)').Contains('runtimes\maccatalyst-'))" />
+		</ItemGroup>
+	</Target>
+
+</Project>
+
+<!--<Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -43,4 +118,4 @@
     <Folder Include="logs\" />
   </ItemGroup>
 
-</Project>
+</Project>-->

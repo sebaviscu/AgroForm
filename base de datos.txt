@@ -4,19 +4,6 @@ CREATE DATABASE AgroForm;
 USE AgroForm;
 GO
 
-alter table Licencias
-add TipoLicencia INT NOT NULL DEFAULT 1,
-    EsPrueba BIT NOT NULL DEFAULT 0,
-    FechaFinPrueba DATETIME NULL,
-	Activo BIT NOT NULL DEFAULT 1;
-	
-	alter table Uusarios
-	add Activo BIT NOT NULL DEFAULT 1;
-	
-	
-	
-	
-
 CREATE TABLE Licencias (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     RazonSocial NVARCHAR(200) NOT NULL,
@@ -512,9 +499,9 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     -- Constraints
     CONSTRAINT [PK_ReporteCierreCampania] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_ReporteCierreCampania_Campania_IdCampania] FOREIGN KEY ([IdCampania]) 
-        REFERENCES [dbo].[Campania] ([Id]) ON DELETE CASCADE,
+        REFERENCES [dbo].[Campanias] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_ReporteCierreCampania_Licencia_IdLicencia] FOREIGN KEY ([IdLicencia]) 
-        REFERENCES [dbo].[Licencia] ([Id])
+        REFERENCES [dbo].[Licencias] ([Id])
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY];
 
 

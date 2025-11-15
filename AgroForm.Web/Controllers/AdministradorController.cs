@@ -52,7 +52,7 @@ namespace AgroForm.Web.Controllers
         }
 
         [HttpPost]
-        public virtual async Task<IActionResult> Create([FromBody] LicenciaVM dto)
+        public override async Task<IActionResult> Create([FromBody] LicenciaVM dto)
         {
             var entity = Map<LicenciaVM, Licencia>(dto);
             var user = Map<UsuarioVM, Usuario>(dto.Usuario);
