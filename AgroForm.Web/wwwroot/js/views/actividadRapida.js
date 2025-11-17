@@ -281,7 +281,6 @@
 
         var submitBtn = $('#formClima').find('button[type="submit"]');
         var originalText = submitBtn.html();
-        submitBtn.html('<i class="ph ph-hourglass me-1"></i>Guardando...').prop('disabled', true);
 
         submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
         var url = esEdicion ? '/RegistroClima/Update' : '/RegistroClima/Create';
@@ -474,22 +473,10 @@
 
         switch (tipoActividadNombre) {
             case 'Siembra':
-                //if (!$('#superficieHa').val()) {
-                //    $('#superficieHa').addClass('is-invalid');
-                //    isValid = false;
-                //}
-                //if (!$('#densidadSemillaKgHa').val()) {
-                //    $('#densidadSemillaKgHa').addClass('is-invalid');
-                //    isValid = false;
-                //}
                 if (!$('#idCultivo').val()) {
                     $('#idCultivo').next('.select2-container').find('.select2-selection').addClass('is-invalid');
                     isValid = false;
                 }
-                //if (!$('#idMetodoSiembra').val()) {
-                //    $('#idMetodoSiembra').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                //    isValid = false;
-                //}
                 break;
 
             case 'Cosecha':
@@ -498,22 +485,6 @@
                     isValid = false;
                 }
                 break;
-
-            case 'Riego':
-                //if (!$('#horasRiego').val()) {
-                //    $('#horasRiego').addClass('is-invalid');
-                //    isValid = false;
-                //}
-                //if (!$('#volumenAguaM3').val()) {
-                //    $('#volumenAguaM3').addClass('is-invalid');
-                //    isValid = false;
-                //}
-                //if (!$('#idMetodoRiego').val()) {
-                //    $('#idMetodoRiego').next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                //    isValid = false;
-                //}
-                break;
-
         }
 
         return isValid;
@@ -712,4 +683,67 @@
         }
     }
 
+
+
+    // CÓDIGO EXISTENTE PARA GASTOS
+
+    $('#btnGasto').on('click', function () {
+        $('#modalGasto').modal('show');
+        $('#modalGastoLabel').html('<i class="ph ph-pencil me-2"></i>Crear Gasto');
+        $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+    });
+
+    $('#formGasto').on('submit', function (e) {
+        e.preventDefault();
+
+        var gastoId = $('#gastoId').val();
+        var esEdicion = gastoId && gastoId > 0;
+
+        var data = {
+            id: esEdicion ? parseInt(gastoId) : 0,
+            tipoClima: parseInt($('#tipoGasto').val()),
+            fecha: $('#fechaGasto').val(),
+            observaciones: $('#observacionesGasto').val(),
+        };
+
+        var submitBtn = $('#formGasto').find('button[type="submit"]');
+        var originalText = submitBtn.html();
+
+        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+        var url = esEdicion ? '/Gasto/Update' : '/Gasto/Create';
+        var mensajeExito = esEdicion ? 'Gasto actualizado correctamente' : 'Gasto creado correctamente';
+
+        $.ajax({
+            url: url,
+            type: esEdicion ? 'PUT' : 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (result) {
+                if (result.success) {
+                    mostrarMensaje(mensajeExito, 'success');
+                    $('#modalGasto').modal('hide');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 500);
+
+                } else {
+                    mostrarMensaje(result.message || 'Error al guardar gasto', 'error');
+                }
+            },
+            error: function (error) {
+                mostrarMensaje('Error al conectar con el servidor', 'error');
+            },
+            complete: function () {
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+
+    // Resetear el modal cuando se cierre
+    $('#modalGasto').on('hidden.bs.modal', function () {
+        $('#formGasto')[0].reset();
+    });
 });

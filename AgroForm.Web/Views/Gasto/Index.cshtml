@@ -1,3 +1,60 @@
-﻿@{
+﻿@using AgroForm.Web.Models
+@model List<GastoVM>
+
+@{
     ViewData["Title"] = "Gastos";
+}
+
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph ph-receipt text-primary me-2"></i>Gastos
+            </h1>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <div class="d-flex align-items-end">
+                <div class="ms-3">
+                    <label for="selectorMoneda" class="form-label fw-semibold">Moneda:</label>
+                    <select class="form-select" id="selectorMoneda" onchange="cambiarMoneda()">
+                        <option value="ARS">Pesos (ARS)</option>
+                        <option value="USD">Dólares (USD)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Gasto -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblGasto" class="table table-hover table-striped w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Milimetros</th>
+                            <th>Campo</th>
+                            <th>Observaciones</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/views/gasto.js" asp-append-version="true"></script>
 }

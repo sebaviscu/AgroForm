@@ -632,6 +632,18 @@
 </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Modal para Clima -->
 <div class="modal fade" id="modalClima" tabindex="-1" aria-labelledby="modalClimaLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -690,6 +702,94 @@
                     <div class="mb-3">
                         <label for="observacionesClima" class="form-label">Observaciones</label>
                         <textarea class="form-control" id="observacionesClima" name="Observaciones" rows="3" placeholder="Observaciones..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-check-circle me-1"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Modal para Gasto -->
+<div class="modal fade" id="modalGasto" tabindex="-1" aria-labelledby="modalGastoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalGastoLabel">
+                    <i class="ph ph-receipt me-2"></i>Crear Gasto
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formGasto" method="post" novalidate>
+                <input type="hidden" id="gastoId">
+
+                <div class="modal-body">
+
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="mb-3">
+                                <label for="fechaGasto" class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" id="fechaGasto" name="Fecha"
+                                       value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                <div class="invalid-feedback">Por favor ingrese la fecha.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label for="tipoGasto" class="form-label">Tipo *</label>
+                                <select class="form-select" id="tipoGasto" name="TipoGasto" required>
+                                    <option value="0">Sueldo</option>
+                                    <option value="1">Combustible</option>
+                                    <option value="2">Mantenimiento</option>
+                                    <option value="3">Impuestos</option>
+                                    <option value="4">Otros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <label for="costoGasto" class="form-label">Costo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="labelMonedaCostoGasto">$</span>
+                                    <input type="number" class="form-control" id="costoGasto"
+                                           min="0.01" step="0.01">
+
+                                    <div class="form-check form-switch ms-2">
+                                        <input class="form-check-input" type="checkbox" id="switchMonedaCostoGasto">
+                                        <label class="form-check-label" for="switchMonedaCostoGasto">USD</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="mb-3">
+                        <label for="observacionesGasto" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observacionesGasto" name="Observaciones" rows="3" placeholder="Observaciones..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

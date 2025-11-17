@@ -38,6 +38,7 @@ namespace AgroForm.Data.DBContext
         public DbSet<Cosecha> Cosechas { get; set; }
         public DbSet<OtraLabor> OtrasLabores { get; set; }
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
+        public DbSet<Gasto> Gastos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -546,6 +547,36 @@ namespace AgroForm.Data.DBContext
                     .WithOne(c => c.ReporteCierreCampania)
                     .HasForeignKey<ReporteCierreCampania>(rc => rc.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Gasto>(entity =>
+            {
+                entity.ToTable("Gastos");
+
+                // Llave primaria
+                entity.HasKey(e => e.Id);
+
+               
+                entity.Property(e => e.Costo)
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.CostoARS)
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.CostoUSD)
+                    .HasColumnType("decimal(18,2)");
+
+                // Relaciones
+                entity.HasOne(e => e.Moneda)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Campania)
+                    .WithMany()
+                    .HasForeignKey(e => e.CampaniaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
             });
         }
     }
