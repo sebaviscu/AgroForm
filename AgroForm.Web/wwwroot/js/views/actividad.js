@@ -195,7 +195,7 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.idCultivo != null) $('#idCultivo').val(datosEspecificos.idCultivo).trigger('change');
             if (datosEspecificos.idVariedad != null) setTimeout(() => $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change'), 200);
             if (datosEspecificos.idMetodoSiembra != null) $('#idMetodoSiembra').val(datosEspecificos.idMetodoSiembra).trigger('change');
-            if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.rsDolar).trigger('change');
+            if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
         case 'Riego':
@@ -268,17 +268,32 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
 }
 
 
-//// Función para resetear el modal cuando se cierre
-//function resetearModal() {
-//    $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Labor');
-//    $('#tipoidActividad').prop('disabled', false);
-//    $('#IdLote').prop('disabled', false);
-//    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar Actividad');
-//    $('#actividadId').remove();
-//}
+function cambiarMoneda() {
+    const selector = document.getElementById('selectorMoneda');
+    const monedaActual = selector.value;
 
-//// Modificar el evento hidden del modal para incluir el reset
-//$('#modalActividadRapida').on('hidden.bs.modal', function () {
-//    resetearModal();
-//    // Tu código existente de reset...
-//});
+    // Ocultar todos y mostrar solo los de la moneda seleccionada
+    document.querySelectorAll('.valor-ars').forEach(el => {
+        el.style.display = monedaActual === 'ARS' ? 'inline' : 'none';
+    });
+
+    document.querySelectorAll('.valor-usd').forEach(el => {
+        el.style.display = monedaActual === 'USD' ? 'inline' : 'none';
+    });
+
+    //// Actualizar DataTables para el ordenamiento
+    //if ($.fn.DataTable.isDataTable('#tblTuTabla')) {
+    //    const table = $('#tblTuTabla').DataTable();
+    //    const columnIndex = 3; // Índice de la columna de costo
+
+    //    // Actualizar el atributo data-order según la moneda
+    //    table.column(columnIndex).nodes().to$().each(function () {
+    //        const orderValue = monedaActual === 'ARS'
+    //            ? $(this).data('order-ars')
+    //            : $(this).data('order-usd');
+    //        $(this).attr('data-order', orderValue);
+    //    });
+
+    //    table.draw();
+    //}
+}

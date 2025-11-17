@@ -103,6 +103,16 @@ namespace AgroForm.Model
             Basica,
             Premium
         }
+
+        public enum TipoGastoEnum
+        {
+            Sueldo,
+            Combustible,
+            Mantenimiento,
+            Impuestos,
+            Otros
+        }
+
     }
 
     public static class EnumExtensions

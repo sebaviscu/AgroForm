@@ -18,15 +18,27 @@
     <!-- Filtros -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Filtrar por Campo:</label>
-                    <select id="campoFilter" class="form-select">
-                        @foreach (var campo in Model.Campos)
-                        {
-                            <option value="@campo.Text" selected="@campo.Selected">@campo.Text</option>
-                        }
-                    </select>
+            <div class="d-flex justify-content-between align-items-end">
+                <div class="d-flex align-items-end">
+                    <div class="me-3">
+                        <label class="form-label fw-semibold">Filtrar por Campo:</label>
+                        <select id="campoFilter" class="form-select">
+                            @foreach (var campo in Model.Campos)
+                            {
+                                <option value="@campo.Text" selected="@campo.Selected">@campo.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-end">
+                    <div class="ms-3">
+                        <label for="selectorMoneda" class="form-label fw-semibold">Moneda:</label>
+                        <select class="form-select" id="selectorMoneda" onchange="cambiarMoneda()">
+                            <option value="ARS">Pesos (ARS)</option>
+                            <option value="USD">Dólares (USD)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,15 +80,27 @@
                                 <td>@actividad.Detalle</td>
                                 <td>@actividad.Lote</td>
                                 <td>@actividad.Observacion</td>
-                                <td data-order="@(actividad.Costo ?? 0)">
-                                    @if (actividad.Costo.HasValue)
-                                    {
-                                        <span class="fw-semibold">$@actividad.Costo.Value.ToString("N0")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
+                                <td data-order-ars="@(actividad.CostoARS ?? 0)" data-order-usd="@(actividad.CostoUSD ?? 0)">
+                                    <span class="valor-ars">
+                                        @if (actividad.CostoARS.HasValue)
+                                        {
+                                            <text>$@actividad.CostoARS.Value.ToString("N0")</text>
+                                        }
+                                        else
+                                        {
+                                            <text>-</text>
+                                        }
+                                    </span>
+                                    <span class="valor-usd" style="display: none;">
+                                        @if (actividad.CostoUSD.HasValue)
+                                        {
+                                            <text>US$@actividad.CostoUSD.Value.ToString("N2")</text>
+                                        }
+                                        else
+                                        {
+                                            <text>-</text>
+                                        }
+                                    </span>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">

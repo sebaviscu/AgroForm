@@ -21,6 +21,7 @@ namespace AgroForm.Web.Utilities
             CreateMap<Usuario, UsuarioVM>().ReverseMap();
             CreateMap<Ajuste, AjusteVM>().ReverseMap();
             CreateMap<PagoLicencia, PagoLicenciaVM>().ReverseMap();
+            CreateMap<Gasto, GastoVM>().ReverseMap();
 
             CreateMap<EstadoFenologicoVM, EstadoFenologico>().ReverseMap();
             CreateMap<VariedadVM, Variedad>().ReverseMap();

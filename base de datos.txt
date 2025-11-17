@@ -504,6 +504,36 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
         REFERENCES [dbo].[Licencias] ([Id])
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY];
 
+CREATE TABLE Gastos (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TipoGasto INT NOT NULL DEFAULT 0,
+    Observacion NVARCHAR(1000) NULL,
+    Fecha DATE NOT NULL,
+    Costo DECIMAL(18,2) NULL,
+    CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
+    IdMoneda INT NOT NULL,
+    CampaniaId INT NOT NULL,
+    IdLicencia INT NOT NULL,
+    
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(100) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(100) NULL,
+    
+    -- Claves foráneas
+    CONSTRAINT FK_Gastos_Monedas FOREIGN KEY (IdMoneda) 
+        REFERENCES Monedas(Id),
+    CONSTRAINT FK_Gastos_Campanias FOREIGN KEY (CampaniaId) 
+        REFERENCES Campanias(Id) ON DELETE CASCADE
+);
+
+
+
+
+
+
+
 
 -- Primero, cambiar a otra base de datos
 USE master;
