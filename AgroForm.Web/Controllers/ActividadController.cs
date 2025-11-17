@@ -169,9 +169,9 @@ namespace AgroForm.Web.Controllers
         {
             ILabor actividad = null;
 
-            switch (model.TipoActividad?.ToLower())
+            switch ((TipoActividadEnum)model.TipoidActividad)
             {
-                case "siembra":
+                case TipoActividadEnum.Siembra:
                     actividad = new Siembra
                     {
                         SuperficieHa = model.DatosEspecificos?.SuperficieHa,
@@ -182,7 +182,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "riego":
+                case TipoActividadEnum.Riego:
                     actividad = new Riego
                     {
                         HorasRiego = model.DatosEspecificos?.HorasRiego,
@@ -192,7 +192,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "fertilizado":
+                case TipoActividadEnum.Fertilizado:
                     actividad = new Fertilizacion
                     {
                         CantidadKgHa = model.DatosEspecificos?.CantidadKgHa,
@@ -203,7 +203,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "pulverizacion":
+                case TipoActividadEnum.Pulverizacion:
                     actividad = new Pulverizacion
                     {
                         VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa,
@@ -213,7 +213,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "monitoreo":
+                case TipoActividadEnum.Monitoreo:
                     actividad = new Monitoreo
                     {
                         IdTipoMonitoreo = model.DatosEspecificos?.IdTipoMonitoreo,
@@ -222,7 +222,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "analisissuelo":
+                case TipoActividadEnum.AnalisisSuelo:
                     actividad = new AnalisisSuelo
                     {
                         ProfundidadCm = model.DatosEspecificos?.ProfundidadCm,
@@ -239,7 +239,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "cosecha":
+                case TipoActividadEnum.Cosecha:
                     actividad = new Cosecha
                     {
                         RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa,
@@ -249,7 +249,7 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case "otras labores":
+                case TipoActividadEnum.OtrasLabores:
                     actividad = new OtraLabor
                     {
 
