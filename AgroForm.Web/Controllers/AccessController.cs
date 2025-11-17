@@ -26,38 +26,39 @@ namespace AgroForm.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe)
         {
-            if (_env.IsDevelopment())
-            {
-                if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
-                {
-                    var isValid = await _userService.ValidateUserAsync(email, password);
-                    if (isValid)
-                    {
-                        var user = await _userService.GetUserByEmailAsync(email);
-                        var campania = await _campaniaService.GetCurrent();
+            //if (_env.IsDevelopment())
+            //{
+            //    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+            //    {
+            //        var isValid = await _userService.ValidateUserAsync(email, password);
+            //        if (isValid)
+            //        {
+            //            var user = await _userService.GetUserByEmailAsync(email);
+            //            var campania = await _campaniaService.GetCurrent();
+            //            var idCampania = campania.Data != null ? campania.Data.Id.ToString() : null;
+
+            //            var claims = new List<Claim>
+            //            {
+            //                new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
+            //                new Claim(ClaimTypes.Name, user.Nombre),
+            //                new Claim("Licencia", user.IdLicencia.ToString()),
+            //                new Claim("Campania", idCampania),
+            //                new Claim(ClaimTypes.Role, user.Rol.ToString())
+            //            };
         
-                        var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
-                            new Claim(ClaimTypes.Name, user.Nombre),
-                            new Claim("Licencia", user.IdLicencia.ToString()),
-                            new Claim("Campania", campania.Data?.Id.ToString() ?? null),
-                            new Claim(ClaimTypes.Role, user.Rol.ToString())
-                        };
-        
-                        await CreateAuthenticationCookie(claims, rememberMe);
-                        return RedirectToAction("Index", "Home");
-                    }
-                }
+            //            await CreateAuthenticationCookie(claims, rememberMe);
+            //            return RedirectToAction("Index", "Home");
+            //        }
+            //    }
 
                 var campaniaDev = await _campaniaService.GetCurrentByLicencia(1);
 
                 var devClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, "1"),
-                    new Claim(ClaimTypes.Name, "Usuario Desarrollo"),
+                    new Claim(ClaimTypes.Name, "Desarrollador"),
                     new Claim("Licencia", "1"),
                     new Claim("Campania", campaniaDev.Data?.Id.ToString() ?? "1"),
                     new Claim(ClaimTypes.Role, "0")
@@ -66,37 +67,37 @@ namespace AgroForm.Web.Controllers
                 await CreateAuthenticationCookie(devClaims, true);
                 
                 return RedirectToAction("Index", "Home");
-            }
+            //}
         
-            // Código de producción
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-            {
-                ViewBag.Error = "Email y contraseña son requeridos";
-                return View();
-            }
+            //// Código de producción
+            //if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            //{
+            //    ViewBag.Error = "Email y contraseña son requeridos";
+            //    return View();
+            //}
         
-            var isValidProd = await _userService.ValidateUserAsync(email, password);
+            //var isValidProd = await _userService.ValidateUserAsync(email, password);
         
-            if (!isValidProd)
-            {
-                ViewBag.Error = "Credenciales inválidas";
-                return View();
-            }
+            //if (!isValidProd)
+            //{
+            //    ViewBag.Error = "Credenciales inválidas";
+            //    return View();
+            //}
         
-            var userProd = await _userService.GetUserByEmailAsync(email);
-            var campaniaProd = await _campaniaService.GetCurrent();
+            //var userProd = await _userService.GetUserByEmailAsync(email);
+            //var campaniaProd = await _campaniaService.GetCurrent();
         
-            var prodClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, userProd!.Id.ToString()),
-                new Claim(ClaimTypes.Name, userProd.Nombre),
-                new Claim("Licencia", userProd.IdLicencia.ToString()),
-                new Claim("Campania", campaniaProd.Data?.Id.ToString() ?? "1"),
-                new Claim(ClaimTypes.Role, userProd.Rol.ToString())
-            };
+            //var prodClaims = new List<Claim>
+            //{
+            //    new Claim(ClaimTypes.NameIdentifier, userProd!.Id.ToString()),
+            //    new Claim(ClaimTypes.Name, userProd.Nombre),
+            //    new Claim("Licencia", userProd.IdLicencia.ToString()),
+            //    new Claim("Campania", campaniaProd.Data?.Id.ToString() ?? "1"),
+            //    new Claim(ClaimTypes.Role, userProd.Rol.ToString())
+            //};
         
-            await CreateAuthenticationCookie(prodClaims, rememberMe);
-            return RedirectToAction("Index", "Home");
+            //await CreateAuthenticationCookie(prodClaims, rememberMe);
+            //return RedirectToAction("Index", "Home");
         }
         
         private async Task CreateAuthenticationCookie(List<Claim> claims, bool rememberMe)

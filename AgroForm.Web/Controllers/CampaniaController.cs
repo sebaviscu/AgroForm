@@ -138,5 +138,35 @@ namespace AgroForm.Web.Controllers
             }
 
         }
+
+        [HttpPost("{id}")]
+        public async Task<IActionResult> SetCurrent(int id)
+        {
+            var gResponse = new GenericResponse<bool>();
+
+            try
+            {
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
+
+                if (user.IdCampaña != id)
+                {
+                    await UpdateClaimAsync("Campania", id.ToString());
+                    gResponse.Message = "Cambio de Camapaña";
+                }
+                else
+                    gResponse.Message = string.Empty;
+
+                gResponse.Success = true;
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cambiar de campaña");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
+
+        }
     }
 }

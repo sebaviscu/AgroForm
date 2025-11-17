@@ -10,10 +10,9 @@ namespace AgroForm.Web.Components
 {
     public class ActividadRecienteViewComponent : ViewComponent
     {
-        private readonly IActividadService _actividadService;
-        public ActividadRecienteViewComponent(IActividadService actividadService)
+        public ActividadRecienteViewComponent()
         {
-            _actividadService = actividadService;
+
         }
 
         public async Task<IViewComponentResult> InvokeAsync()

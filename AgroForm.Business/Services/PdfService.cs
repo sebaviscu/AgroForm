@@ -18,11 +18,16 @@ namespace AgroForm.Business.Services
 {
     public class PdfService : IPdfService
     {
+        //private readonly IChartGeneratorService _chartGenerator;
+
+        //public PdfService(IChartGeneratorService chartGenerator)
+        //{
+        //    _chartGenerator = chartGenerator;
+        //}
         private readonly IChartGeneratorService _chartGenerator;
 
-        public PdfService(IChartGeneratorService chartGenerator)
+        public PdfService()
         {
-            _chartGenerator = chartGenerator;
         }
 
         public async Task<OperationResult<byte[]>> GenerarPdfCierreCampaniaAsync(ReporteCierreCampania reporte)
@@ -209,22 +214,22 @@ namespace AgroForm.Business.Services
                 var cultivos = JsonSerializer.Deserialize<List<ResumenCultivo>>(reporte.ResumenPorCultivoJson);
 
                 // Generar gráfico de torta
-                var chartData = cultivos.ToDictionary(c => c.NombreCultivo, c => c.SuperficieHa);
-                var chartImage = await _chartGenerator.GenerarGraficoTortaAsync(chartData, "Distribución de Cultivos");
+                //var chartData = cultivos.ToDictionary(c => c.NombreCultivo, c => c.SuperficieHa);
+                //var chartImage = await _chartGenerator.GenerarGraficoTortaAsync(chartData, "Distribución de Cultivos");
 
-                if (chartImage != null)
-                {
-                    var image = new Image(ImageDataFactory.Create(chartImage))
-                        .SetMaxWidth(400)
-                        .SetMaxHeight(250)
-                        .SetHorizontalAlignment(HorizontalAlignment.CENTER);
-                    document.Add(image);
-                }
-                else
-                {
-                    // Fallback a tabla si no se puede generar el gráfico
-                    AgregarTablaDistribucionCultivos(document, cultivos);
-                }
+                //if (chartImage != null)
+                //{
+                //    var image = new Image(ImageDataFactory.Create(chartImage))
+                //        .SetMaxWidth(400)
+                //        .SetMaxHeight(250)
+                //        .SetHorizontalAlignment(HorizontalAlignment.CENTER);
+                //    document.Add(image);
+                //}
+                //else
+                //{
+                //    // Fallback a tabla si no se puede generar el gráfico
+                //    AgregarTablaDistribucionCultivos(document, cultivos);
+                //}
             }
         }
 

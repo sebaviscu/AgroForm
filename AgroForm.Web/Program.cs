@@ -1,5 +1,4 @@
-﻿
-using AgroForm.Data.DBContext;
+﻿using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Web.Utilities;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -86,19 +85,6 @@ public class Program
                 });
             });
 
-            // Configuración de DbContext
-            //builder.Services.AddDbContext<AppDbContext>(options =>
-            //{
-            //    options.UseSqlServer(builder.Configuration.GetConnectionString("SQL"), sqlServerOptionsAction: sqlOptions =>
-            //    {
-            //        sqlOptions.CommandTimeout(60);
-            //        sqlOptions.EnableRetryOnFailure(
-            //            maxRetryCount: 5,
-            //            maxRetryDelay: TimeSpan.FromSeconds(30),
-            //            errorNumbersToAdd: null)
-            //        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            //    });
-            //});
             builder.Services.AddDbContextFactory<AppDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SQL"), sqlOptions =>
@@ -153,14 +139,11 @@ public class Program
             }
 
             // ✅ CONFIGURACIÓN HTTPS
-            if (builder.Environment.IsDevelopment())
+            builder.Services.AddHttpsRedirection(options =>
             {
-                builder.Services.AddHttpsRedirection(options =>
-                {
-                    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                    options.HttpsPort = 443;
-                });
-            }
+                options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+                options.HttpsPort = 443;
+            });
 
             var app = builder.Build();
 
@@ -168,6 +151,7 @@ public class Program
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                //app.UseDatabaseErrorPage();
             }
             else
             {
@@ -175,11 +159,7 @@ public class Program
                 app.UseHsts();
             }
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseHttpsRedirection();
-            }
-
+            app.UseHttpsRedirection();
             app.UseResponseCompression();
             app.UseCors("NuevaPolitica");
 
@@ -263,6 +243,8 @@ public class Program
 
             // Endpoint de health check básico
             app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+
+            app.UseHttpsRedirection();
 
             Log.Information("Aplicación iniciándose...");
             app.Run();

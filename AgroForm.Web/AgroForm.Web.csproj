@@ -7,10 +7,6 @@
 		<UserSecretsId>aspnet-AgroForm.Web-b1ce66d4-7d1a-464c-a509-796049b13551</UserSecretsId>
 		<SatelliteResourceLanguages>es</SatelliteResourceLanguages>
 
-		<!-- FORZAR SOLO x64 -->
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-		<SelfContained>false</SelfContained>
-
 		<!-- OPTIMIZACIONES PARA PUBLICACIÓN -->
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<PublishTrimmed>false</PublishTrimmed>
@@ -22,14 +18,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10" />
 
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />

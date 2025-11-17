@@ -746,7 +746,7 @@ function guardarCampania() {
 
     var data = {
         Nombre: $('#nombre').val(),
-        Estado: 0,
+        EstadosCampania: 0,
         FechaInicio: $('#fechaInicio').val(),
         Lotes: []
     };
@@ -764,7 +764,7 @@ function guardarCampania() {
                     idCampo: parseInt(item.campo.id),
                     Nombre: lote.nombre,
                     SuperficieHectareas: lote.superficie,
-                    IdCampania: parseInt(idCampania)
+                    IdCampania: idCampania != '' ? parseInt(idCampania) : 0
                 });
             }
         });

@@ -1,22 +1,29 @@
-﻿@using AgroForm.Model
-@model List<Campania>
+﻿@using AgroForm.Web.Models.IndexVM
+@model SelectorCampaniasVM
 
 <div class="dropdown-campania" style="position: relative;">
     <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center w-100 justify-content-between py-2"
             type="button" id="campañasDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+
         <i class="ph ph-calendar me-2"></i>
+
         <span id="campañaActualText">
             @{
-                var campañaActual = Model?.FirstOrDefault(c => c.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso);
-                var texto = campañaActual?.Nombre ?? "Seleccionar Campaña";
+                var campañas = Model.Campanias;
+                var actual = campañas.FirstOrDefault(c => c.Id == Model?.IdCampaniaSeleccionada);
+                var texto = string.IsNullOrWhiteSpace(actual?.Nombre)
+                ? "Seleccionar campaña"
+                : actual!.Nombre;
             }
             @texto
         </span>
     </button>
+
     <ul class="dropdown-menu dropdown-menu-start shadow border-0" aria-labelledby="campañasDropdown">
-        @if (Model != null && Model.Any())
+
+        @if (Model?.Campanias?.Any() == true)
         {
-            foreach (var campaña in Model)
+            foreach (var campaña in Model.Campanias)
             {
                 <li>
                     <a class="dropdown-item d-flex justify-content-between align-items-center campaña-item"
@@ -28,13 +35,14 @@
                     </a>
                 </li>
             }
-            @* <li><hr class="dropdown-divider"></li> *@
         }
-        @* <li>
-            <a class="dropdown-item text-primary" href="@Url.Action("Index", "Campania")">
-                <i class="ph ph-gear me-2"></i>Gestionar Campañas
-            </a>
-        </li> *@
+        else
+        {
+            <li class="text-center text-muted py-2 small">
+                No hay campañas disponibles
+            </li>
+        }
+
     </ul>
 </div>
 

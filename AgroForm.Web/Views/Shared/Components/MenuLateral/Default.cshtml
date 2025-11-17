@@ -125,8 +125,16 @@
         </ul>
     </div>
 
-    <div class="sidebar-footer p-3 border-top">
-        <div class="dropdown w-100">
+    <div class="sidebar-footer border-top">
+        <form method="post" asp-controller="Access" asp-action="Logout" id="logoutForm">
+            <button type="submit" class="dropdown-item d-flex align-items-center sidebar-link no-hover-style">
+
+                    <i class="ph ph-sign-out text-white" style="font-size: 16px;"></i>
+
+                <span>Cerrar Sesion</span>
+            </button>
+        </form>
+        @* <div class="dropdown w-100">
 
             <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0 w-100 sidebar-link dropdown-toggle"
                     type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -166,6 +174,6 @@
                 </li>
             </ul>
 
-        </div>
+        </div> *@
     </div>
 </nav>

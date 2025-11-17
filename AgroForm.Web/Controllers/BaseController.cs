@@ -4,6 +4,8 @@ using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Utilities;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
@@ -184,6 +186,7 @@ namespace AgroForm.Web.Controllers
             {
                 UserName = userName,
                 IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
+                IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
                 IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
                 IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
             };
@@ -272,6 +275,44 @@ namespace AgroForm.Web.Controllers
             _logger.LogError(ex, logTemplate, logParams);
 
             return StatusCode(StatusCodes.Status500InternalServerError, gResponse);
+        }
+
+        public async Task UpdateClaimAsync(string claimType, string? newValue = null)
+        {
+            var user = HttpContext.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                var claims = user.Claims.ToList();
+
+                var claimToRemove = claims.FirstOrDefault(c => c.Type == claimType);
+                if (claimToRemove != null)
+                {
+                    claims.Remove(claimToRemove);
+                }
+
+                if (newValue != null)
+                {
+                    claims.Add(new Claim(claimType, newValue));
+                }
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                // Actualiza la cookie
+                var properties = new AuthenticationProperties
+                {
+                    AllowRefresh = true,
+                    IsPersistent = (HttpContext.Request.Cookies[".AspNetCore.Cookies"] != null)
+                };
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, properties);
+
+                // Actualiza el HttpContext.User
+                HttpContext.User = claimsPrincipal;
+            }
+            else
+                throw new UnauthorizedAccessException("El usuario no está autenticado.");
+
         }
     }
 }
