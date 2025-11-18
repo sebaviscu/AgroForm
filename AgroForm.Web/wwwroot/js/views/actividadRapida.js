@@ -478,6 +478,10 @@
                     errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
+                if (!$('#idVariedad').val()) {
+                    errorMessage = 'Debe seleccionar una variedad de cultivo';
+                    isValid = false;
+                }
                 break;
 
             case 'Cosecha':
