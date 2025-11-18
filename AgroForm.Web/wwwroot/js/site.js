@@ -228,3 +228,11 @@ function mostrarLoading(mensaje = 'Procesando...') {
 function cerrarAlertas() {
     Swal.close();
 }
+
+function mostrarMensaje(mensaje, tipo) {
+    if (tipo === 'success') {
+        toastr.success(mensaje);
+    } else {
+        toastr.error(mensaje);
+    }
+}

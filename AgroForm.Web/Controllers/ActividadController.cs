@@ -85,49 +85,6 @@ namespace AgroForm.Web.Controllers
             //}
         }
 
-        [HttpPost]
-        public async Task<IActionResult> FiltrarPorCampo(int idCampo = 0)
-        {
-            try
-            {
-                ValidarAutorizacion(new[] { Roles.Administrador });
-
-                //List<Actividad> actividades;
-
-                //if (idCampo == 0)
-                //{
-                //    var result = await _service.GetAllAsync();
-                //    if (!result.Success)
-                //    {
-                //        return Json(new { success = false, message = "Error al obtener actividades" });
-                //    }
-                //    actividades = result.Data;
-                //}
-                //else
-                //{
-                //    var lotesResult = await _loteService.GetByidCampoAsync(idCampo);
-                //    if (!lotesResult.Success)
-                //    {
-                //        return Json(new { success = false, message = "Error al obtener lotes del campo" });
-                //    }
-
-                //    var lotesIds = lotesResult.Data.Select(l => l.Id).ToList();
-                //    actividades = await _service.GetByidCampoAsync(lotesIds);
-                //}
-
-                //var actividadesVM = Map<List<Actividad>, List<ActividadVM>>(actividades);
-
-                //return Json(new { success = true, data = actividadesVM });
-
-                return default;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al filtrar actividades por campo {idCampo}", idCampo);
-                return Json(new { success = false, message = "Error al filtrar actividades" });
-            }
-        }
-
 
         [HttpPost]
         public async Task<IActionResult> EditarLabor([FromBody] ActividadRapidaVM model)
@@ -147,7 +104,7 @@ namespace AgroForm.Web.Controllers
 
                 var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
 
-                var actividad = ArmarLabor(model, user, tipoCambioUSD);
+                var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
 
                 await _service.UpdateActividadAsync(actividad);
 
@@ -311,7 +268,7 @@ namespace AgroForm.Web.Controllers
                 foreach (var loteId in model.LotesIds)
                 {
                     model.idLote = loteId;
-                    var actividad = ArmarLabor(model, user, tipoCambioUSD);
+                    var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
                     actividades.Add(actividad);
                 }
 
@@ -322,10 +279,10 @@ namespace AgroForm.Web.Controllers
                     await _campaniaService.UpdateAsync(campania.Data);
                 }
 
-                await _service.SaveActividadAsync(actividades);
+                var response = await _service.SaveActividadAsync(actividades);
 
-                gResponse.Success = true;
-                gResponse.Message = "Labor creada correctamente";
+                gResponse.Success = response.Success;
+                gResponse.Message = response.ErrorMessage;
 
                 return Ok(gResponse);
             }

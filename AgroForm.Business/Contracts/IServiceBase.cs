@@ -11,6 +11,7 @@ namespace AgroForm.Business.Contracts
     public interface IServiceBase<T> where T : EntityBase
     {
         Task<OperationResult<List<T>>> GetAllAsync();
+        Task<OperationResult<List<T>>> GetAllByCamapniaAsync();
         Task<OperationResult<List<T>>> GetAllWithDetailsAsync();
         Task<OperationResult<T>> GetByIdAsync(long id);
         Task<OperationResult<T>> GetByIdWithDetailsAsync(long id);

@@ -10,6 +10,7 @@
                     <i class="ph ph-cloud-rain text-primary me-2"></i>
                     <span id="tituloGrafico">Registro de Lluvias</span>
                 </h5>
+
                 <div class="d-flex gap-2">
                     <!-- Filtro por Campo -->
                     <div class="dropdown">
@@ -49,7 +50,7 @@
                     </div>
 
                     <!-- Grafico ocupa mas espacio -->
-                    <div class="col-md-12 mb-4">
+                    <div class="col-md-12" style="padding: 0;">
                         <div id="lluviaChart" style="min-height: 380px;"></div>
                     </div>
 
@@ -121,7 +122,7 @@
         });
     });
 
-            function inicializarGrafico() {
+    function inicializarGrafico() {
         var options = {
             series: [],
             chart: {
@@ -243,9 +244,16 @@
                     var menu = $('#filtroCampoMenu');
                     menu.find('.filtro-campo:not([data-campo-id="0"])').remove();
 
+                    var menuActividad = $('#filtroCampoActividadMenu');
+                    menuActividad.find('.filtro-campo-actividad:not([data-campo-id="0"])').remove();
+
                     result.listObject.forEach(function(campo) {
                         menu.append(`
                             <li><a class="dropdown-item filtro-campo" href="#" data-campo-id="${campo.id}">${campo.nombre}</a></li>
+                        `);
+
+                        menuActividad.append(`
+                            <li><a class="dropdown-item filtro-campo-actividad" href="#" data-campo-id="${campo.id}">${campo.nombre}</a></li>
                         `);
                     });
                 }
@@ -352,7 +360,6 @@
             border-top: 2px solid #e9ecef;
             padding-left: 0;
             padding-top: 1.5rem;
-            margin-top: 1.5rem;
         }
 
         .d-flex.gap-2 {

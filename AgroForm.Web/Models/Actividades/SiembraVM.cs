@@ -6,6 +6,7 @@ namespace AgroForm.Web.Models
     {
         public decimal? SuperficieHa { get; set; }
         public decimal? DensidadSemillaKgHa { get; set; }
+        public string CultivoNombre { get; set; } = string.Empty;
 
         public int IdCultivo { get; set; }
         public CultivoVM Cultivo { get; set; } = null!;

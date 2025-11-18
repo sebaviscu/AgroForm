@@ -1,3 +1,18 @@
+
+
+
+ALTER TABLE Siembras
+ALTER COLUMN IdMetodoSiembra INT NULL;
+
+
+
+
+
+
+
+
+
+
 CREATE DATABASE AgroForm;
 
 
@@ -181,7 +196,7 @@ CREATE TABLE Siembras (
     CostoUSD DECIMAL(18,2) NULL,
     IdCultivo INT NOT NULL,
     IdVariedad INT NULL,
-    IdMetodoSiembra INT NOT NULL,
+    IdMetodoSiembra INT NULL,
 	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,

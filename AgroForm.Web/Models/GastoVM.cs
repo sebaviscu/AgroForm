@@ -17,7 +17,7 @@ namespace AgroForm.Web.Models
         public int CampaniaId { get; set; }
 
         public string TipoGastoString => TipoGasto.ToString();
-        public bool EsDolar => IdMoneda == 2 ? true : false;
+        public bool EsDolar { get; set; }
 
     }
 }

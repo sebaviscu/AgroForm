@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
+using static iText.IO.Util.IntHashtable;
 
 namespace AgroForm.Business.Services
 {
@@ -107,6 +108,8 @@ namespace AgroForm.Business.Services
                         RegistrationDate = s.RegistrationDate,
                         Detalle = $"Cultivo: {s.Cultivo.Nombre}, Superficie: {s.SuperficieHa} ha, Densidad: {s.DensidadSemillaKgHa} kg/ha",
                         Costo = s.Costo,
+                        CostoUSD = s.CostoUSD,
+                        CostoARS = s.CostoARS,
                         IdCampania = s.IdCampania,
                         Observacion = s.Observacion,
                         IdLote = s.IdLote,
@@ -135,6 +138,8 @@ namespace AgroForm.Business.Services
                     RegistrationDate = r.RegistrationDate,
                     Detalle = $"Horas: {r.HorasRiego}, Volumen: {r.VolumenAguaM3} m³",
                     Costo = r.Costo,
+                    CostoUSD = r.CostoUSD,
+                    CostoARS = r.CostoARS,
                     IdCampania = r.IdCampania,
                     Observacion = r.Observacion,
                     IdLote = r.IdLote,
@@ -163,6 +168,8 @@ namespace AgroForm.Business.Services
                     RegistrationDate = f.RegistrationDate,
                     Detalle = $"Nutriente: {f.Nutriente.Nombre}, Dosis: {f.DosisKgHa} kg/ha",
                     Costo = f.Costo,
+                    CostoUSD = f.CostoUSD,
+                    CostoARS = f.CostoARS,
                     IdCampania = f.IdCampania,
                     Observacion = f.Observacion,
                     IdLote = f.IdLote,
@@ -191,6 +198,8 @@ namespace AgroForm.Business.Services
                     Responsable = p.RegistrationUser,
                     Detalle = $"Producto: {p.ProductoAgroquimico.Nombre}, Volumen: {p.VolumenLitrosHa} L/ha",
                     Costo = p.Costo,
+                    CostoUSD = p.CostoUSD,
+                    CostoARS = p.CostoARS,
                     IdCampania = p.IdCampania,
                     Observacion = p.Observacion,
                     IdLote = p.IdLote,
@@ -219,6 +228,8 @@ namespace AgroForm.Business.Services
                     RegistrationDate = m.RegistrationDate,
                     Detalle = $"{m.TipoMonitoreo.Tipo}: {m.TipoMonitoreo.Nombre}",
                     Costo = m.Costo,
+                    CostoUSD = m.CostoUSD,
+                    CostoARS = m.CostoARS,
                     IdCampania = m.IdCampania,
                     Observacion = m.Observacion,
                     IdLote = m.IdLote,
@@ -247,6 +258,8 @@ namespace AgroForm.Business.Services
                     RegistrationDate = c.RegistrationDate,
                     Detalle = $"Cultivo: {c.Cultivo.Nombre}, Rendimiento: {c.RendimientoTonHa} ton/ha",
                     Costo = c.Costo,
+                    CostoUSD = c.CostoUSD,
+                    CostoARS = c.CostoARS,
                     IdCampania = c.IdCampania,
                     Observacion = c.Observacion,
                     IdLote = c.IdLote,
@@ -272,6 +285,8 @@ namespace AgroForm.Business.Services
                     IconoColorTipoActividad = a.TipoActividad.ColorIcono,
                     Fecha = a.Fecha,
                     Costo = a.Costo,
+                    CostoUSD = a.CostoUSD,
+                    CostoARS = a.CostoARS,
                     Responsable = a.RegistrationUser,
                     RegistrationDate = a.RegistrationDate,
                     Detalle = $"pH: {a.PH}, MO: {a.MateriaOrganica}%",
@@ -303,6 +318,8 @@ namespace AgroForm.Business.Services
                     RegistrationDate = o.RegistrationDate,
                     Detalle = $"Descripción: {o.Observacion}",
                     Costo = o.Costo,
+                    CostoUSD = o.CostoUSD,
+                    CostoARS = o.CostoARS,
                     IdCampania = o.IdCampania,
                     Observacion = o.Observacion,
                     IdLote = o.IdLote,
@@ -320,10 +337,8 @@ namespace AgroForm.Business.Services
             return OperationResult<List<LaborDTO>>.SuccessResult(labores.OrderByDescending(l => l.RegistrationDate).ToList());
         }
 
-        public async Task SaveActividadAsync(List<ILabor> actividades)
+        public async Task<OperationResult<bool>> SaveActividadAsync(List<ILabor> actividades)
         {
-            if (actividades == null || !actividades.Any()) return;
-
             foreach (var actividad in actividades)
             {
                 try
@@ -341,8 +356,11 @@ namespace AgroForm.Business.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error guardando actividad tipo {Tipo}", actividad.GetType().Name);
+                    return OperationResult<bool>.Failure(ex.Message, "DATABASE_ERROR");
                 }
             }
+            return OperationResult<bool>.SuccessResult(true);
+
         }
 
         public async Task<object> GetLaboresByAsync(int idActividad, TipoActividadEnum idTipoActividad)
@@ -522,6 +540,19 @@ namespace AgroForm.Business.Services
                 return OperationResult<ILabor>.SuccessResult(entity);
 
             return OperationResult<ILabor>.Failure("No se pudo actualizar el registro en la base de datos.", "SAVE_FAILED");
+        }
+
+        public async Task<OperationResult<List<Siembra>>> GetSiembrasAsync()
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var list = await context.Set<Siembra>()
+                .Include(_ => _.Cultivo)
+                .Where(_ => _.IdLicencia == _userAuth.IdLicencia && _.IdCampania == _userAuth.IdCampaña)
+                .ToListAsync();
+
+            return OperationResult<List<Siembra>>.SuccessResult(list);
+
         }
     }
 }

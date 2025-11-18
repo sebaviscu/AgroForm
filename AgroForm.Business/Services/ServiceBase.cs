@@ -66,6 +66,37 @@ namespace AlbaServicios.Services
             }
         }
 
+        public virtual async Task<OperationResult<List<T>>> GetAllByCamapniaAsync()
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                IQueryable<T> query = context.Set<T>().AsNoTracking();
+
+                // Filtro por IdLicencia si la entidad hereda de EntityBaseWithLicencia
+                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
+                }
+
+                var companiaProp = typeof(T).GetProperty("CampaniaId");
+                if (companiaProp != null && companiaProp.PropertyType == typeof(int))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "CampaniaId") == _userAuth.IdCampaña);
+                }
+
+                var list = await query.ToListAsync();
+
+                return OperationResult<List<T>>.SuccessResult(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer todos los registros de {TypeName}", typeof(T).Name);
+                return OperationResult<List<T>>.Failure($"Ocurrió un problema al leer los registros: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
 
         public virtual async Task<OperationResult<List<T>>> GetAllWithDetailsAsync()
         {

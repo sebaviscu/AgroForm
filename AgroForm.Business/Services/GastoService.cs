@@ -18,7 +18,7 @@ namespace AgroForm.Business.Services
         public GastoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<GastoService> logger, IHttpContextAccessor httpContextAccessor)
             : base(contextFactory, logger, httpContextAccessor)
         {
-            
         }
+
     }
 }

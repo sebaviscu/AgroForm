@@ -79,11 +79,11 @@
                 //cargarEstadosFenologicos();
                 cargarSwitchMoneda("switchMonedaCostoMonitoreo", "labelMonedaCostoMonitoreo");
                 break;
-            case 'AnalisisSuelo':
+            case 'Analisis de suelo':
                 cargarCatalogos(50, 'Laboratorio');
                 cargarSwitchMoneda("switchMonedaCostoAnalisisSuelo", "labelMonedaCostoAnalisisSuelo");
                 break;
-            case 'OtrasLabores':
+            case 'Otras labores':
                 cargarSwitchMoneda("switchMonedaCostoOtraLabor", "labelMonedaCostoOtraLabor");
                 break;
         }
@@ -233,7 +233,7 @@
     $('#btnClima').on('click', function () {
         cargarCamposParaClima();
         $('#modalClima').modal('show');
-        $('#modalClimaLabel').html('<i class="ph ph-pencil me-2"></i>Crear Registro de Clima');
+        $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Crear Registro de Clima');
         $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
     });
 
@@ -470,22 +470,25 @@
     // FUNCIÓN: Validar campos específicos
     function validarCamposEspecificos(tipoActividadNombre) {
         var isValid = true;
+        var errorMessage = '';
 
         switch (tipoActividadNombre) {
             case 'Siembra':
                 if (!$('#idCultivo').val()) {
-                    $('#idCultivo').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
                 break;
 
             case 'Cosecha':
                 if (!$('#idCultivoCosecha').val()) {
-                    $('#idCultivoCosecha').next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
                 break;
         }
+        if (!isValid)
+            mostrarMensaje(errorMessage);
 
         return isValid;
     }
@@ -587,7 +590,7 @@
                     EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
                 };
                 break;
-                
+
             case 'Riego':
                 datos = {
                     HorasRiego: parseFloat($('#horasRiego').val()) || 0,
@@ -608,7 +611,7 @@
                     IdTipoFertilizante: parseInt($('#idTipoFertilizante').val()),
                     IdMetodoAplicacion: parseInt($('#idMetodoAplicacion').val()),
                     EsDolar: $('#switchMonedaCostoFertilizacion').is(':checked')
-                }; 
+                };
                 break;
 
             case 'Pulverizacion':
@@ -689,8 +692,10 @@
 
     $('#btnGasto').on('click', function () {
         $('#modalGasto').modal('show');
-        $('#modalGastoLabel').html('<i class="ph ph-pencil me-2"></i>Crear Gasto');
+        $('#modalGastoLabel').html('<i class="ph ph-receipt me-2"></i>Crear Gasto');
         $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+
+        cargarSwitchMoneda("switchMonedaCostoGasto", "labelMonedaCostoGasto");
     });
 
     $('#formGasto').on('submit', function (e) {
@@ -701,9 +706,11 @@
 
         var data = {
             id: esEdicion ? parseInt(gastoId) : 0,
-            tipoClima: parseInt($('#tipoGasto').val()),
+            tipoGasto: parseInt($('#tipoGasto').val()),
             fecha: $('#fechaGasto').val(),
             observaciones: $('#observacionesGasto').val(),
+            costo: parseFloat($('#costoGasto').val()) || 0,
+            esDolar: $('#switchMonedaCostoGasto').is(':checked')
         };
 
         var submitBtn = $('#formGasto').find('button[type="submit"]');

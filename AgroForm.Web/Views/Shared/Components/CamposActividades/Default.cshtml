@@ -1,67 +1,70 @@
-﻿<div class="dashboard-stats">
-    <h4 class="mb-4">
-        <i class="ph ph-map text-success me-2"></i>Campos y Lotes
-    </h4>
+﻿
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
 
-    <!-- Selector de Campos -->
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Seleccionar Campo:</label>
-        <select id="campoSelector" class="form-select">
-            <option value="">Todos los campos</option>
-        </select>
-    </div>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="ph ph-map-trifold text-succsess me-2" style="color: green"></i>
+                    <span id="tituloGrafico">Campos</span>
+                </h5>
 
-    <!-- Loading -->
-    <div id="loadingCamposActividades" class="text-center py-3">
-        <div class="spinner-border spinner-border-sm text-info" role="status">
-            <span class="visually-hidden">Cargando...</span>
+                <div class="d-flex gap-2">
+                    <!-- Filtro por Campo -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="ph ph-map-trifold me-1"></i>
+                            <span id="filtroCampoActividadText">Todos los Campos</span>
+                        </button>
+                        <ul class="dropdown-menu" id="filtroCampoActividadMenu">
+                            <li><a class="dropdown-item filtro-campo-actividad active" href="#" data-campo-id="0">Todos los Campos</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+
+                    <!-- Loading -->
+                    <div id="loadingCamposActividades" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-info" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <small class="text-muted ms-2">Cargando Campos y Lotes...</small>
+                    </div>
+
+                    <!-- Lista de Campos y Lotes -->
+                    <div class="campos-lotes-container" id="camposLotesList">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+
+                </div>
+            </div>
         </div>
-        <small class="text-muted ms-2">Cargando Campos y Lotes...</small>
-    </div>
-
-    <!-- Lista de Campos y Lotes -->
-    <div class="campos-lotes-container" id="camposLotesList">
-        <!-- Se llenará dinámicamente -->
     </div>
 </div>
+
+@* </div> *@
 
 <script>
         $(document).ready(function() {
 
-        cargarCamposActividades();
-
-
         cargarCamposYLotes();
 
-        // Filtrar por campo seleccionado
-        $('#campoSelector').change(function() {
-            filtrarPorCampo($(this).val());
+        $(document).on('click', '.filtro-campo-actividad', function(e) {
+            e.preventDefault();
+            campoActual = $(this).data('campo-id');
+            $('#filtroCampoActividadText').text($(this).text());
+
+             filtrarPorCampo(campoActual);
         });
+
+
     });
 
-    // Función para cargar campos en el selector
-    function cargarCamposActividades() {
-        $.ajax({
-            url: '@Url.Action("GetAll", "Campo")',
-            type: 'GET',
-            success: function(result) {
-                if (result.success && result.listObject) {
-                    var $selector = $('#campoSelector');
-                    $selector.empty().append('<option value="">Todos los campos</option>');
-
-                    result.listObject.forEach(function(campo) {
-                        $selector.append($('<option>', {
-                            value: campo.id,
-                            text: campo.nombre
-                        }));
-                    });
-                }
-            },
-            error: function(error) {
-                console.error('Error al cargar campos:', error);
-            }
-        });
-    }
 
     // Función para cargar campos, lotes y actividades
     function cargarCamposYLotes() {
@@ -120,8 +123,7 @@
             campo.nombre +
             (campo.ubicacion ? ' - ' + campo.ubicacion : '') +
             ' ' + superficieText +
-            '</h6>' +
-            '<span class="badge bg-secondary">' + (campo.lotes ? campo.lotes.length : 0) + ' lote(s)</span>'
+            '</h6>'
         );
 
         var $cardBody = $('<div>', {

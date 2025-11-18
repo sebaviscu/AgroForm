@@ -184,7 +184,7 @@ function configurarModoEdicion(actividad, tipoActividadNombre) {
 }
 
 // Función para cargar datos específicos según el tipo de actividad
-function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
+async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
     if (!datosEspecificos) return;
 
     switch (tipoActividadNombre) {
@@ -192,10 +192,21 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.superficieHa != null) $('#superficieHa').val(datosEspecificos.superficieHa);
             if (datosEspecificos.densidadSemillaKgHa != null) $('#densidadSemillaKgHa').val(datosEspecificos.densidadSemillaKgHa);
             if (datosEspecificos.costo != null) $('#costoSiembra').val(datosEspecificos.costo);
-            if (datosEspecificos.idCultivo != null) $('#idCultivo').val(datosEspecificos.idCultivo).trigger('change');
-            if (datosEspecificos.idVariedad != null) setTimeout(() => $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change'), 200);
+            //if (datosEspecificos.idCultivo != null) setTimeout(() => $('#idCultivo').val(datosEspecificos.idCultivo).trigger('change'), 200);
+            //if (datosEspecificos.idVariedad != null) setTimeout(() => $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change'), 500);
             if (datosEspecificos.idMetodoSiembra != null) $('#idMetodoSiembra').val(datosEspecificos.idMetodoSiembra).trigger('change');
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+
+            let promise = Promise.resolve();
+
+            if (datosEspecificos.idCultivo != null) {
+                await setSelect2WhenReady('#idCultivo', datosEspecificos.idCultivo);
+            }
+
+            if (datosEspecificos.idVariedad != null) {
+                await setSelect2WhenReady('#idVariedad', datosEspecificos.idVariedad);
+            }
+
             break;
 
         case 'Riego':
@@ -255,9 +266,14 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.rendimientoTonHa != null) $('#rendimientoTonHa').val(datosEspecificos.rendimientoTonHa);
             if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
             if (datosEspecificos.superficieCosechadaHa != null) $('#superficieCosechadaHa').val(datosEspecificos.superficieCosechadaHa);
-            if (datosEspecificos.idCultivo != null) $('#idCultivoCosecha').val(datosEspecificos.idCultivo).trigger('change');
+            //if (datosEspecificos.idCultivo != null) $('#idCultivoCosecha').val(datosEspecificos.idCultivo).trigger('change');
             if (datosEspecificos.costo != null) $('#costoCosechaTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoCosecha').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+
+            if (datosEspecificos.idCultivo != null) {
+                await setSelect2WhenReady('#idCultivoCosecha', datosEspecificos.idCultivo);
+            }
+
             break;
 
         case 'OtraLabor':
@@ -296,4 +312,22 @@ function cambiarMoneda() {
 
     //    table.draw();
     //}
+}
+
+function setSelect2WhenReady(selector, value) {
+    return new Promise((resolve) => {
+        const interval = setInterval(() => {
+            if ($(selector).data('select2')) {
+                clearInterval(interval);
+                $(selector).val(value).trigger('change');
+                resolve();
+            }
+        }, 100);
+
+        // Timeout de seguridad
+        setTimeout(() => {
+            clearInterval(interval);
+            resolve();
+        }, 3000);
+    });
 }

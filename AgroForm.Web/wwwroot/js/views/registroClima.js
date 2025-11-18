@@ -91,7 +91,7 @@ function configurarModoEdicion(registroClima) {
         $('#milimetros').prop('disabled', true);
     }
 
-    $('#modalClimaLabel').html('<i class="ph ph-pencil me-2"></i>Editar Registro de Clima');
+    $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Editar Registro de Clima');
     $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
 
 }

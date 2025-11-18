@@ -14,7 +14,7 @@
 }
 
 .content .main-content {
-    padding: 100px 30px 20px 30px;
+    padding: 80px 12px 20px 12px;
     /*padding-top: var(--top-navbar-height);*/
 }
 
@@ -341,14 +341,6 @@
         background: #20c997;
     }
 
-/* Resto de tus estilos se mantienen igual... */
-.dashboard-stats {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
 
 .welcome-section {
     background: linear-gradient(135deg, #198754 0%, #20c997 100%);
