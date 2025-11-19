@@ -601,11 +601,15 @@
         var actividadId = $('#actividadId').val();
         var esEdicion = actividadId && actividadId > 0;
 
+        const loteId = parseInt(loteSelect.val());
+        const loteArray = [loteId];
+
         var data = {
             fecha: $('#fecha').val(),
-            lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
-                return parseInt(id);
-            }) : [],
+            //lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
+            //    return parseInt(id);
+            //}) : [],
+            lotesIds: loteArray,
             tipoidActividad: parseInt($('#tipoidActividad').val()),
             observacion: $('#observacion').val(),
             tipoActividad: tipoActividadNombre,

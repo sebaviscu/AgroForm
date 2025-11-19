@@ -4,11 +4,13 @@ using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
+using AgroForm.Web.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static AgroForm.Model.EnumClass;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AgroForm.Web.Controllers
 {
@@ -26,32 +28,8 @@ namespace AgroForm.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var user = ValidarAutorizacion(new[] { Roles.Administrador });
-
-            var acividadesResult = await _actividadService.GetLaboresByAsync(user.IdCampaña);
-            if (!acividadesResult.Success)
-            {
-                return BadRequest(acividadesResult.ErrorMessage);
-            }
-
-            var gastoDto = _mapper.Map<List<GastoDto>>(acividadesResult.Data);
-
-            var gastosResult = await _service.GetAllByCamapniaAsync();
-            if (!gastosResult.Success)
-            {
-                return BadRequest(gastosResult.ErrorMessage);
-            }
-
-            var gastos = _mapper.Map<List<GastoDto>>(gastosResult.Data);
-
-            gastoDto.AddRange(gastos);
-
-            var vm = new GastosIndexVM()
-            {
-                Gastos = gastoDto.Where(_=>_.Costo>0).OrderBy(_ => _.Fecha).ToList()
-            };
-
-            return View(vm);
+            ValidarAutorizacion(new[] { Roles.Administrador });
+            return View();
         }
 
         public override async Task<IActionResult> Create([FromBody] GastoVM dto)
@@ -66,6 +44,51 @@ namespace AgroForm.Web.Controllers
             dto.CampaniaId = user.IdCampaña;
 
             return await base.Create(dto);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetGatosIndex()
+        {
+            var gResponse = new GenericResponse<GastoDto>();
+            try
+            {
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
+
+                var acividadesResult = await _actividadService.GetLaboresByAsync(user.IdCampaña);
+                if (!acividadesResult.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = acividadesResult.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                var gastoDto = _mapper.Map<List<GastoDto>>(acividadesResult.Data);
+
+                var gastosResult = await _service.GetAllByCamapniaAsync();
+                if (!gastosResult.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = gastosResult.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                var gastos = _mapper.Map<List<GastoDto>>(gastosResult.Data);
+
+                gastoDto.AddRange(gastos);
+
+                gResponse.Success = true;
+                gResponse.ListObject = gastoDto.Where(_ => _.Costo > 0).OrderBy(_ => _.Fecha).ToList();
+                gResponse.Message = "Lista de gastos correctamente";
+
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener gastos");
+                gResponse.Success = false;
+                gResponse.Message = "Ah ocurrido un error";
+                return BadRequest(gResponse);
+            }
         }
     }
 }
