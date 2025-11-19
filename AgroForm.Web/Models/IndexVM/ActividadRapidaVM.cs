@@ -15,7 +15,8 @@ namespace AgroForm.Web.Models.IndexVM
         [Required(ErrorMessage = "Debe seleccionar al menos un lote")]
         public List<int> LotesIds { get; set; } = new List<int>();
 
-        public List<SelectListItem>? Lotes { get; set; }
+        //public List<SelectListItem>? Lotes { get; set; }
+        public List<LoteVM>? Lotes { get; set; }
 
         [Required(ErrorMessage = "El tipo de actividad es requerido")]
         [Display(Name = "Tipo de Actividad")]

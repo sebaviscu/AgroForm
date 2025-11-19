@@ -7,7 +7,6 @@
     const $sidebarLogoIcon = $('.sidebar-logo-icon');
     const $sidebarOverlay = $('#sidebarOverlay');
 
-    console.log('Sidebar script loaded - Fixed version');
 
     // Estado inicial - verificar si está en móvil
     function checkMobile() {

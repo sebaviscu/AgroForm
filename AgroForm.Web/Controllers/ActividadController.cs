@@ -79,10 +79,6 @@ namespace AgroForm.Web.Controllers
             {
                 return RedirectToAction("Login", "Access");
             }
-            //catch (Exception ex)
-            //{
-            //    return HandleException(ex, "Error al cargar actividades", "Index");
-            //}
         }
 
 

@@ -51,14 +51,31 @@
                         <div class="col-md-5">
                             <div class="mb-3">
                                 <label for="IdLote" class="form-label">Lotes *</label>
-                                <select class="form-select" id="IdLote" name="IdLote" multiple required>
-                                    @foreach (var tipo in Model.Lotes)
+                                <select class="form-select" id="IdLote" name="IdLote" required>
+                                    @{
+                                        // Agrupar los lotes por Campo.Nombre
+                                        var lotesAgrupados = Model.Lotes.GroupBy(l => l.Campo.Nombre.ToUpper())
+                                        .OrderBy(g => g.Key);
+                                    }
+
+                                    @foreach (var grupo in lotesAgrupados)
                                     {
-                                        <option value="@tipo.Value">
-                                            @tipo.Text
-                                        </option>
+                                        <optgroup label="@grupo.Key">
+                                            @foreach (var tipo in grupo.OrderBy(l => l.Nombre))
+                                            {
+                                                <option value="@tipo.Id"
+                                                        data-superficie-para-sembrar="@tipo.SuperficieHectareas"
+                                                        data-siembra-a-cosechar="@tipo.SiembraACosecharString"
+                                                        data-superficie-sembrada="@tipo.SuperficieSembrada"
+                                                        data-permite-cosechas="@tipo.PermiteCosechas"
+                                                        data-permite-siembra="@tipo.PermiteSiembra">
+                                                    @tipo.Nombre
+                                                </option>
+                                            }
+                                        </optgroup>
                                     }
                                 </select>
+
                                 <div class="invalid-feedback">Por favor seleccione al menos un lote</div>
                             </div>
                         </div>
@@ -68,9 +85,10 @@
                                 <select class="form-select" id="tipoidActividad" name="TipoidActividad" required>
                                     @foreach (var tipo in Model.TiposActividadCompletos)
                                     {
-                                        <option value="@tipo.Id"
+                                        <option class="option-actividad-@tipo.Id" value="@tipo.Id"
                                                 data-icono="@tipo.IconoTipoActividad"
                                                 data-icono-color="@tipo.IconoColorTipoActividad"
+                                                data-id-tipo-actividad="@tipo.IdTipoActividad"
                                                 data-tipo-actividad="@tipo.TipoActividad">
                                             @tipo.TipoActividad
                                         </option>
@@ -78,6 +96,13 @@
                                 </select>
                                 <div class="invalid-feedback">Por favor seleccione un tipo de actividad</div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center">
+                        <div class="mb-3">
+                            <span id="info-cosecha">
+                            </span>
                         </div>
                     </div>
 
@@ -779,7 +804,7 @@
 
                                     <div class="form-check form-switch ms-2">
                                         <input class="form-check-input" type="checkbox" id="switchMonedaCostoGasto">
-                                        <label class="form-check-label" for="switchMonedaCostoGasto">USD</label>
+                                        <label class="form-check-label" for="switchMonedaCostoGasto">ARS</label>
                                     </div>
                                 </div>
                             </div>

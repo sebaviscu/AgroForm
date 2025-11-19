@@ -68,7 +68,7 @@ function inicializarDataTable() {
                 }
             },
             {
-                data: 'observaciones'
+                data: 'observacion'
             },
             {
                 data: 'id',
@@ -175,7 +175,7 @@ function configurarModoEdicion(registroGasto) {
     $('#fechaGasto').val(registroGasto.fecha.split('T')[0]);
     $('#observacionesGasto').val(registroGasto.observacion || '');
     $('#tipoGasto').val(registroGasto.tipoGasto);
-    $('#costoGasto').val(datosEspecificos.costo);
+    $('#costoGasto').val(registroGasto.costo);
     $('#switchMonedaCostoGasto').prop('checked', registroGasto.esDolar).trigger('change');
 
     $('#modalGastoLabel').html('<i class="ph ph-pencil me-2"></i>Editar Registro de Gasto');

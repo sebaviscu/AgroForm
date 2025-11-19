@@ -339,7 +339,7 @@
                 if (!option.id) return option.text;
                 var icono = $(option.element).data('icono');
                 var iconoColor = $(option.element).data('icono-color') || '#000';
-                var tipoActividad = $(option.element).data('tipo-actividad');
+                //var tipoActividad = $(option.element).data('id-tipo-actividad');
 
                 if (icono) {
                     var $span = $('<span></span>');
@@ -398,14 +398,85 @@
 
         loteSelect.select2({
             dropdownParent: $('#modalActividadRapida'),
-            placeholder: 'Seleccione uno o más lotes...',
+            placeholder: 'Seleccione un lote...',
             allowClear: true,
-            multiple: true,
+            //multiple: true,
             width: '100%',
-            closeOnSelect: false
+            closeOnSelect: true
+        });
+
+        loteSelect.val(null).trigger('change');
+
+        loteSelect.on("change", function () {
+            camposEspecificosContainer.empty();
+
+            var selectedOption = $(this).find('option:selected');
+
+            var permiteCosechasString = selectedOption.data('permite-cosechas');
+            var permiteSiembraString = selectedOption.data('permite-siembra');
+
+            var permiteCosechas = permiteCosechasString == "True"
+            var permiteSiembra = permiteSiembraString == "True";
+
+            var siembraACosechar = selectedOption.data('siembra-a-cosechar');
+            var superficieMaxima = parseFloat(selectedOption.data('superficie-sembrada'));
+
+            if (permiteCosechas)
+                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
+            else
+                $('#info-cosecha').text("");
+
+            if (permiteCosechas) {
+                var inputSuperficie = $('#superficieCosechadaHa');
+
+                inputSuperficie.attr('max', superficieMaxima);
+                inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
+                inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
+
+            } else if (permiteSiembra) {
+                var superficieMaximaSembrar = parseFloat(selectedOption.data('superficie-para-sembrar'));
+
+                var inputSuperficieMaxima = $('#superficieHa');
+
+                inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
+                inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieMaximaSembrar} ha`);
+                inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieMaximaSembrar} ha`);
+
+            }
+
+            // HABILITAR/DESHABILITAR OPCIONES DEL SELECT2
+            var selectActividad = $('#tipoidActividad');
+            selectActividad.val(null).trigger('change');
+
+            // Primero habilitar todas las opciones
+            selectActividad.find('option').prop('disabled', false);
+
+            // Deshabilitar siembra (id 2) si no permite siembra
+            if (!permiteSiembra) {
+                selectActividad.find('option[data-id-tipo-actividad="2"]').prop('disabled', true);
+            }
+
+            // Deshabilitar cosecha (id 7) si no permite cosecha
+            if (!permiteCosechas) {
+                selectActividad.find('option[data-id-tipo-actividad="7"]').prop('disabled', true);
+            }
+
+            // Si después de deshabilitar, la opción seleccionada está deshabilitada, limpiar selección
+            var selectedValue = selectActividad.val();
+            if (selectedValue) {
+                var selectedOptionActividad = selectActividad.find('option:selected');
+                if (selectedOptionActividad.prop('disabled')) {
+                    selectActividad.val('').trigger('change');
+                }
+            }
+
+            // Actualizar el select2 para reflejar los cambios
+            selectActividad.trigger('change.select2');
+
+            $('#tipoidActividad').prop('disabled', false);
+
         });
     }
-
 
     // Evento para abrir el modal
     $('#btnAddActividad').on('click', function () {
@@ -418,7 +489,8 @@
         $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
         inicializarSelectConIconos();
         inicializarSelectLotes();
-        $('#tipoidActividad').prop('disabled', false);
+        $('#tipoidActividad').prop('disabled', true);
+
         $('#IdLote').prop('disabled', false);
 
         $('#tipoidActividad').trigger('change.select2');
@@ -712,10 +784,12 @@
             id: esEdicion ? parseInt(gastoId) : 0,
             tipoGasto: parseInt($('#tipoGasto').val()),
             fecha: $('#fechaGasto').val(),
-            observaciones: $('#observacionesGasto').val(),
+            observacion: $('#observacionesGasto').val(),
             costo: parseFloat($('#costoGasto').val()) || 0,
             esDolar: $('#switchMonedaCostoGasto').is(':checked')
         };
+
+        $('#gastoId').val(null);
 
         var submitBtn = $('#formGasto').find('button[type="submit"]');
         var originalText = submitBtn.html();

@@ -4,6 +4,7 @@ namespace AgroForm.Web.Models
 {
     public class ActividadVM : EntityBaseWithLicenciaVM
     {
+        public int IdTipoActividad { get; set; }
         public string TipoActividad { get; set; } = string.Empty;
         public string IconoTipoActividad { get; set; } = string.Empty;
         public string IconoColorTipoActividad { get; set; } = string.Empty;

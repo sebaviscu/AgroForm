@@ -1,18 +1,4 @@
 
-
-
-ALTER TABLE Siembras
-ALTER COLUMN IdMetodoSiembra INT NULL;
-
-
-
-
-
-
-
-
-
-
 CREATE DATABASE AgroForm;
 
 

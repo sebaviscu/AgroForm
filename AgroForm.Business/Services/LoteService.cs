@@ -29,7 +29,11 @@ namespace AgroForm.Business.Services
                 IQueryable<Lote> query = context.Lotes.AsNoTracking();
 
                 query = query.Where(e => e.IdLicencia == _userAuth.IdLicencia);
-                var list = await query.Include(_=>_.Campo).ToListAsync();
+                var list = await query.Include(_ => _.Campo)
+                                        .Include(_ => _.Cosechas)
+                                        .Include(_ => _.Siembras)
+                                            .ThenInclude(_=>_.Cultivo)
+                                        .ToListAsync();
 
                 return OperationResult<List<Lote>>.SuccessResult(list);
             }
