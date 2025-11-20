@@ -18,6 +18,7 @@ namespace AgroForm.Web.Models
 
         public string TipoGastoString => TipoGasto.ToString();
         public bool EsDolar { get; set; }
+        public bool EsDolarEdit => IdMoneda == (int)Monedas.Dolar;
 
     }
 }

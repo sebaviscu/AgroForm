@@ -16,16 +16,21 @@ function cargarDatosGastosIndex() {
         type: 'GET',
         dataType: 'json',
         success: function (response) {
+            $('#loadingTabla1').hide();
+            $('#loadingTabla2').hide();
+            $('#loadingTabla3').hide();
             if (response.success) {
                 datosGastosIndex = response.listObject;
                 actualizarEstadisticas();
-                // Inicializar gráficos solo si no están inicializados
                 if (!graficoTorta || !graficoBarras) {
                     inicializarGraficos();
                 }
             }
         },
         error: function () {
+            $('#loadingTabla1').hide();
+            $('#loadingTabla2').hide();
+            $('#loadingTabla3').hide();
             console.error('Error al cargar datos de gastos para índices');
         }
     });
@@ -478,11 +483,18 @@ function abrirModalParaEdicion(registroGasto) {
 }
 
 function configurarModoEdicion(registroGasto) {
+
+    $("#switchMonedaCostoGasto").on("change", function () {
+        const esUSD = $(this).is(":checked");
+        $("#labelMonedaCostoGasto").text(esUSD ? "US$" : "$");
+        $(this).next("label").text(esUSD ? "USD" : "ARS");
+    });
+
     $('#fechaGasto').val(registroGasto.fecha.split('T')[0]);
     $('#observacionesGasto').val(registroGasto.observacion || '');
     $('#tipoGasto').val(registroGasto.tipoGasto);
     $('#costoGasto').val(registroGasto.costo);
-    $('#switchMonedaCostoGasto').prop('checked', registroGasto.esDolar).trigger('change');
+    $('#switchMonedaCostoGasto').prop('checked', registroGasto.esDolarEdit).trigger('change');
     $('#modalGastoLabel').html('<i class="ph ph-pencil me-2"></i>Editar Registro de Gasto');
     $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
 }

@@ -1,16 +1,11 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
 using AgroForm.Model;
-using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
-using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using static AgroForm.Model.EnumClass;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AgroForm.Web.Controllers
 {
@@ -45,6 +40,21 @@ namespace AgroForm.Web.Controllers
 
             return await base.Create(dto);
         }
+
+        public override async Task<IActionResult> Update([FromBody] GastoVM dto)
+        {
+            var user = ValidarAutorizacion(new[] { Roles.Administrador });
+
+            var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
+
+            dto.CostoARS = UtilidadService.CalcularCostoARS(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
+            dto.CostoUSD = UtilidadService.CalcularCostoUSD(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
+            dto.IdMoneda = dto.EsDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
+            dto.CampaniaId = user.IdCampaña;
+
+            return await base.Update(dto);
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> GetGatosIndex()

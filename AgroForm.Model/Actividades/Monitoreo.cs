@@ -7,7 +7,7 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model.Actividades
 {
-    public class Monitoreo : EntityBaseWithLicencia, ILabor
+    public class Monitoreo : EntityBaseWithLicencia, ILabor, IEntityBaseWithCampania, IEntityBaseWithMoneda
     {
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; } = string.Empty;

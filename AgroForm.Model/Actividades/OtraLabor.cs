@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model.Actividades
 {
-    public class OtraLabor : EntityBaseWithLicencia, ILabor
+    public class OtraLabor : EntityBaseWithLicencia, ILabor, IEntityBaseWithCampania, IEntityBaseWithMoneda
     {
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; } = string.Empty;

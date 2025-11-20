@@ -1,5 +1,6 @@
 ﻿using AgroForm.Model;
 using AgroForm.Model.Actividades;
+using AlbaServicios.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface IEstadoFenologicoService : IServiceBase<EstadoFenologico>
     {
+        Task<OperationResult<List<EstadoFenologico>>> GetFenologicosByCultivoAsync(int idCultivo);
     }
 }

@@ -22,4 +22,14 @@ namespace AgroForm.Model
     {
         public int IdLicencia { get; set; }
     }
+
+    public interface IEntityBaseWithCampania
+    {
+        int IdCampania { get; set; }
+    }
+
+    public interface IEntityBaseWithMoneda
+    {
+        int IdMoneda { get; set; }
+    }
 }

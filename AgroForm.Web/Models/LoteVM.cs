@@ -11,6 +11,8 @@ namespace AgroForm.Web.Models
         public int idCampo { get; set; }
         public CampoVM? Campo { get; set; }
 
+        public int? IdCultivo => SiembraACosechar != null ? SiembraACosechar.IdCultivo : null;
+
         public List<SiembraVM> Siembras { get; set; } = new();
         public List<CosechaVM> Cosechas { get; set; } = new();
 

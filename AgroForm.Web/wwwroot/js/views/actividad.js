@@ -104,12 +104,12 @@ function eliminarActividad(id, idTipoActividad) {
 }
 
 // Evento para editar actividad desde la grilla
-$(document).on('click', '.btn-edit-actividad', function () {
-    var id = $(this).data('id');
-    var idTipoActividad = $(this).data('idtipoactividad');
+//$(document).on('click', '.btn-edit-actividad', function () {
+//    var id = $(this).data('id');
+//    var idTipoActividad = $(this).data('idtipoactividad');
 
-    cargarActividadParaEditar(id, idTipoActividad);
-});
+//    cargarActividadParaEditar(id, idTipoActividad);
+//});
 
 // Función para cargar los datos de la actividad a editar
 function cargarActividadParaEditar(id, idTipoActividad) {
@@ -118,7 +118,7 @@ function cargarActividadParaEditar(id, idTipoActividad) {
         type: 'GET',
         success: function (result) {
             if (result.success) {
-                abrirModalParaEdicion(result.object, result.object.tipoActividad.nombre);
+                abrirModalParaEdicionActividad(result.object, result.object.tipoActividad.nombre);
             } else {
                 mostrarMensaje('Error al cargar la actividad: ' + result.message, 'error');
             }
@@ -130,48 +130,41 @@ function cargarActividadParaEditar(id, idTipoActividad) {
 }
 
 // Función para abrir el modal y cargar los datos
-function abrirModalParaEdicion(actividad, tipoActividadNombre) {
+function abrirModalParaEdicionActividad(actividad, tipoActividadNombre) {
     // Abrir el modal
     $('#modalActividadRapida').modal('show');
 
     // Esperar a que el modal esté completamente visible
     $('#modalActividadRapida').one('shown.bs.modal', function () {
-        $('#actividadId').val(null)
         // Configurar modo edición
-        configurarModoEdicion(actividad, tipoActividadNombre);
+        configurarModoEdicionActividad(actividad, tipoActividadNombre);
     });
 }
 
 // Función para configurar el modal en modo edición
-function configurarModoEdicion(actividad, tipoActividadNombre) {
-    // 1. Cambiar el título del modal
+function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
     $('#modalActividadRapidaLabel').html('<i class="ph ph-pencil me-2"></i>Editar Labor');
 
-    // 2. Cargar datos básicos
     $('#fecha').val(actividad.fecha.split('T')[0]); // Formatear fecha
     $('#observacion').val(actividad.observacion || '');
 
-    // 3. Seleccionar el tipo de actividad (pero bloquearlo)
-    $('#tipoidActividad').val(actividad.idTipoActividad).trigger('change');
-    $('#tipoidActividad').prop('disabled', true);
-
-    // 4. Seleccionar los lotes (pero bloquearlos)
     if (actividad.idLote) {
         $('#IdLote').val(actividad.idLote).trigger('change');
     }
     $('#IdLote').prop('disabled', true);
 
-    // 5. Cargar campos específicos después de que se cargue el template
+    $('#tipoidActividad').val(actividad.idTipoActividad).trigger('change');
 
-    setTimeout(function () {
-        cargarDatosEspecificosEditar(actividad, tipoActividadNombre);
+    $('#tipoidActividad').prop('disabled', true);
+
+    // esperamos a que carguen todos los select2
+    setTimeout(() => {
+        cargarDatosEspecificosEditar(actividad, actividad.idTipoActividad);
         cerrarAlertas();
-    }, 500);
+    }, 600);
 
-    // 6. Cambiar el texto del botón de guardar
     $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar Labor');
 
-    // 7. Agregar hidden field para el ID de la actividad
     if (!$('#actividadId').length) {
         $('<input>').attr({
             type: 'hidden',
@@ -185,10 +178,9 @@ function configurarModoEdicion(actividad, tipoActividadNombre) {
 
 // Función para cargar datos específicos según el tipo de actividad
 async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
-    if (!datosEspecificos) return;
 
     switch (tipoActividadNombre) {
-        case 'Siembra':
+        case 2:
             if (datosEspecificos.superficieHa != null) $('#superficieHa').val(datosEspecificos.superficieHa);
             if (datosEspecificos.densidadSemillaKgHa != null) $('#densidadSemillaKgHa').val(datosEspecificos.densidadSemillaKgHa);
             if (datosEspecificos.costo != null) $('#costoSiembra').val(datosEspecificos.costo);
@@ -197,19 +189,18 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.idMetodoSiembra != null) $('#idMetodoSiembra').val(datosEspecificos.idMetodoSiembra).trigger('change');
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
-            let promise = Promise.resolve();
-
             if (datosEspecificos.idCultivo != null) {
                 await setSelect2WhenReady('#idCultivo', datosEspecificos.idCultivo);
             }
 
             if (datosEspecificos.idVariedad != null) {
-                await setSelect2WhenReady('#idVariedad', datosEspecificos.idVariedad);
+                setTimeout(() => {
+                    if (datosEspecificos.idVariedad != null) $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change');
+                }, 500);
             }
-
             break;
 
-        case 'Riego':
+        case 5:
             if (datosEspecificos.horasRiego != null) $('#horasRiego').val(datosEspecificos.horasRiego);
             if (datosEspecificos.volumenAguaM3 != null) $('#volumenAguaM3').val(datosEspecificos.volumenAguaM3);
             if (datosEspecificos.costo != null) $('#costoRiegoTotal').val(datosEspecificos.costo);
@@ -218,7 +209,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoRiego').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 'Fertilizado':
+        case 4:
             if (datosEspecificos.cantidadKgHa != null) $('#cantidadKgHa').val(datosEspecificos.cantidadKgHa);
             if (datosEspecificos.dosisKgHa != null) $('#dosisKgHa').val(datosEspecificos.dosisKgHa);
             if (datosEspecificos.costo != null) $('#costoFertilizado').val(datosEspecificos.costo);
@@ -228,7 +219,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoFertilizacion').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 'Pulverizacion':
+        case 3:
             if (datosEspecificos.volumenLitrosHa != null) $('#volumenLitrosHa').val(datosEspecificos.volumenLitrosHa);
             if (datosEspecificos.dosis != null) $('#dosisPulverizacion').val(datosEspecificos.dosis);
             if (datosEspecificos.condicionesClimaticas != null) $('#condicionesClimaticas').val(datosEspecificos.condicionesClimaticas);
@@ -237,17 +228,15 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoPulverizacion').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 'Monitoreo':
+        case 6:
             if (datosEspecificos.idMonitoreo != null) $('#idMonitoreo').val(datosEspecificos.idMonitoreo).trigger('change');
-            setTimeout(function () {
-                if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
-            }, 500);
+            if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
             if (datosEspecificos.idEstadoFenologico != null) $('#idEstadoFenologico').val(datosEspecificos.idEstadoFenologico).trigger('change');
             if (datosEspecificos.costo != null) $('#costoMonitoreoTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoMonitoreo').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 'AnalisisSuelo':
+        case 1:
             if (datosEspecificos.profundidadCm != null) $('#profundidadCm').val(datosEspecificos.profundidadCm);
             if (datosEspecificos.ph != null) $('#ph').val(datosEspecificos.ph);
             if (datosEspecificos.materiaOrganica != null) $('#materiaOrganica').val(datosEspecificos.materiaOrganica);
@@ -262,7 +251,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoAnalisisSuelo').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 'Cosecha':
+        case 7:
             if (datosEspecificos.rendimientoTonHa != null) $('#rendimientoTonHa').val(datosEspecificos.rendimientoTonHa);
             if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
             if (datosEspecificos.superficieCosechadaHa != null) $('#superficieCosechadaHa').val(datosEspecificos.superficieCosechadaHa);
@@ -276,7 +265,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
 
             break;
 
-        case 'OtraLabor':
+        case 8:
             if (datosEspecificos.costo != null) $('#costoOtraLaborTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoOtraLabor').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
@@ -296,22 +285,6 @@ function cambiarMoneda() {
     document.querySelectorAll('.valor-usd').forEach(el => {
         el.style.display = monedaActual === 'USD' ? 'inline' : 'none';
     });
-
-    //// Actualizar DataTables para el ordenamiento
-    //if ($.fn.DataTable.isDataTable('#tblTuTabla')) {
-    //    const table = $('#tblTuTabla').DataTable();
-    //    const columnIndex = 3; // Índice de la columna de costo
-
-    //    // Actualizar el atributo data-order según la moneda
-    //    table.column(columnIndex).nodes().to$().each(function () {
-    //        const orderValue = monedaActual === 'ARS'
-    //            ? $(this).data('order-ars')
-    //            : $(this).data('order-usd');
-    //        $(this).attr('data-order', orderValue);
-    //    });
-
-    //    table.draw();
-    //}
 }
 
 function setSelect2WhenReady(selector, value) {

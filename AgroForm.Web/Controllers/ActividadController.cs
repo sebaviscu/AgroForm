@@ -102,10 +102,10 @@ namespace AgroForm.Web.Controllers
 
                 var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
 
-                await _service.UpdateActividadAsync(actividad);
+                var result = await _service.UpdateActividadAsync(actividad);
 
-                gResponse.Success = true;
-                gResponse.Message = "Labor editada correctamente";
+                gResponse.Success = result.Success;
+                gResponse.Message = result.ErrorMessage;
 
                 return Ok(gResponse);
             }

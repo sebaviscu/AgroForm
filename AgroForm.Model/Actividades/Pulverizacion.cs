@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model.Actividades
 {
-    public class Pulverizacion : EntityBaseWithLicencia, ILabor
+    public class Pulverizacion : EntityBaseWithLicencia, ILabor, IEntityBaseWithCampania, IEntityBaseWithMoneda
     {
 
         public DateTime Fecha { get; set; }

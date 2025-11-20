@@ -15,5 +15,20 @@ namespace AgroForm.Business.Services
         {
 
         }
+
+        public async Task<OperationResult<List<EstadoFenologico>>> GetFenologicosByCultivoAsync(int idCultivo)
+        {
+            try
+            {
+                var list = await base.GetQuery().Where(_ => _.IdCultivo == idCultivo).ToListAsync();
+
+                return OperationResult<List<EstadoFenologico>>.SuccessResult(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener Fenologicos por Cultivo");
+                return OperationResult<List<EstadoFenologico>>.Failure("Error al obtener Fenologicos por Cultivo");
+            }
+        }
     }
 }

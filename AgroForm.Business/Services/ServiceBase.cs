@@ -244,6 +244,16 @@ namespace AlbaServicios.Services
                 if (entity is EntityBaseWithLicencia entidadConLicencia && original is EntityBaseWithLicencia originalConLicencia)
                     entidadConLicencia.IdLicencia = originalConLicencia.IdLicencia;
 
+                if (entity is IEntityBaseWithCampania entidadConCampania && original is IEntityBaseWithCampania originalConCampania)
+                {
+                    entidadConCampania.IdCampania = originalConCampania.IdCampania;
+                }
+
+                if (entity is IEntityBaseWithMoneda entidadConMoneda && original is IEntityBaseWithMoneda originalConMoneda)
+                {
+                    entidadConMoneda.IdMoneda = originalConMoneda.IdMoneda;
+                }
+
                 context.Entry(original).CurrentValues.SetValues(entity);
 
                 original.ModificationDate = TimeHelper.GetArgentinaTime();

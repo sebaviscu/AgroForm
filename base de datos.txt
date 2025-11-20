@@ -1,4 +1,13 @@
 
+ALTER TABLE Fertilizaciones
+ALTER COLUMN IdMetodoAplicacion INT NULL;
+
+
+AGREGAR NUEVOS Estados Fenológicos
+
+
+-----------------------------------------------------
+
 CREATE DATABASE AgroForm;
 
 

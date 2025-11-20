@@ -5,6 +5,7 @@
     var loteSelect = $('#IdLote');
     var tipoActividadSelect = $('#tipoidActividad');
     var camposEspecificosContainer = $('#camposEspecificos');
+    var idCultivoSembrado = null;
 
     // Mapeo de tipos de actividad a sus templates
     var tipoActividadTemplates = {
@@ -29,7 +30,7 @@
             camposEspecificosContainer.html(template);
 
             // Inicializar Select2 para los nuevos selects
-            setTimeout(function () {
+            //setTimeout(function () {
                 $('.form-select', camposEspecificosContainer).each(function () {
                     if (!$(this).hasClass('select2-hidden-accessible')) {
                         $(this).select2({
@@ -38,7 +39,7 @@
                         });
                     }
                 });
-            }, 100);
+            //}, 100);
         }
     }
 
@@ -76,7 +77,7 @@
                 cargarSwitchMoneda("switchMonedaCostoPulverizacion", "labelMonedaCostoPulverizacion");
                 break;
             case 'Monitoreo':
-                //cargarEstadosFenologicos();
+                cargarEstadosFenologicos();
                 cargarSwitchMoneda("switchMonedaCostoMonitoreo", "labelMonedaCostoMonitoreo");
                 break;
             case 'Analisis de suelo':
@@ -140,8 +141,11 @@
 
     // FUNCIÓN: Cargar estados fenológicos
     function cargarEstadosFenologicos() {
+        if (idCultivoSembrado === null)
+            return;
+
         $.ajax({
-            url: '/EstadoFenologico/GetAll',
+            url: '/EstadoFenologico/GetByCultivo/' + idCultivoSembrado,
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {
@@ -167,7 +171,7 @@
         if (cultivoId) {
             cargarVariedades(cultivoId);
         } else {
-            $('#idVariedad').empty().val(null).trigger('change');
+            //$('#idVariedad').empty().val(null).trigger('change');
         }
     });
 
@@ -323,72 +327,65 @@
 
     // MODIFICADA: Inicializar Select2 para tipo de actividad
     function inicializarSelectConIconos() {
-        // Destruir select2 existente si hay uno
-        if ($('#tipoidActividad').hasClass('select2-hidden-accessible')) {
-            $('#tipoidActividad').select2('destroy');
-        }
-
         var tipoActividadSelect = $('#tipoidActividad');
 
-        // Primero, asegurarnos de que el select esté visible
+        // Solo inicializar si no existe
+        if (!tipoActividadSelect.hasClass('select2-hidden-accessible')) {
+            tipoActividadSelect.select2({
+                dropdownParent: $('#modalActividadRapida'),
+                templateResult: function (option) {
+                    if (!option.id) return option.text;
+                    var icono = $(option.element).data('icono');
+                    var iconoColor = $(option.element).data('icono-color') || '#000';
+
+                    if (icono) {
+                        var $span = $('<span></span>');
+                        $span.append($('<i></i>', {
+                            class: 'ph ' + icono + ' me-2',
+                            style: 'color: ' + iconoColor
+                        }));
+                        $span.append(option.text);
+                        return $span;
+                    }
+                    return option.text;
+                },
+                templateSelection: function (option) {
+                    var icono = $(option.element).data('icono');
+                    var iconoColor = $(option.element).data('icono-color') || '#000';
+
+                    if (icono && option.id) {
+                        var $span = $('<span></span>');
+                        $span.append($('<i></i>', {
+                            class: 'ph ' + icono + ' me-2',
+                            style: 'color: ' + iconoColor
+                        }));
+                        $span.append(option.text);
+                        return $span;
+                    }
+                    return option.text;
+                },
+                escapeMarkup: function (markup) { return markup; },
+                width: '100%',
+                placeholder: 'Seleccione un tipo...',
+                allowClear: false
+            });
+
+            // El evento change solo se asigna una vez
+            tipoActividadSelect.off('change.selectActividad').on('change.selectActividad', function () {
+                var selectedOption = $(this).find('option:selected');
+                var tipoActividadNombre = selectedOption.data('tipo-actividad');
+
+                if (tipoActividadNombre) {
+                    cargarCamposEspecificos(tipoActividadNombre);
+                    cargarDatosParaSelects(tipoActividadNombre);
+                } else {
+                    camposEspecificosContainer.empty();
+                }
+            });
+        }
+
+        // Asegurarse de que esté visible
         tipoActividadSelect.show();
-
-        tipoActividadSelect.select2({
-            dropdownParent: $('#modalActividadRapida'), // IMPORTANTE: Referencia al modal
-            templateResult: function (option) {
-                if (!option.id) return option.text;
-                var icono = $(option.element).data('icono');
-                var iconoColor = $(option.element).data('icono-color') || '#000';
-                //var tipoActividad = $(option.element).data('id-tipo-actividad');
-
-                if (icono) {
-                    var $span = $('<span></span>');
-                    $span.append($('<i></i>', {
-                        class: 'ph ' + icono + ' me-2',
-                        style: 'color: ' + iconoColor
-                    }));
-                    $span.append(option.text);
-                    return $span;
-                }
-                return option.text;
-            },
-            templateSelection: function (option) {
-                var icono = $(option.element).data('icono');
-                var iconoColor = $(option.element).data('icono-color') || '#000';
-
-                if (icono && option.id) {
-                    var $span = $('<span></span>');
-                    $span.append($('<i></i>', {
-                        class: 'ph ' + icono + ' me-2',
-                        style: 'color: ' + iconoColor
-                    }));
-                    $span.append(option.text);
-                    return $span;
-                }
-                return option.text;
-            },
-            escapeMarkup: function (markup) { return markup; },
-            width: '100%',
-            placeholder: 'Seleccione un tipo...',
-            allowClear: false
-        });
-
-        // **CORRECCIÓN: Usar el evento change de Select2 correctamente**
-        tipoActividadSelect.on('change', function () {
-
-            var selectedOption = $(this).find('option:selected');
-            var tipoActividadNombre = selectedOption.data('tipo-actividad');
-
-            if (tipoActividadNombre) {
-                cargarCamposEspecificos(tipoActividadNombre);
-                cargarDatosParaSelects(tipoActividadNombre);
-            } else {
-                camposEspecificosContainer.empty();
-            }
-        });
-
-        // Inicialmente limpiar campos específicos
-        camposEspecificosContainer.empty();
     }
 
     function inicializarSelectLotes() {
@@ -433,9 +430,10 @@
                 inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
                 inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
 
+                idCultivoSembrado = parseInt(selectedOption.data('id-cultivo'));
+
             } else if (permiteSiembra) {
                 var superficieMaximaSembrar = parseFloat(selectedOption.data('superficie-para-sembrar'));
-
                 var inputSuperficieMaxima = $('#superficieHa');
 
                 inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
@@ -561,6 +559,12 @@
                     errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
+
+            case 'Monitoreo':
+                if (!$('#idTipoMonitoreo').val()) {
+                    errorMessage = 'Debe seleccionar un tipo de monitoreo';
+                    isValid = false;
+                }
                 break;
         }
         if (!isValid)
@@ -576,6 +580,8 @@
     });
     // Resetear formulario cuando se cierra el modal
     $('#modalActividadRapida').on('hidden.bs.modal', function () {
+        $('#actividadId').val(null)
+
         form[0].reset();
         cantidadInput.prop('disabled', true);
         unidadMedidaText.text('-').addClass('text-muted');
@@ -596,7 +602,10 @@
     // MODIFICADA: Función guardar actividad
     function guardarActividad() {
         var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
-        var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
+        //var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
+
+        var idTipoActividadNombre = tipoActividadSelect.find('option:selected').data('id-tipo-actividad');
+        var dataEspecifica = obtenerDatosEspecificos(idTipoActividadNombre);
 
         var actividadId = $('#actividadId').val();
         var esEdicion = actividadId && actividadId > 0;
@@ -659,7 +668,8 @@
         var datos = {};
 
         switch (tipoActividadNombre) {
-            case 'Siembra':
+            //case 'Siembra':
+            case 2:
                 datos = {
                     SuperficieHa: parseFloat($('#superficieHa').val()) || 0,
                     DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
@@ -671,7 +681,8 @@
                 };
                 break;
 
-            case 'Riego':
+            //case 'Riego':
+            case 5:
                 datos = {
                     HorasRiego: parseFloat($('#horasRiego').val()) || 0,
                     VolumenAguaM3: parseFloat($('#volumenAguaM3').val()) || 0,
@@ -682,7 +693,8 @@
                 };
                 break;
 
-            case 'Fertilizado':
+            //case 'Fertilizado':
+            case 4:
                 datos = {
                     CantidadKgHa: parseFloat($('#cantidadKgHa').val()) || 0,
                     DosisKgHa: parseFloat($('#dosisKgHa').val()) || 0,
@@ -694,7 +706,8 @@
                 };
                 break;
 
-            case 'Pulverizacion':
+            //case 'Pulverizacion':
+            case 3:
                 datos = {
                     VolumenLitrosHa: parseFloat($('#volumenLitrosHa').val()) || 0,
                     Dosis: parseFloat($('#dosisPulverizacion').val()) || 0,
@@ -705,7 +718,8 @@
                 };
                 break;
 
-            case 'Monitoreo':
+            //case 'Monitoreo':
+            case 6:
                 datos = {
                     IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
                     IdMonitoreo: parseInt($('#idMonitoreo').val()),
@@ -715,7 +729,8 @@
                 };
                 break;
 
-            case 'AnalisisSuelo':
+            //case 'AnalisisSuelo':
+            case 1:
                 datos = {
                     ProfundidadCm: $('#profundidadCm').val() ? parseFloat($('#profundidadCm').val()) : null,
                     PH: $('#ph').val() ? parseFloat($('#ph').val()) : null,
@@ -732,7 +747,8 @@
                 };
                 break;
 
-            case 'Cosecha':
+            //case 'Cosecha':
+            case 7:
                 datos = {
                     RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
                     HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
@@ -743,7 +759,8 @@
                 };
                 break;
 
-            case 'OtraLabor':
+            //case 'OtraLabor':
+            case 8:
                 datos = {
                     Costo: parseFloat($('#costoOtraLaborTotal').val()) || 0,
                     EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')

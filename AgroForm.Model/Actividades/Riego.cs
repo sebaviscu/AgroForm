@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model.Actividades
 {
-    public class Riego : EntityBaseWithLicencia, ILabor
+    public class Riego : EntityBaseWithLicencia, ILabor, IEntityBaseWithCampania, IEntityBaseWithMoneda
     {
         public decimal? Costo { get; set; }
         public decimal? CostoARS { get; set; }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model.Actividades
 {
-    public class Cosecha : EntityBaseWithLicencia, ILabor
+    public class Cosecha : EntityBaseWithLicencia, ILabor, IEntityBaseWithCampania, IEntityBaseWithMoneda
     {
 
         public DateTime Fecha { get; set; }
