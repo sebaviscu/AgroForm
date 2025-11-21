@@ -35,8 +35,8 @@ namespace AgroForm.Web.Controllers
 
             dto.CostoARS = UtilidadService.CalcularCostoARS(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.CostoUSD = UtilidadService.CalcularCostoUSD(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
-            dto.IdMoneda = dto.EsDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
-            dto.CampaniaId = user.IdCampaña;
+            dto.IdMoneda = dto.EsDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
+            dto.IdCampania = user.IdCampaña;
 
             return await base.Create(dto);
         }
@@ -49,8 +49,8 @@ namespace AgroForm.Web.Controllers
 
             dto.CostoARS = UtilidadService.CalcularCostoARS(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.CostoUSD = UtilidadService.CalcularCostoUSD(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
-            dto.IdMoneda = dto.EsDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
-            dto.CampaniaId = user.IdCampaña;
+            dto.IdMoneda = dto.EsDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
+            dto.IdCampania = user.IdCampaña;
 
             return await base.Update(dto);
         }

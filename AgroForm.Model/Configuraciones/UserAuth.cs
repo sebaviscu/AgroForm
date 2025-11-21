@@ -12,6 +12,7 @@ namespace AgroForm.Model.Configuracion
         public int IdUsuario { get; set; }
         public int IdLicencia { get; set; }
         public int IdCampaña { get; set; }
+        public Monedas Moneda { get; set; }
         public Roles IdRol { get; set; }
         public string UserName { get; set; } = string.Empty;
         public bool Result { get; set; }

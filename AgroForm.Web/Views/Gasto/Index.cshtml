@@ -11,7 +11,7 @@
             </h1>
         </div>
         <div class="">
-            <div class="ms-3">
+            <div class="d-flex justify-content-around gap-3" style="align-items: center;">
                 <label for="selectorMoneda" class="form-label fw-semibold">Moneda:</label>
                 <select class="form-select" id="selectorMoneda" onchange="cambiarMoneda()">
                     <option value="ARS">Pesos (ARS)</option>
@@ -42,12 +42,12 @@
                         </div>
 
                         <table class="table table-sm table-hover" id="tablaResumenGastos">
-                            <thead class="table-light sticky-top">
+@*                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th>Tipo</th>
                                     <th class="text-end">Total</th>
                                 </tr>
-                            </thead>
+                            </thead> *@
                             <tbody id="tbodyResumenGastos">
                             </tbody>
                         </table>

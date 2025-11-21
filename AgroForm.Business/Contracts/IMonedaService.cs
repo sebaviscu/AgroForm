@@ -1,4 +1,5 @@
-﻿using AgroForm.Model;
+﻿using AgroForm.Business.Externos.DolarApi;
+using AgroForm.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace AgroForm.Business.Contracts
     public interface IMonedaService : IServiceBase<Moneda>
     {
         Task<Moneda> ObtenerTipoCambioActualAsync();
+        Task<bool> ActualizarMonedasCotizacionAsync(List<DolarInfo> dolarInfos);
     }
 }

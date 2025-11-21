@@ -115,7 +115,7 @@ namespace AgroForm.Business.Services
                         IdLote = s.IdLote,
                         Lote = s.Lote.Nombre,
                         Campo = s.Lote.Campo.Nombre,
-                        EsDolar = s.IdMoneda == (int)Monedas.Dolar
+                        EsDolar = s.IdMoneda == (int)Monedas.DolarOficial
                     }).ToListAsync();
                 labores.AddRange(siembras);
             }
@@ -145,7 +145,7 @@ namespace AgroForm.Business.Services
                     IdLote = r.IdLote,
                     Lote = r.Lote.Nombre,
                     Campo = r.Lote.Campo.Nombre,
-                    EsDolar = r.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = r.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(riegos);
             }
@@ -175,7 +175,7 @@ namespace AgroForm.Business.Services
                     IdLote = f.IdLote,
                     Lote = f.Lote.Nombre,
                     Campo = f.Lote.Campo.Nombre,
-                    EsDolar = f.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = f.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(fertilizaciones);
             }
@@ -205,7 +205,7 @@ namespace AgroForm.Business.Services
                     IdLote = p.IdLote,
                     Lote = p.Lote.Nombre,
                     Campo = p.Lote.Campo.Nombre,
-                    EsDolar = p.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = p.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(pulverizaciones);
             }
@@ -235,7 +235,7 @@ namespace AgroForm.Business.Services
                     IdLote = m.IdLote,
                     Lote = m.Lote.Nombre,
                     Campo = m.Lote.Campo.Nombre,
-                    EsDolar = m.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = m.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(monitoreos);
             }
@@ -265,7 +265,7 @@ namespace AgroForm.Business.Services
                     IdLote = c.IdLote,
                     Lote = c.Lote.Nombre,
                     Campo = c.Lote.Campo.Nombre,
-                    EsDolar = c.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = c.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(cosechas);
             }
@@ -295,7 +295,7 @@ namespace AgroForm.Business.Services
                     IdLote = a.IdLote,
                     Lote = a.Lote.Nombre,
                     Campo = a.Lote.Campo.Nombre,
-                    EsDolar = a.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = a.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(analisis);
             }
@@ -325,7 +325,7 @@ namespace AgroForm.Business.Services
                     IdLote = o.IdLote,
                     Lote = o.Lote.Nombre,
                     Campo = o.Lote.Campo.Nombre,
-                    EsDolar = o.IdMoneda == (int)Monedas.Dolar
+                    EsDolar = o.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
                 labores.AddRange(otras);
             }

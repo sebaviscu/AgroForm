@@ -9,7 +9,7 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model
 {
-    public class Gasto : EntityBaseWithLicencia, IEntityBaseWithMoneda
+    public class Gasto : EntityBaseWithLicencia, IEntityBaseWithMoneda, IEntityBaseWithCampania
     {
         public TipoGastoEnum TipoGasto { get; set; }
         public string Observacion { get; set; } = string.Empty;
@@ -21,7 +21,7 @@ namespace AgroForm.Model
         public int IdMoneda { get; set; }
         public Moneda? Moneda { get; set; }
 
-        public int CampaniaId { get; set; }
+        public int IdCampania { get; set; }
         public Campania? Campania { get; set; }
 
     }

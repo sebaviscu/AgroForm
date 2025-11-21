@@ -20,7 +20,7 @@ namespace AgroForm.Model
         public enum Monedas
         {
             Peso = 1,
-            Dolar = 2
+            DolarOficial = 2
         }
 
         public enum EstadosCamapaña

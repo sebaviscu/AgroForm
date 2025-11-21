@@ -3,11 +3,9 @@ using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Model.Configuracion;
-using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
 using AutoMapper;
-using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,7 +18,6 @@ namespace AgroForm.Web.Controllers
     public class ActividadController : Controller
     {
         private readonly ICampoService _campoService;
-        private readonly ILoteService _loteService;
         protected readonly ILogger<ActividadController> _logger;
         protected readonly IMapper _mapper;
         protected readonly IActividadService _service;
@@ -28,13 +25,12 @@ namespace AgroForm.Web.Controllers
         private readonly ICampaniaService _campaniaService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, ILoteService loteService, IMonedaService monedaService, ICampaniaService campaniaService)
+        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService)
         {
             _logger = logger;
             _mapper = mapper;
             _service = service;
             _campoService = campoService;
-            _loteService = loteService;
             _monedaService = monedaService;
             _campaniaService = campaniaService;
         }
@@ -220,7 +216,7 @@ namespace AgroForm.Web.Controllers
             actividad.RegistrationUser = user.UserName;
             actividad.IdLicencia = user.IdLicencia;
             actividad.Costo = model.DatosEspecificos?.Costo;
-            actividad.IdMoneda = esDolar ? (int)Monedas.Dolar : (int)Monedas.Peso;
+            actividad.IdMoneda = esDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
             actividad.Fecha = model.Fecha;
             actividad.IdTipoActividad = model.TipoidActividad;
             actividad.Observacion = model.Observacion ?? string.Empty;

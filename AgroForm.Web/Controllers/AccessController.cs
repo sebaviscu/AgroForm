@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
@@ -61,7 +62,8 @@ namespace AgroForm.Web.Controllers
                     new Claim(ClaimTypes.Name, "Desarrollador"),
                     new Claim("Licencia", "1"),
                     new Claim("Campania", campaniaDev.Data?.Id.ToString() ?? "1"),
-                    new Claim(ClaimTypes.Role, "0")
+                    new Claim(ClaimTypes.Role, "0"),
+                    new Claim("Moneda", ((int)Monedas.DolarOficial).ToString()),
                 };
         
                 await CreateAuthenticationCookie(devClaims, true);

@@ -574,7 +574,7 @@ namespace AgroForm.Data.DBContext
 
                 entity.HasOne(e => e.Campania)
                     .WithMany()
-                    .HasForeignKey(e => e.CampaniaId)
+                    .HasForeignKey(e => e.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
 
             });

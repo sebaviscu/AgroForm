@@ -31,14 +31,14 @@
 
             // Inicializar Select2 para los nuevos selects
             //setTimeout(function () {
-                $('.form-select', camposEspecificosContainer).each(function () {
-                    if (!$(this).hasClass('select2-hidden-accessible')) {
-                        $(this).select2({
-                            dropdownParent: $('#modalActividadRapida'),
-                            width: '100%'
-                        });
-                    }
-                });
+            $('.form-select', camposEspecificosContainer).each(function () {
+                if (!$(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2({
+                        dropdownParent: $('#modalActividadRapida'),
+                        width: '100%'
+                    });
+                }
+            });
             //}, 100);
         }
     }
@@ -60,6 +60,9 @@
             case 'Cosecha':
                 cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
+                setTimeout(function () {
+                    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
+                }, 500);
                 break;
             case 'Riego':
                 cargarCatalogos(31, 'MetodoRiego');
@@ -432,6 +435,10 @@
 
                 idCultivoSembrado = parseInt(selectedOption.data('id-cultivo'));
 
+                //setTimeout(function () {
+                //    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
+                //}, 500);
+
             } else if (permiteSiembra) {
                 var superficieMaximaSembrar = parseFloat(selectedOption.data('superficie-para-sembrar'));
                 var inputSuperficieMaxima = $('#superficieHa');
@@ -444,7 +451,7 @@
 
             // HABILITAR/DESHABILITAR OPCIONES DEL SELECT2
             var selectActividad = $('#tipoidActividad');
-            selectActividad.val(null).trigger('change');
+            selectActividad.val('').trigger('change');
 
             // Primero habilitar todas las opciones
             selectActividad.find('option').prop('disabled', false);
@@ -501,7 +508,6 @@
         // Validar campos requeridos base
         var fechaVal = $('#fecha').val();
         var lotesVal = loteSelect.val();
-        var tipoActividadVal = tipoActividadSelect.val();
 
         if (!fechaVal) {
             $('#fecha').addClass('is-invalid');
@@ -518,14 +524,6 @@
             return;
         } else {
             loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-        }
-
-        if (!tipoActividadVal) {
-            tipoActividadSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
-            e.stopPropagation();
-            return;
-        } else {
-            tipoActividadSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
         }
 
         // Validar campos específicos según tipo de actividad
@@ -552,12 +550,49 @@
                     errorMessage = 'Debe seleccionar una variedad de cultivo';
                     isValid = false;
                 }
+
+                var superficieMaxString = $('#superficieHa').attr('max');
+                var superficieValString = $('#superficieHa').val();
+
+                if (superficieMaxString && superficieValString) {
+
+                    var superficieMax = parseFloat(superficieMaxString);
+                    var superficieVal = parseFloat(superficieValString);
+
+                    if (superficieVal > superficieMax) {
+                        $('#superficieHa').addClass('is-invalid');
+                        mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
+                        e.stopPropagation();
+                        return;
+                    } else {
+                        $('#superficieHa').removeClass('is-invalid');
+                    }
+                }
+
                 break;
 
             case 'Cosecha':
                 if (!$('#idCultivoCosecha').val()) {
                     errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
+                }
+
+                var superficieMaxString = $('#superficieCosechadaHa').attr('max');
+                var superficieValString = $('#superficieCosechadaHa').val();
+
+                if (superficieMaxString && superficieValString) {
+
+                    var superficieMax = parseFloat(superficieMaxString);
+                    var superficieVal = parseFloat(superficieValString);
+
+                    if (superficieVal > superficieMax) {
+                        $('#superficieCosechadaHa').addClass('is-invalid');
+                        mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
+                        e.stopPropagation();
+                        return;
+                    } else {
+                        $('#superficieCosechadaHa').removeClass('is-invalid');
+                    }
                 }
 
             case 'Monitoreo':
@@ -619,7 +654,7 @@
             //    return parseInt(id);
             //}) : [],
             lotesIds: loteArray,
-            tipoidActividad: parseInt($('#tipoidActividad').val()),
+            tipoidActividad: idTipoActividadNombre,
             observacion: $('#observacion').val(),
             tipoActividad: tipoActividadNombre,
             datosEspecificos: dataEspecifica,

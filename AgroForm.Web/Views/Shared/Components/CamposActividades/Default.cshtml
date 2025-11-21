@@ -107,8 +107,8 @@
 
     // Función para crear elemento de campo
     function crearCampoElement(campo) {
-        var superficieText = campo.superficieHectareas ?
-            '<small class="text-muted">(' + campo.superficieHectareas + ' ha)</small>' : '';
+        // var superficieText = campo.superficieHectareas ?
+        //     '<small class="text-muted">(' + campo.superficieHectareas + ' ha)</small>' : '';
 
         var $campoDiv = $('<div>', {
             class: 'card mb-3 campo-item',
@@ -121,8 +121,7 @@
             '<h6 class="mb-0">' +
             '<i class="ph ph-map-pin text-primary me-2"></i>' +
             campo.nombre +
-            (campo.ubicacion ? ' - ' + campo.ubicacion : '') +
-            ' ' + superficieText +
+            (campo.ubicacion ? '<small class="text-muted fw-normal fs-7 ms-2">' + campo.ubicacion + '</small>' : '') +
             '</h6>'
         );
 
@@ -171,7 +170,7 @@
             lote.nombre +
             ' ' + superficieText +
             '</h6>' +
-            '<span class="badge bg-info">' + (lote.actividades ? lote.actividades.length : 0) + ' actividad(es)</span>'
+            '<span class="badge bg-info">' + (lote.actividades ? lote.actividades.length : 0) + ' actividades</span>'
         );
 
         $loteDiv.append($loteHeader);

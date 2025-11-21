@@ -7,6 +7,7 @@ namespace AgroForm.Web.Models.IndexVM
     public class HomeIndexVM
     {
         public string CotizacionDolar { get; set; } = "1450";
+        public string NombreCorizacion { get; set; }
         public string CotizacionFecha { get; set; } = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
         public string HaSembradas { get; set; } = "300";
         public string Gastos { get; set; } = "100,000";

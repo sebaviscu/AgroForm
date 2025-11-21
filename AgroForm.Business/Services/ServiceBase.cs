@@ -36,7 +36,8 @@ namespace AlbaServicios.Services
                     IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
                     IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
                     IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                    IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
+                    IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
+                    Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
                 };
             }
         }

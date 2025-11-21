@@ -29,15 +29,15 @@ public class HomeController : Controller
 
         var dolar = await _monedaService.ObtenerTipoCambioActualAsync();
         vm.CotizacionDolar = dolar.TipoCambioReferencia.ToString("N0");
-        //vm.CotizacionFecha = dolar.ModificationDate.HasValue ? dolar.ModificationDate.Value.ToString("dd/MM/yyyy") : "-";
-        vm.CotizacionFecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+        vm.CotizacionFecha = dolar.ModificationDate.HasValue ? dolar.ModificationDate.Value.ToString("dd/MM/yyyy HH:mm") : "-";
+        vm.NombreCorizacion = dolar.Nombre;
 
         var gastosResult = await _gastoService.GetAllByCamapniaAsync();
 
         if (gastosResult.Success)
             vm.CargarDistribucionGastos(gastosResult.Data);
 
-        var siembraResult = await  _actividadService.GetSiembrasAsync();
+        var siembraResult = await _actividadService.GetSiembrasAsync();
 
         if (siembraResult.Success)
             vm.CargarCultivosDesdeSiembras(siembraResult.Data);

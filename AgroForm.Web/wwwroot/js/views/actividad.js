@@ -158,10 +158,10 @@ function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
     $('#tipoidActividad').prop('disabled', true);
 
     // esperamos a que carguen todos los select2
-    setTimeout(() => {
+    //setTimeout(() => {
         cargarDatosEspecificosEditar(actividad, actividad.idTipoActividad);
         cerrarAlertas();
-    }, 600);
+    //}, 600);
 
     $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar Labor');
 
@@ -184,20 +184,13 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.superficieHa != null) $('#superficieHa').val(datosEspecificos.superficieHa);
             if (datosEspecificos.densidadSemillaKgHa != null) $('#densidadSemillaKgHa').val(datosEspecificos.densidadSemillaKgHa);
             if (datosEspecificos.costo != null) $('#costoSiembra').val(datosEspecificos.costo);
-            //if (datosEspecificos.idCultivo != null) setTimeout(() => $('#idCultivo').val(datosEspecificos.idCultivo).trigger('change'), 200);
-            //if (datosEspecificos.idVariedad != null) setTimeout(() => $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change'), 500);
             if (datosEspecificos.idMetodoSiembra != null) $('#idMetodoSiembra').val(datosEspecificos.idMetodoSiembra).trigger('change');
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
-            if (datosEspecificos.idCultivo != null) {
-                await setSelect2WhenReady('#idCultivo', datosEspecificos.idCultivo);
-            }
+            if (datosEspecificos.idCultivo != null) await setSelect2WhenReady('#idCultivo', datosEspecificos.idCultivo);
 
-            if (datosEspecificos.idVariedad != null) {
-                setTimeout(() => {
-                    if (datosEspecificos.idVariedad != null) $('#idVariedad').val(datosEspecificos.idVariedad).trigger('change');
-                }, 500);
-            }
+            if (datosEspecificos.idVariedad != null) await setSelect2WhenReady('#idVariedad', datosEspecificos.idVariedad);
+
             break;
 
         case 5:
@@ -255,14 +248,11 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.rendimientoTonHa != null) $('#rendimientoTonHa').val(datosEspecificos.rendimientoTonHa);
             if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
             if (datosEspecificos.superficieCosechadaHa != null) $('#superficieCosechadaHa').val(datosEspecificos.superficieCosechadaHa);
-            //if (datosEspecificos.idCultivo != null) $('#idCultivoCosecha').val(datosEspecificos.idCultivo).trigger('change');
             if (datosEspecificos.costo != null) $('#costoCosechaTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoCosecha').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
-            if (datosEspecificos.idCultivo != null) {
-                await setSelect2WhenReady('#idCultivoCosecha', datosEspecificos.idCultivo);
-            }
-
+            if (datosEspecificos.idCultivo != null) await setSelect2WhenReady('#idCultivoCosecha', datosEspecificos.idCultivo);
+            
             break;
 
         case 8:
@@ -288,19 +278,38 @@ function cambiarMoneda() {
 }
 
 function setSelect2WhenReady(selector, value) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
+
+        let lastCount = -1;
+        let stableFor = 0;
+
         const interval = setInterval(() => {
-            if ($(selector).data('select2')) {
-                clearInterval(interval);
-                $(selector).val(value).trigger('change');
-                resolve();
+            const count = $(selector).find("option").length;
+
+            // Si el número de opciones sigue cambiando
+            if (count !== lastCount) {
+                lastCount = count;
+                stableFor = 0;
+            } else {
+                // Sigue igual → sumamos tiempo estable
+                stableFor += 100;
             }
+
+            // Cuando estuvo 300ms sin cambiar
+            if (stableFor >= 300 && count > 0) {
+                clearInterval(interval);
+
+                $(selector).val(value).trigger('change');
+
+                resolve(true);
+            }
+
         }, 100);
 
-        // Timeout de seguridad
+        // Timeout 5s
         setTimeout(() => {
             clearInterval(interval);
-            resolve();
-        }, 3000);
+            resolve(false);
+        }, 5000);
     });
 }

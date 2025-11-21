@@ -22,7 +22,7 @@ VALUES
 
 INSERT INTO Monedas (Codigo, Nombre, Simbolo, TipoCambioReferencia, RegistrationDate, RegistrationUser) VALUES
 ('ARS', 'Peso Argentino', '$', 1, GETDATE(), 'System'),
-('USD', 'Dólar Estadounidense', 'US$', 1500, GETDATE(), 'System');
+('USD', 'Oficial', 'US$', 1500, GETDATE(), 'System');
 
 
 

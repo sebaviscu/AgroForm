@@ -14,11 +14,11 @@ namespace AgroForm.Web.Models
 
         public int IdMoneda { get; set; }
 
-        public int CampaniaId { get; set; }
+        public int IdCampania { get; set; }
 
         public string TipoGastoString => TipoGasto.ToString();
         public bool EsDolar { get; set; }
-        public bool EsDolarEdit => IdMoneda == (int)Monedas.Dolar;
+        public bool EsDolarEdit => IdMoneda == (int)Monedas.DolarOficial;
 
     }
 }

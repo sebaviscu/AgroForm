@@ -1,10 +1,4 @@
 
-ALTER TABLE Fertilizaciones
-ALTER COLUMN IdMetodoAplicacion INT NULL;
-
-
-AGREGAR NUEVOS Estados Fenológicos
-
 
 -----------------------------------------------------
 
@@ -165,7 +159,7 @@ CREATE TABLE Lotes (
 
 CREATE TABLE Monedas (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Codigo NVARCHAR(10) NOT NULL UNIQUE,
+    Codigo NVARCHAR(10) NOT NULL,
     Nombre NVARCHAR(100) NOT NULL,
     Simbolo NVARCHAR(10) NULL,
     TipoCambioReferencia DECIMAL(18,4) NULL,
@@ -255,7 +249,7 @@ CREATE TABLE Fertilizaciones (
     Costo DECIMAL(18,2) NULL,
 	CostoARS DECIMAL(18,2) NULL,
     CostoUSD DECIMAL(18,2) NULL,
-    IdMetodoAplicacion INT NOT NULL,
+    IdMetodoAplicacion INT NULL,
 	IdMoneda INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
@@ -523,7 +517,7 @@ CREATE TABLE Gastos (
     CostoARS DECIMAL(18,2) NULL,
     CostoUSD DECIMAL(18,2) NULL,
     IdMoneda INT NOT NULL,
-    CampaniaId INT NOT NULL,
+    IdCampania INT NOT NULL,
     IdLicencia INT NOT NULL,
     
     RegistrationDate DATETIME NULL,
@@ -534,7 +528,7 @@ CREATE TABLE Gastos (
     -- Claves foráneas
     CONSTRAINT FK_Gastos_Monedas FOREIGN KEY (IdMoneda) 
         REFERENCES Monedas(Id),
-    CONSTRAINT FK_Gastos_Campanias FOREIGN KEY (CampaniaId) 
+    CONSTRAINT FK_Gastos_Campanias FOREIGN KEY (IdCampania) 
         REFERENCES Campanias(Id) ON DELETE CASCADE
 );
 

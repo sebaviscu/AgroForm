@@ -68,6 +68,15 @@ function actualizarTablaResumen() {
     const gastosOrdenados = Object.entries(gastosAgrupados)
         .sort(([, a], [, b]) => b - a);
 
+    // Agregar total general
+    const totalGeneral = gastosOrdenados.reduce((sum, [, monto]) => sum + monto, 0);
+    tbody.append(`
+        <tr class="table-primary">
+            <td class="fw-bold">TOTAL</td>
+            <td class="text-end fw-bold">${formatearMoneda(totalGeneral, monedaActual)}</td>
+        </tr>
+    `);
+
     // Llenar tabla
     gastosOrdenados.forEach(([descripcion, total]) => {
         const fila = `
@@ -81,14 +90,6 @@ function actualizarTablaResumen() {
         tbody.append(fila);
     });
 
-    // Agregar total general
-    const totalGeneral = gastosOrdenados.reduce((sum, [, monto]) => sum + monto, 0);
-    tbody.append(`
-        <tr class="table-primary">
-            <td class="fw-bold">TOTAL</td>
-            <td class="text-end fw-bold">${formatearMoneda(totalGeneral, monedaActual)}</td>
-        </tr>
-    `);
 }
 
 function inicializarGraficos() {
