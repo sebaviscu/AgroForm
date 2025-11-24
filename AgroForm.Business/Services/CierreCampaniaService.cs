@@ -54,6 +54,7 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Campo)
                     .ThenInclude(l => l.RegistrosClima)
+                .Include(_=>_.Gastos)
                 .FirstOrDefaultAsync(c => c.Id == idCampania);
 
             if (campania == null) throw new Exception("Campaña no encontrada");
@@ -63,21 +64,15 @@ namespace AgroForm.Business.Services
                 IdCampania = idCampania,
                 NombreCampania = campania.Nombre,
                 FechaInicio = campania.FechaInicio,
-                FechaFin = campania.FechaFin.GetValueOrDefault(),
+                FechaFin = TimeHelper.GetArgentinaTime(),
                 FechaCreacion = TimeHelper.GetArgentinaTime()
             };
 
-            // Calcular datos generales
             CalcularDatosGeneralesAsync(campania, reporte);
-
-            // Calcular datos por cultivo
             CalcularDatosPorCultivoAsync(campania, reporte);
-
-            // Calcular datos por campo y lote
             CalcularDatosPorCampoAsync(campania, reporte);
-
-            // Calcular datos climáticos
             CalcularDatosClimaticosAsync(campania, reporte);
+            CalcularDatosGastosAsync(campania, reporte);
 
             var result = await base.CreateAsync(reporte);
 
@@ -87,6 +82,10 @@ namespace AgroForm.Business.Services
             }
 
             // cambiar estado campania
+            //campania.EstadosCampania = EstadosCamapaña.Finalizada;
+            //campania.FechaFin = TimeHelper.GetArgentinaTime();
+            //await _campaniaRepo.UpdateAsync(campania);
+
             // cambair estado de las labores
 
             return OperationResult<ReporteCierreCampania>.SuccessResult(result.Data);
@@ -180,8 +179,44 @@ namespace AgroForm.Business.Services
 
         private void CalcularDatosPorCampoAsync(Campania campania, ReporteCierreCampania reporte)
         {
-            // Similar a CalcularDatosPorCultivoAsync pero agrupando por campo
-            // Implementar lógica similar...
+            var campos = campania.Lotes
+                .Where(l => l.Campo != null)
+                .GroupBy(l => l.Campo)
+                .ToList();
+
+            var resumenCampos = new List<ResumenCampo>();
+
+            foreach (var grupo in campos)
+            {
+                var campo = grupo.Key;
+                var lotesCampo = grupo.ToList();
+
+                var resumen = new ResumenCampo
+                {
+                    NombreCampo = campo.Nombre,
+                    SuperficieHa = lotesCampo.Sum(l => l.SuperficieHectareas ?? 0),
+                    ToneladasProducidas = lotesCampo
+                        .SelectMany(l => l.Cosechas)
+                        .Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                    CostoTotalArs = lotesCampo.Sum(l => l.CostoTotalLaboresArs),
+                    CostoTotalUsd = lotesCampo.Sum(l => l.CostoTotalLaboresUsd),
+                    Lotes = lotesCampo.Select(l => new ResumenLote
+                    {
+                        NombreLote = l.Nombre,
+                        Cultivo = l.Siembras.FirstOrDefault()?.Cultivo?.Nombre ?? "Sin cultivo",
+                        SuperficieHa = l.SuperficieHectareas ?? 0,
+                        ToneladasProducidas = l.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                        CostoTotalArs = l.CostoTotalLaboresArs,
+                        CostoTotalUsd = l.CostoTotalLaboresUsd,
+                        RendimientoHa = l.SuperficieHectareas > 0 ?
+                            (l.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0) / l.SuperficieHectareas ?? 0 : 0
+                    }).ToList()
+                };
+
+                resumenCampos.Add(resumen);
+            }
+
+            reporte.ResumenPorCampoJson = JsonSerializer.Serialize(resumenCampos);
         }
 
         private void CalcularDatosClimaticosAsync(Campania campania, ReporteCierreCampania reporte)
@@ -211,6 +246,21 @@ namespace AgroForm.Business.Services
             reporte.EventosExtremosJson = JsonSerializer.Serialize(eventosExtremos);
         }
 
+        private void CalcularDatosGastosAsync(Campania campania, ReporteCierreCampania reporte)
+        {
+            var gastos = campania.Gastos.ToList();
+
+
+            reporte.GastosTotalesArs = gastos.Any() ? gastos.Sum(r => r.CostoARS.Value) : 0;
+            reporte.GastosTotalesUsd = gastos.Any() ? gastos.Sum(r => r.CostoUSD.Value) : 0;
+
+            var gastosAgrupados = gastos
+                .GroupBy(r => r.TipoGasto.GetDisplayName())
+                .Select(g => new { Categoria = g.Key, CostoArs = g.Sum(r => r.CostoARS.Value), CostoUsd = g.Sum(r => r.CostoUSD.Value) })
+                .ToList();
+
+            reporte.GastosPorCategoriaJson = JsonSerializer.Serialize(gastosAgrupados);
+        }
 
         public async Task<OperationResult<byte[]>> GenerarPdfReporteAsync(ReporteCierreCampania reporteCierreCampania)
         {
@@ -233,7 +283,7 @@ namespace AgroForm.Business.Services
         {
             return await base.GetQuery()
                 .Include(r => r.Campania)
-                .Where(r => r.IdLicencia == idLicencia && r.EsDefinitivo)
+                .Where(r => r.IdLicencia == idLicencia)
                 .OrderByDescending(r => r.FechaFin)
                 .ToListAsync();
         }

@@ -24,11 +24,12 @@ namespace AgroForm.Business.Services
 
         public override async Task<OperationResult<List<Campo>>> GetAllWithDetailsAsync()
         {
-            var campos =  await base.GetQuery()
-                     .Where(c => c.IdLicencia == _userAuth.IdLicencia)
-                     .Include(c => c.Lotes)
-                     .AsNoTracking()
-                     .ToListAsync();
+            var campos = await base.GetQuery()
+                .Where(c => c.IdLicencia == _userAuth.IdLicencia)
+                .Include(c => c.Lotes
+                    .Where(l => l.IdCampania == _userAuth.IdCampaña))
+                .AsNoTracking()
+                .ToListAsync();
 
             return OperationResult<List<Campo>>.SuccessResult(campos);
         }

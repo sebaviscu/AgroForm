@@ -28,7 +28,7 @@ namespace AgroForm.Business.Services
 
                 IQueryable<Lote> query = context.Lotes.AsNoTracking();
 
-                query = query.Where(e => e.IdLicencia == _userAuth.IdLicencia);
+                query = query.Where(e => e.IdLicencia == _userAuth.IdLicencia && e.IdCampania == _userAuth.IdCampaña);
                 var list = await query.Include(_ => _.Campo)
                                         .Include(_ => _.Cosechas)
                                         .Include(_ => _.Siembras)

@@ -101,29 +101,29 @@ function inicializarDataTable() {
                     }
 
                     // ----- ESTADO: EN CURSO -----
-                    //if (estado === 'En Curso') {
-                    //    botones += `
-                    //    <button type="button" class="btn btn-outline-primary btn-edit"
-                    //            title="Editar" data-id="${data}">
-                    //        <i class="ph ph-pencil"></i>
-                    //    </button>
-
-                    //    <button type="button" class="btn btn-warning btn-finalizar ms-3"
-                    //            title="Cerrar campaña" data-id="${data}" data-nombre="${row.nombre}">
-                    //        <i class="ph ph-lock-key"></i>
-                    //        <span class="d-none d-sm-inline">Finalizar</span>
-                    //    </button>
-                    //`;
-                    //}
-
                     if (estado === 'En Curso') {
                         botones += `
                         <button type="button" class="btn btn-outline-primary btn-edit"
                                 title="Editar" data-id="${data}">
                             <i class="ph ph-pencil"></i>
                         </button>
+
+                        <button type="button" class="btn btn-warning btn-finalizar ms-3"
+                                title="Cerrar campaña" data-id="${data}" data-nombre="${row.nombre}">
+                            <i class="ph ph-lock-key"></i>
+                            <span class="d-none d-sm-inline">Finalizar</span>
+                        </button>
                     `;
                     }
+
+                    //if (estado === 'En Curso') {
+                    //    botones += `
+                    //    <button type="button" class="btn btn-outline-primary btn-edit"
+                    //            title="Editar" data-id="${data}">
+                    //        <i class="ph ph-pencil"></i>
+                    //    </button>
+                    //`;
+                    //}
 
                     // ----- ESTADO: FINALIZADA o CANCELADA → SOLO VER -----
                     if (estado === 'Finalizada' || estado === 'Cancelada') {

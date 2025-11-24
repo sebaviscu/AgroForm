@@ -25,7 +25,7 @@ namespace AgroForm.Web.Components
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var tiposActividad = await _tipoActividadService.GetAllAsync();
+            var tiposActividad = await _tipoActividadService.GetAllByCamapniaAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
 
             var lotesVM = _mapper.Map<List<LoteVM>>(lotes.Data);

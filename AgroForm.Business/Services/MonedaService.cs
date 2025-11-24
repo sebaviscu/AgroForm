@@ -66,7 +66,7 @@ namespace AgroForm.Business.Services
             }
             catch (Exception e)
             {
-                base._logger.LogError("Error al actualizar cotizaciones", e);
+                base._logger.LogError(e, "Error al actualizar las monedas desde DolarApi");
                 return false;
             }
 

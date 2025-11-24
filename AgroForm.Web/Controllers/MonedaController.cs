@@ -32,6 +32,7 @@ namespace AgroForm.Web.Controllers
             {
                 gResponse.Success = false;
                 gResponse.Message = result.ErrorMessage;
+                _logger.LogError("Error al obtener cotizaciones de DolarApi: " + result.ErrorMessage);
                 return NotFound(gResponse);
             }
 

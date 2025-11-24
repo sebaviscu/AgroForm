@@ -4,6 +4,7 @@ using AgroForm.Web.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Controllers
 {
@@ -28,6 +29,7 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
 
                 var result = await _service.GetAllWithDetailsAsync();
                 if (!result.Success)
@@ -44,7 +46,7 @@ namespace AgroForm.Web.Controllers
 
                     foreach (var lote in campo.Lotes)
                     {
-                        var resultLabores = await _actividadService.GetLaboresByAsync(IdLote: lote.Id);
+                        var resultLabores = await _actividadService.GetLaboresByAsync(IdCampania: user.IdCampaña, IdLote: lote.Id);
                         if (!resultLabores.Success)
                         {
                             gResponse.Success = false;

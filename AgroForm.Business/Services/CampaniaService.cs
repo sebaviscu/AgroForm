@@ -31,12 +31,12 @@ namespace AgroForm.Business.Services
                 if (!validationResult.Success)
                     return OperationResult<Campania>.Failure(validationResult.ErrorMessage);
 
-                var hasCampaniaEnCurso = await GetCurrent();
+                //var hasCampaniaEnCurso = await GetCurrent();
 
-                if(hasCampaniaEnCurso.Success && hasCampaniaEnCurso.Data != null)
-                {
-                    return OperationResult<Campania>.Failure("Existe una campaña en curso.", "SAVE_FAILED");
-                }
+                //if(hasCampaniaEnCurso.Success && hasCampaniaEnCurso.Data != null)
+                //{
+                //    return OperationResult<Campania>.Failure("Existe una campaña en curso.", "SAVE_FAILED");
+                //}
 
                 foreach (var item in entity.Lotes)
                 {
@@ -89,7 +89,7 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.IdLicencia == idLicencia);
+                var campania = await GetQuery().FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
                 if (campania == null)
                 {

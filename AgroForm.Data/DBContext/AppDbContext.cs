@@ -101,6 +101,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany(l => l.RegistrosClima)
                     .HasForeignKey(r => r.IdCampo)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(l => l.Campania)
+                    .WithMany(c => c.RegistrosClima)
+                    .HasForeignKey(l => l.IdCampania)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Cultivo>(entity =>
@@ -157,7 +162,10 @@ namespace AgroForm.Data.DBContext
                 // Propiedades específicas
                 entity.Property(e => e.SuperficieHa).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.DensidadSemillaKgHa).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Costo).HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
 
                 // Relaciones base de Actividad
                 entity.HasOne(a => a.Lote)
@@ -213,6 +221,10 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.HorasRiego).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.VolumenAguaM3).HasColumnType("decimal(10,2)");
 
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+
                 // Relaciones base
                 entity.HasOne(a => a.Lote)
                     .WithMany(l => l.Riegos)
@@ -260,7 +272,10 @@ namespace AgroForm.Data.DBContext
 
                 entity.Property(e => e.CantidadKgHa).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.DosisKgHa).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Costo).HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
 
                 // Relaciones base
                 entity.HasOne(a => a.Lote)
@@ -315,6 +330,10 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Dosis).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.CondicionesClimaticas).HasMaxLength(200);
 
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+
                 entity.HasOne(p => p.ProductoAgroquimico)
                     .WithMany()
                     .HasForeignKey(p => p.IdProductoAgroquimico)
@@ -351,6 +370,10 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("Monitoreos");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
 
                 entity.HasOne(m => m.EstadoFenologico)
                     .WithMany()
@@ -404,6 +427,10 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.CIC).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.Textura).HasMaxLength(50);
 
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+
                 entity.HasOne(a => a.Lote)
                     .WithMany(l => l.AnalisisSuelos)
                     .HasForeignKey(a => a.IdLote)
@@ -448,6 +475,10 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.HumedadGrano).HasColumnType("decimal(5,2)");
                 entity.Property(e => e.SuperficieCosechadaHa).HasColumnType("decimal(10,2)");
 
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+
                 entity.HasOne(c => c.Cultivo)
                     .WithMany()
                     .HasForeignKey(c => c.IdCultivo)
@@ -483,6 +514,10 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("OtrasLabores");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
 
                 entity.HasOne(a => a.Lote)
                     .WithMany(l => l.OtrasLabores)
@@ -542,6 +577,28 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("ReporteCierreCampania");
                 entity.HasKey(e => e.Id);
 
+                entity.Property(e => e.AnalisisSueloArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.AnalisisSueloUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoCosechasArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoCosechasUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoFertilizantesArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoFertilizantesUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoMonitoreosArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoMonitoreosUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoOtrasLaboresArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoOtrasLaboresUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPorHa).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPorTonelada).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPulverizacionesArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPulverizacionesUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoRiegosArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoRiegosUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoSiembrasArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoSiembrasUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.LluviaAcumuladaTotal).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.RendimientoPromedioHa).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.SuperficieTotalHa).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.ToneladasProducidas).HasColumnType("decimal(18,2)");
 
                 entity.HasOne(rc => rc.Campania)
                     .WithOne(c => c.ReporteCierreCampania)
@@ -573,7 +630,7 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Campania)
-                    .WithMany()
+                    .WithMany(_=>_.Gastos)
                     .HasForeignKey(e => e.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
 

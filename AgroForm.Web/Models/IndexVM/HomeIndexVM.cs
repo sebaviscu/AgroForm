@@ -6,11 +6,11 @@ namespace AgroForm.Web.Models.IndexVM
 {
     public class HomeIndexVM
     {
-        public string CotizacionDolar { get; set; } = "1450";
-        public string NombreCorizacion { get; set; }
-        public string CotizacionFecha { get; set; } = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-        public string HaSembradas { get; set; } = "300";
-        public string Gastos { get; set; } = "100,000";
+        public string CotizacionDolar { get; set; } = string.Empty;
+        public string NombreCorizacion { get; set; } = string.Empty;
+        public string CotizacionFecha { get; set; } = string.Empty;
+        public string HaSembradas { get; set; } = string.Empty;
+        public string Gastos { get; set; } = string.Empty;
 
         public List<SiembraVM> Cultivos { get; set; } = new()
         {
@@ -42,7 +42,7 @@ namespace AgroForm.Web.Models.IndexVM
                 .ToList();
 
             DistribucionGastos = gastosAgrupados;
-            Gastos = DistribucionGastos.Any() ? DistribucionGastos.Sum(g => g.Costo).ToString() : "-";
+            Gastos = DistribucionGastos.Any() ? DistribucionGastos.Sum(g => g.Costo).Value.ToString("N0") : "-";
         }
 
         public void CargarCultivosDesdeSiembras(List<Siembra> siembras)

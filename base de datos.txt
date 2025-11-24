@@ -421,6 +421,7 @@ CREATE TABLE OtrasLabores (
 CREATE TABLE RegistrosClima (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     IdLicencia INT NOT NULL,
+    IdCampania INT NOT NULL,
     Fecha DATETIME NOT NULL,
     Milimetros DECIMAL(10,2) NOT NULL,
     IdCampo INT NOT NULL,
@@ -430,6 +431,8 @@ CREATE TABLE RegistrosClima (
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
+	
+    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE NO ACTION
 );
@@ -453,7 +456,6 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [FechaModificacion] [datetime2](7) NULL,
     [UsuarioCreacion] [nvarchar](256) NULL,
     [UsuarioModificacion] [nvarchar](256) NULL,
-    [Activo] [bit] NOT NULL,
     
     [IdCampania] [int] NOT NULL,
     
@@ -485,6 +487,10 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [CostoFertilizantesUsd] [decimal](18,2) NOT NULL,
     [CostoOtrasLaboresUsd] [decimal](18,2) NOT NULL,
     
+	GastosTotalesArs decimal(18,2) NOT NULL,
+	GastosTotalesUsd decimal(18,2) NOT NULL,
+	GastosPorCategoriaJson nvarchar(max) NOT NULL,
+	 
     [LluviaAcumuladaTotal] [decimal](18,2) NOT NULL,
     [LluviasPorMesJson] [nvarchar](max) NULL,
     [EventosExtremosJson] [nvarchar](max) NULL,
@@ -493,8 +499,6 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [ResumenPorCampoJson] [nvarchar](max) NULL,
     [ResumenPorLoteJson] [nvarchar](max) NULL,
     
-    [EsDefinitivo] [bit] NOT NULL,
-	
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,

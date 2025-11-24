@@ -13,9 +13,9 @@ namespace AgroForm.Model
         [NonUpdatable]
         public DateTime? RegistrationDate { get; set; }
         [NonUpdatable]
-        public string? RegistrationUser { get; set; }
+        public string? RegistrationUser { get; set; } = string.Empty;
         public DateTime? ModificationDate { get; set; }
-        public string? ModificationUser { get; set; }
+        public string? ModificationUser { get; set; } = string.Empty;
     }
 
     public abstract class EntityBaseWithLicencia : EntityBase

@@ -4,7 +4,7 @@
         e.preventDefault();
 
         var campañaId = $(this).data('campaña-id');
-
+        mostrarLoading();
         $.ajax({
             url: '/Campania/SetCurrent/' + campañaId,
             type: 'POST',

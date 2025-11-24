@@ -107,37 +107,37 @@ namespace AgroForm.Web.Controllers
 
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GenerarPdf(int id)
-        {
-            var gResponse = new GenericResponse<byte[]>();
+        //[HttpGet("{id}")]
+        //public async Task<IActionResult> GenerarPdf(int id)
+        //{
+        //    var gResponse = new GenericResponse<byte[]>();
 
-            try
-            {
-                var result = await _cierreCampaniaService.GenerarPdfReporteAsync(id);
+        //    try
+        //    {
+        //        var result = await _cierreCampaniaService.GenerarPdfReporteAsync(id);
 
 
-                if (!result.Success)
-                {
-                    gResponse.Success = false;
-                    gResponse.Message = result.ErrorMessage;
-                    return BadRequest(gResponse);
-                }
+        //        if (!result.Success)
+        //        {
+        //            gResponse.Success = false;
+        //            gResponse.Message = result.ErrorMessage;
+        //            return BadRequest(gResponse);
+        //        }
 
-                gResponse.Success = true;
-                gResponse.Object = result.Data;
-                gResponse.Message = "Reporte creado";
-                return Ok(gResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al generar pdf");
-                gResponse.Success = false;
-                gResponse.Message = "Ah ocurrido un error";
-                return BadRequest(gResponse);
-            }
+        //        gResponse.Success = true;
+        //        gResponse.Object = result.Data;
+        //        gResponse.Message = "Reporte creado";
+        //        return Ok(gResponse);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al generar pdf");
+        //        gResponse.Success = false;
+        //        gResponse.Message = "Ah ocurrido un error";
+        //        return BadRequest(gResponse);
+        //    }
 
-        }
+        //}
 
         [HttpPost("{id}")]
         public async Task<IActionResult> SetCurrent(int id)

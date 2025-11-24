@@ -42,8 +42,9 @@ public class Program
                     Path.Combine(logsDirectory, "logfile.txt"),
                     rollingInterval: RollingInterval.Month,
                     retainedFileCountLimit: 3,
-                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning
+                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error
                 )
+                .WriteTo.Console() // ← Agregar esto para ver logs en consola
                 .CreateLogger();
 
             builder.Host.UseSerilog();
@@ -71,7 +72,7 @@ public class Program
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
             builder.Services.AddControllersWithViews();
-            builder.Services.AddRazorPages(); // ✅ Agregar para páginas de Identity
+            builder.Services.AddRazorPages();
             builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
@@ -94,7 +95,6 @@ public class Program
                               .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 });
             });
-
 
             // Servicios de aplicación
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -119,6 +119,24 @@ public class Program
                 options.EnableForHttps = true;
             });
 
+            // Configuración HTTPS para desarrollo
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddHttpsRedirection(options =>
+                {
+                    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                    options.HttpsPort = 5001; // ← Puerto de desarrollo
+                });
+            }
+            else
+            {
+                builder.Services.AddHttpsRedirection(options =>
+                {
+                    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+                    options.HttpsPort = 443; // ← Puerto producción
+                });
+            }
+
             // Configuración adicional de DataProtection
             var keysPath = Path.Combine(Directory.GetCurrentDirectory(), "keys");
             try
@@ -138,20 +156,12 @@ public class Program
                 Log.Error(e, $"ERROR EN LA KEY, path: {keysPath}. Error: {e.Message}");
             }
 
-            // ✅ CONFIGURACIÓN HTTPS
-            builder.Services.AddHttpsRedirection(options =>
-            {
-                options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                options.HttpsPort = 443;
-            });
-
             var app = builder.Build();
 
             // 1. Middlewares de configuración inicial
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseDatabaseErrorPage();
             }
             else
             {
@@ -159,11 +169,13 @@ public class Program
                 app.UseHsts();
             }
 
+            // ✅ ORDEN CORRECTO: HttpsRedirection ANTES de StaticFiles
             app.UseHttpsRedirection();
             app.UseResponseCompression();
             app.UseCors("NuevaPolitica");
 
-            // 2. Middlewares de redirección (antes de routing)
+            // ❌ ELIMINAR middleware de redirección a www (causa problemas con SSL)
+            /*
             app.Use(async (context, next) =>
             {
                 var host = context.Request.Host.Value.ToLower();
@@ -175,6 +187,7 @@ public class Program
                 }
                 await next();
             });
+            */
 
             // Manejo de errores centralizado
             if (!app.Environment.IsDevelopment())
@@ -218,10 +231,8 @@ public class Program
                 }
             });
 
-            // 4. Middlewares de seguridad y autenticación (ORDEN CRÍTICO)
+            // 4. Middlewares de seguridad y autenticación
             app.UseRouting();
-
-            // ✅ ORDEN CORRECTO: Authentication -> Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -239,14 +250,20 @@ public class Program
                 pattern: "{controller=Access}/{action=Login}/{id?}"
             );
 
-            app.MapRazorPages(); // ✅ Para páginas de Identity
+            app.MapRazorPages();
 
             // Endpoint de health check básico
             app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
-            app.UseHttpsRedirection();
+            // ✅ ELIMINAR UseHttpsRedirection duplicado (ya está al inicio)
 
-            Log.Information("Aplicación iniciándose...");
+            Log.Information("Aplicación AgroForm iniciándose...");
+
+            // Log de URLs disponibles
+            Console.WriteLine($"Application starting on:");
+            Console.WriteLine($"- HTTPS: https://localhost:5001");
+            Console.WriteLine($"- HTTP: http://localhost:5000");
+
             app.Run();
         }
         catch (Exception ex)

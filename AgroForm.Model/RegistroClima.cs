@@ -7,7 +7,7 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model
 {
-    public class RegistroClima : EntityBaseWithLicencia
+    public class RegistroClima : EntityBaseWithLicencia, IEntityBaseWithCampania
     {
         public DateTime Fecha { get; set; }
         public decimal Milimetros { get; set; }
@@ -16,5 +16,8 @@ namespace AgroForm.Model
 
         public int IdCampo { get; set; }
         public Campo Campo { get; set; } = null!;
+
+        public int IdCampania { get; set; }
+        public Campania Campania { get; set; } = null!;
     }
 }

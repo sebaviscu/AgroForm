@@ -296,7 +296,7 @@ namespace AgroForm.Web.Controllers
                     claims.Add(new Claim(claimType, newValue));
                 }
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(claims, "AgroFormAuth");
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                 // Actualiza la cookie
@@ -305,7 +305,7 @@ namespace AgroForm.Web.Controllers
                     AllowRefresh = true,
                     IsPersistent = (HttpContext.Request.Cookies[".AspNetCore.Cookies"] != null)
                 };
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, properties);
+                await HttpContext.SignInAsync("AgroFormAuth", claimsPrincipal, properties);
 
                 // Actualiza el HttpContext.User
                 HttpContext.User = claimsPrincipal;

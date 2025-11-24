@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
-using static iText.IO.Util.IntHashtable;
 
 namespace AgroForm.Business.Services
 {
@@ -531,8 +530,23 @@ namespace AgroForm.Business.Services
                 entityBase.ModificationUser = _userAuth.UserName;
             }
 
-            // Copiar valores
+            var registrationDate = original.RegistrationDate;
+            var registrationUser = original.RegistrationUser;
+
             context.Entry(original).CurrentValues.SetValues(entity);
+
+            original.RegistrationUser = registrationUser;
+            original.RegistrationDate = registrationDate;
+
+            if (entity is ILabor labor)
+            {
+                if (original.Costo == labor.Costo)
+                {
+                    var entry = context.Entry(original);
+                    entry.Property(nameof(ILabor.CostoARS)).IsModified = false;
+                    entry.Property(nameof(ILabor.CostoUSD)).IsModified = false;
+                }
+            }
 
             int result = await context.SaveChangesAsync();
 
@@ -544,14 +558,22 @@ namespace AgroForm.Business.Services
 
         public async Task<OperationResult<List<Siembra>>> GetSiembrasAsync()
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var list = await context.Set<Siembra>()
-                .Include(_ => _.Cultivo)
-                .Where(_ => _.IdLicencia == _userAuth.IdLicencia && _.IdCampania == _userAuth.IdCampaña)
-                .ToListAsync();
+                var list = await context.Set<Siembra>()
+                    .Where(_ => _.IdLicencia == _userAuth.IdLicencia && _.IdCampania == _userAuth.IdCampaña)
+                    .Include(_ => _.Cultivo)
+                    .ToListAsync();
 
-            return OperationResult<List<Siembra>>.SuccessResult(list);
+                return OperationResult<List<Siembra>>.SuccessResult(list);
+            }
+            catch (Exception e)
+            {
+                return OperationResult<List<Siembra>>.Failure(e.Message, "SAVE_FAILED");
+            }
+
 
         }
     }

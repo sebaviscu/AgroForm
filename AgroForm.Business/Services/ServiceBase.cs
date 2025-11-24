@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
+using static iText.IO.Util.IntHashtable;
 
 namespace AlbaServicios.Services
 {
@@ -56,6 +57,12 @@ namespace AlbaServicios.Services
                     query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
                 }
 
+
+                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
+                }
+
                 var list = await query.ToListAsync();
 
                 return OperationResult<List<T>>.SuccessResult(list);
@@ -81,11 +88,16 @@ namespace AlbaServicios.Services
                     query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
                 }
 
-                var companiaProp = typeof(T).GetProperty("CampaniaId");
-                if (companiaProp != null && companiaProp.PropertyType == typeof(int))
+                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
                 {
-                    query = query.Where(e => EF.Property<int>(e, "CampaniaId") == _userAuth.IdCampaña);
+                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
                 }
+
+                //var companiaProp = typeof(T).GetProperty("IdCampania");
+                //if (companiaProp != null && companiaProp.PropertyType == typeof(int))
+                //{
+                //    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
+                //}
 
                 var list = await query.ToListAsync();
 
@@ -111,6 +123,12 @@ namespace AlbaServicios.Services
                 {
                     query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
                 }
+
+                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
+                }
+
                 var list = await query.ToListAsync();
 
                 return OperationResult<List<T>>.SuccessResult(list);
@@ -173,6 +191,12 @@ namespace AlbaServicios.Services
                 if (entity is EntityBaseWithLicencia entidadConLicencia)
                     entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
 
+                if (entity is IEntityBaseWithCampania entidadConCampania)
+                    entidadConCampania.IdCampania = _userAuth.IdCampaña;
+
+                if (entity is IEntityBaseWithMoneda entidadConMoneda)
+                    entidadConMoneda.IdMoneda= (int)_userAuth.Moneda;
+
                 entity.RegistrationDate = TimeHelper.GetArgentinaTime();
                 entity.ModificationDate = null;
                 entity.RegistrationUser = _userAuth.UserName;
@@ -206,6 +230,12 @@ namespace AlbaServicios.Services
 
                     if (entity is EntityBaseWithLicencia entidadConLicencia)
                         entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
+
+                    if (entity is IEntityBaseWithCampania entidadConCampania)
+                        entidadConCampania.IdCampania = _userAuth.IdCampaña;
+
+                    if (entity is IEntityBaseWithMoneda entidadConMoneda)
+                        entidadConMoneda.IdMoneda = (int)_userAuth.Moneda;
 
                     entity.RegistrationDate = TimeHelper.GetArgentinaTime();
                     entity.ModificationDate = null;
@@ -255,10 +285,15 @@ namespace AlbaServicios.Services
                     entidadConMoneda.IdMoneda = originalConMoneda.IdMoneda;
                 }
 
+                var registrationDate = original.RegistrationDate;
+                var registrationUser = original.RegistrationUser;
+
                 context.Entry(original).CurrentValues.SetValues(entity);
 
                 original.ModificationDate = TimeHelper.GetArgentinaTime();
                 original.ModificationUser = _userAuth.UserName;
+                original.RegistrationUser = registrationUser;
+                original.RegistrationDate = registrationDate;
 
                 int result = await context.SaveChangesAsync();
 

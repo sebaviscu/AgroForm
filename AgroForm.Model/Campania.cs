@@ -15,6 +15,8 @@ namespace AgroForm.Model
         public DateTime? FechaFin { get; set; }
 
         public ICollection<Lote> Lotes { get; set; } = new List<Lote>();
+        public ICollection<RegistroClima> RegistrosClima { get; set; } = new List<RegistroClima>();
+        public ICollection<Gasto> Gastos { get; set; } = new List<Gasto>();
         public ReporteCierreCampania? ReporteCierreCampania { get; set; }
     }
 }

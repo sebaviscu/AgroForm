@@ -54,6 +54,11 @@ namespace AgroForm.Model
         public decimal CostoOtrasLaboresArs { get; set; }
         public decimal CostoOtrasLaboresUsd { get; set; }
 
+        // Gastos
+
+        public decimal GastosTotalesArs { get; set; }
+        public decimal GastosTotalesUsd { get; set; }
+        public string GastosPorCategoriaJson { get; set; } = string.Empty;
 
         // Datos climáticos
         public decimal LluviaAcumuladaTotal { get; set; }
@@ -65,7 +70,6 @@ namespace AgroForm.Model
         public string ResumenPorCampoJson { get; set; } = string.Empty;
         public string ResumenPorLoteJson { get; set; } = string.Empty;
 
-        public bool EsDefinitivo { get; set; } = false;
     }
 
     // Modelos para los datos JSON
@@ -85,7 +89,8 @@ namespace AgroForm.Model
         public string NombreCampo { get; set; } = string.Empty;
         public decimal SuperficieHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
-        public decimal CostoTotal { get; set; }
+        public decimal CostoTotalArs { get; set; }
+        public decimal CostoTotalUsd { get; set; }
         public List<ResumenLote> Lotes { get; set; } = new();
     }
 
@@ -95,7 +100,8 @@ namespace AgroForm.Model
         public string? Cultivo { get; set; }
         public decimal SuperficieHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
-        public decimal CostoTotal { get; set; }
+        public decimal CostoTotalArs { get; set; }
+        public decimal CostoTotalUsd { get; set; }
         public decimal RendimientoHa { get; set; }
     }
 }

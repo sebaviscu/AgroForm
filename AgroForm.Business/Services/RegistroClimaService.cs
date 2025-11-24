@@ -36,9 +36,9 @@ namespace AgroForm.Business.Services
                 using var context = await _contextFactory.CreateDbContextAsync();
 
                 var query = context.RegistrosClima
-                    .Where(rc => rc.IdLicencia == _userAuth.IdLicencia)
-                    .Where(rc => rc.Fecha >= fechaInicio)
-                    .Where(rc => rc.TipoClima == TipoClima.Lluvia || rc.TipoClima == TipoClima.Granizo)
+                    .Where(_ => _.IdLicencia == _userAuth.IdLicencia && _.IdCampania == _userAuth.IdCampaña)
+                    .Where(_ => _.Fecha >= fechaInicio)
+                    .Where(_ => _.TipoClima == TipoClima.Lluvia || _.TipoClima == TipoClima.Granizo)
                     .AsNoTracking();
 
                 if (idCampo > 0)
