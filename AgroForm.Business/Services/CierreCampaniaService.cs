@@ -59,13 +59,15 @@ namespace AgroForm.Business.Services
 
             if (campania == null) throw new Exception("Campaña no encontrada");
 
+            var hoy = TimeHelper.GetArgentinaTime();
+
             var reporte = new ReporteCierreCampania
             {
                 IdCampania = idCampania,
                 NombreCampania = campania.Nombre,
                 FechaInicio = campania.FechaInicio,
-                FechaFin = TimeHelper.GetArgentinaTime(),
-                FechaCreacion = TimeHelper.GetArgentinaTime()
+                FechaFin = hoy,
+                FechaCreacion = hoy
             };
 
             CalcularDatosGeneralesAsync(campania, reporte);
@@ -83,7 +85,7 @@ namespace AgroForm.Business.Services
 
             // cambiar estado campania
             //campania.EstadosCampania = EstadosCamapaña.Finalizada;
-            //campania.FechaFin = TimeHelper.GetArgentinaTime();
+            //campania.FechaFin = hoy;
             //await _campaniaRepo.UpdateAsync(campania);
 
             // cambair estado de las labores
@@ -136,10 +138,12 @@ namespace AgroForm.Business.Services
             reporte.CostoMonitoreosUsd = Monitoreos.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
             // Costos
-            reporte.CostoPorHa = reporte.SuperficieTotalHa > 0 ? reporte.CostoTotalArs / reporte.SuperficieTotalHa : 0;
-            reporte.CostoPorTonelada = reporte.ToneladasProducidas > 0 ? reporte.CostoTotalArs / reporte.ToneladasProducidas : 0;
-            reporte.RendimientoPromedioHa = reporte.SuperficieTotalHa > 0 ? reporte.ToneladasProducidas / reporte.SuperficieTotalHa : 0;
+            reporte.CostoPorHaArs = reporte.SuperficieTotalHa > 0 ? reporte.CostoTotalArs / reporte.SuperficieTotalHa : 0;
+            reporte.CostoPorToneladaArs = reporte.ToneladasProducidas > 0 ? reporte.CostoTotalArs / reporte.ToneladasProducidas : 0;
+            reporte.CostoPorHaUsd = reporte.SuperficieTotalHa > 0 ? reporte.CostoTotalUsd / reporte.SuperficieTotalHa : 0;
+            reporte.CostoPorToneladaUsd = reporte.ToneladasProducidas > 0 ? reporte.CostoTotalUsd / reporte.ToneladasProducidas : 0;
 
+            reporte.RendimientoPromedioHa = reporte.SuperficieTotalHa > 0 ? reporte.ToneladasProducidas / reporte.SuperficieTotalHa : 0;
 
         }
 

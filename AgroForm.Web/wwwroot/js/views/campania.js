@@ -108,7 +108,7 @@ function inicializarDataTable() {
                             <i class="ph ph-pencil"></i>
                         </button>
 
-                        <button type="button" class="btn btn-warning btn-finalizar ms-3"
+                        <button type="button" class="btn btn-outline-secondary btn-finalizar ms-3"
                                 title="Cerrar campaña" data-id="${data}" data-nombre="${row.nombre}">
                             <i class="ph ph-lock-key"></i>
                             <span class="d-none d-sm-inline">Finalizar</span>
@@ -126,7 +126,8 @@ function inicializarDataTable() {
                     //}
 
                     // ----- ESTADO: FINALIZADA o CANCELADA → SOLO VER -----
-                    if (estado === 'Finalizada' || estado === 'Cancelada') {
+                    //if (estado === 'Finalizada' || estado === 'Cancelada') {
+                    if (estado === 'En Curso') {
                         botones += `
                         <button type="button" class="btn btn-outline-secondary btn-ver"
                                 title="Ver campaña" data-id="${data}">
@@ -174,6 +175,11 @@ function configurarEventosGrilla() {
         var id = $(this).data('id');
         var nombre = $(this).data('nombre');
         finalizarCampania(id, nombre);
+    });
+
+    $('#tblCampanias tbody').on('click', '.btn-ver', function () {
+        var id = $(this).data('id');
+        generarPdf(id);
     });
 }
 
@@ -313,7 +319,7 @@ function configurarEventosModal() {
         e.preventDefault();
         e.stopPropagation();
         var idCampo = $(this).data('campo-id');
-        eliminarCampo(idCampo);
+        eliminarCampoCampania(idCampo);
     });
 
     // Eliminar lote (delegación de eventos)
@@ -430,7 +436,7 @@ function mostrarInfoCampoLotes(idCampo) {
     }
 }
 
-function eliminarCampo(idCampo) {
+function eliminarCampoCampania(idCampo) {
     // Encontrar el campo
     var campo = camposConLotes.find(item => item.campo.id == idCampo);
 
@@ -816,7 +822,7 @@ function finalizarCampania(id, nombre) {
                     cerrarAlertas();
                     if (response.success) {
 
-                        generarPdf(response.object, nombre);
+                        generarPdf(response.object);
 
                     } else {
                         mostrarError(response.message || 'Error cerrar la campaña');
@@ -831,7 +837,7 @@ function finalizarCampania(id, nombre) {
     });
 }
 
-function generarPdf(id, nombre) {
+function generarPdf(id) {
 
     mostrarLoading();
     $.ajax({
@@ -841,7 +847,7 @@ function generarPdf(id, nombre) {
             cerrarAlertas();
             if (response.success) {
 
-                abrirPDF(response.object, 'Reporte_Campania_' + nombre + '.pdf');
+                abrirPDF(response.object);
 
             } else {
                 mostrarError(response.message || 'Error al cerrar la campaña');
@@ -853,7 +859,7 @@ function generarPdf(id, nombre) {
         }
     });
 }
-function abrirPDF(base64String, filename) {
+function abrirPDF(base64String) {
     try {
         const binaryString = atob(base64String);
 

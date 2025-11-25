@@ -103,14 +103,6 @@ function eliminarActividad(id, idTipoActividad) {
     });
 }
 
-// Evento para editar actividad desde la grilla
-//$(document).on('click', '.btn-edit-actividad', function () {
-//    var id = $(this).data('id');
-//    var idTipoActividad = $(this).data('idtipoactividad');
-
-//    cargarActividadParaEditar(id, idTipoActividad);
-//});
-
 // Función para cargar los datos de la actividad a editar
 function cargarActividadParaEditar(id, idTipoActividad) {
     $.ajax({
@@ -184,7 +176,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.superficieHa != null) $('#superficieHa').val(datosEspecificos.superficieHa);
             if (datosEspecificos.densidadSemillaKgHa != null) $('#densidadSemillaKgHa').val(datosEspecificos.densidadSemillaKgHa);
             if (datosEspecificos.costo != null) $('#costoSiembra').val(datosEspecificos.costo);
-            if (datosEspecificos.idMetodoSiembra != null) $('#idMetodoSiembra').val(datosEspecificos.idMetodoSiembra).trigger('change');
+            if (datosEspecificos.idMetodoSiembra != null) await setSelect2WhenReady('#idMetodoSiembra', datosEspecificos.idMetodoSiembra);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
             if (datosEspecificos.idCultivo != null) await setSelect2WhenReady('#idCultivo', datosEspecificos.idCultivo);
@@ -197,8 +189,8 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.horasRiego != null) $('#horasRiego').val(datosEspecificos.horasRiego);
             if (datosEspecificos.volumenAguaM3 != null) $('#volumenAguaM3').val(datosEspecificos.volumenAguaM3);
             if (datosEspecificos.costo != null) $('#costoRiegoTotal').val(datosEspecificos.costo);
-            if (datosEspecificos.idMetodoRiego != null) $('#idMetodoRiego').val(datosEspecificos.idMetodoRiego).trigger('change');
-            if (datosEspecificos.idFuenteAgua != null) $('#idFuenteAgua').val(datosEspecificos.idFuenteAgua).trigger('change');
+            if (datosEspecificos.idMetodoRiego != null) await setSelect2WhenReady('#idMetodoRiego', datosEspecificos.idMetodoRiego);
+            if (datosEspecificos.idFuenteAgua != null) await setSelect2WhenReady('#idFuenteAgua', datosEspecificos.idFuenteAgua);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoRiego').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
@@ -206,9 +198,9 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.cantidadKgHa != null) $('#cantidadKgHa').val(datosEspecificos.cantidadKgHa);
             if (datosEspecificos.dosisKgHa != null) $('#dosisKgHa').val(datosEspecificos.dosisKgHa);
             if (datosEspecificos.costo != null) $('#costoFertilizado').val(datosEspecificos.costo);
-            if (datosEspecificos.idNutriente != null) $('#idNutriente').val(datosEspecificos.idNutriente).trigger('change');
-            if (datosEspecificos.idTipoFertilizante != null) $('#idTipoFertilizante').val(datosEspecificos.idTipoFertilizante).trigger('change');
-            if (datosEspecificos.idMetodoAplicacion != null) $('#idMetodoAplicacion').val(datosEspecificos.idMetodoAplicacion).trigger('change');
+            if (datosEspecificos.idNutriente != null) await setSelect2WhenReady('#idNutriente', datosEspecificos.idNutriente);
+            if (datosEspecificos.idTipoFertilizante != null) await setSelect2WhenReady('#idTipoFertilizante', datosEspecificos.idTipoFertilizante);
+            if (datosEspecificos.idMetodoAplicacion != null) await setSelect2WhenReady('#idMetodoAplicacion', datosEspecificos.idMetodoAplicacion);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoFertilizacion').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
@@ -216,15 +208,15 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.volumenLitrosHa != null) $('#volumenLitrosHa').val(datosEspecificos.volumenLitrosHa);
             if (datosEspecificos.dosis != null) $('#dosisPulverizacion').val(datosEspecificos.dosis);
             if (datosEspecificos.condicionesClimaticas != null) $('#condicionesClimaticas').val(datosEspecificos.condicionesClimaticas);
-            if (datosEspecificos.idProductoAgroquimico != null) $('#idProductoAgroquimico').val(datosEspecificos.idProductoAgroquimico).trigger('change');
+            if (datosEspecificos.idProductoAgroquimico != null) await setSelect2WhenReady('#idProductoAgroquimico', datosEspecificos.idProductoAgroquimico);
             if (datosEspecificos.costo != null) $('#costoPulverizacionTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoPulverizacion').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
         case 6:
-            if (datosEspecificos.idMonitoreo != null) $('#idMonitoreo').val(datosEspecificos.idMonitoreo).trigger('change');
-            if (datosEspecificos.idTipoMonitoreo != null) $('#idTipoMonitoreo').val(datosEspecificos.idTipoMonitoreo).trigger('change');
-            if (datosEspecificos.idEstadoFenologico != null) $('#idEstadoFenologico').val(datosEspecificos.idEstadoFenologico).trigger('change');
+            if (datosEspecificos.idMonitoreo != null) await setSelect2WhenReady('#idMonitoreo', datosEspecificos.idMonitoreo);
+            if (datosEspecificos.idTipoMonitoreo != null) await setSelect2WhenReady('#idTipoMonitoreo', datosEspecificos.idTipoMonitoreo);
+            if (datosEspecificos.idEstadoFenologico != null) await setSelect2WhenReady('#idEstadoFenologico', datosEspecificos.idEstadoFenologico);
             if (datosEspecificos.costo != null) $('#costoMonitoreoTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoMonitoreo').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
@@ -239,7 +231,7 @@ async function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombr
             if (datosEspecificos.conductividadElectrica != null) $('#conductividadElectrica').val(datosEspecificos.conductividadElectrica);
             if (datosEspecificos.cic != null) $('#cic').val(datosEspecificos.cic);
             if (datosEspecificos.textura != null) $('#textura').val(datosEspecificos.textura).trigger('change');
-            if (datosEspecificos.idLaboratorio != null) $('#idLaboratorio').val(datosEspecificos.idLaboratorio).trigger('change');
+            if (datosEspecificos.idLaboratorio != null) await setSelect2WhenReady('#idLaboratorio', datosEspecificos.idLaboratorio);
             if (datosEspecificos.costo != null) $('#costoAnalisisSueloTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoAnalisisSuelo').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
@@ -267,7 +259,6 @@ function cambiarMoneda() {
     const selector = document.getElementById('selectorMoneda');
     const monedaActual = selector.value;
 
-    // Ocultar todos y mostrar solo los de la moneda seleccionada
     document.querySelectorAll('.valor-ars').forEach(el => {
         el.style.display = monedaActual === 'ARS' ? 'inline' : 'none';
     });

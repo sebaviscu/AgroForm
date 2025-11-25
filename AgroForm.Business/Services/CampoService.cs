@@ -17,6 +17,7 @@ namespace AgroForm.Business.Services
 {
     public class CampoService : ServiceBase<Campo>, ICampoService
     {
+
         public CampoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Campo>> logger, IHttpContextAccessor httpContextAccessor)
             : base(contextFactory, logger, httpContextAccessor)
         {
@@ -34,41 +35,22 @@ namespace AgroForm.Business.Services
             return OperationResult<List<Campo>>.SuccessResult(campos);
         }
 
-        public async Task<OperationResult<List<Campo>>> GetCamposConLotesYActividades()
+        public override async Task<OperationResult<Campo?>> GetByIdWithDetailsAsync(long id)
         {
             try
             {
-                var campos = await base.GetQuery()
-                         .Where(c => c.IdLicencia == _userAuth.IdLicencia)
-                         .Include(c => c.Lotes)
-                         .AsNoTracking()
-                         .ToListAsync();
+                var entity = await base.GetQuery()
+                    .Include(c => c.Lotes
+                    .Where(l => l.IdCampania == _userAuth.IdCampaña))
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == id);
 
-                // Cargar actividades por separado
-                var lotesIds = campos.SelectMany(c => c.Lotes).Select(l => l.Id).ToList();
-
-                using var context = await _contextFactory.CreateDbContextAsync();
-                //var actividades = context.Set<Actividad>()
-                //    .Where(a => lotesIds.Contains(a.IdLote))
-                //    .Include(a => a.TipoActividad)
-                //    .Include(a => a.Insumo)
-                //    .AsNoTracking();
-
-                // Asignar actividades a sus lotes manualmente
-                foreach (var campo in campos)
-                {
-                    foreach (var lote in campo.Lotes)
-                    {
-                        //lote.Actividades = actividades.Where(a => a.IdLote == lote.Id).ToList();
-                    }
-                }
-
-                return OperationResult<List<Campo>>.SuccessResult(campos);
+                return OperationResult<Campo?>.SuccessResult(entity);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error GetCamposConLotesYActividades");
-                return OperationResult<List<Campo>>.Failure($"Ocurrió un problema al recuperar actividades de lotes: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al leer el registro con detalles con ID {Id}", id);
+                return OperationResult<Campo?>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
     }

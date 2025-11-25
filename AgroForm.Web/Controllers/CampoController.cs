@@ -1,6 +1,8 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
+using AgroForm.Web.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,6 +68,39 @@ namespace AgroForm.Web.Controllers
             {
                 return HandleException(ex,"Error al cargar campos y lotes con actividades", "GetCamposConLotesYActividades");
             }
+        }
+
+
+        [HttpGet("{id}")]
+        public virtual async Task<IActionResult> GetHistorialById(int id)
+        {
+            var response = new GenericResponse<int>();
+
+            var result = await _service.GetByIdWithDetailsAsync(id);
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return NotFound(gResponse);
+            }
+
+            var labores = new List<LaborDTO>();
+            foreach (var lote in result.Data.Lotes)
+            {
+                var resultLabores = await _actividadService.GetLaboresByAsync(IdLote: lote.Id);
+                if (!resultLabores.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = resultLabores.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+                labores.AddRange(resultLabores.Data);
+            }
+
+            response.Success = true;
+            //gResponse.Object = Map<TEntity, TDto>(result.Data);
+            response.Message = "Historial obtenido correctamente";
+            return Ok(response);
         }
     }
 }

@@ -587,8 +587,8 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.CostoMonitoreosUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresUsd).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoPorHa).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoPorTonelada).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPorHaArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPorToneladaArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPulverizacionesArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPulverizacionesUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoRiegosArs).HasColumnType("decimal(18,4)");

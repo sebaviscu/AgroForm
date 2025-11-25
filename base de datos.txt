@@ -1,4 +1,10 @@
 
+alter table ReporteCierreCampania
+add [CostoPorHaUsd] [decimal](18,2) NOT NULL,
+    [CostoPorToneladaUsd] [decimal](18,2) NOT NULL
+
+EXEC sp_rename 'ReporteCierreCampania.CostoPorHa', 'CostoPorHaArs', 'COLUMN';
+EXEC sp_rename 'ReporteCierreCampania.CostoPorTonelada', 'CostoPorToneladaArs', 'COLUMN';
 
 -----------------------------------------------------
 
@@ -465,8 +471,10 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     
     [SuperficieTotalHa] [decimal](18,2) NOT NULL,
     [ToneladasProducidas] [decimal](18,2) NOT NULL,
-    [CostoPorHa] [decimal](18,2) NOT NULL,
-    [CostoPorTonelada] [decimal](18,2) NOT NULL,
+    [CostoPorHaArs] [decimal](18,2) NOT NULL,
+    [CostoPorToneladaArs] [decimal](18,2) NOT NULL,
+    [CostoPorHaUsd] [decimal](18,2) NOT NULL,
+    [CostoPorToneladaUsd] [decimal](18,2) NOT NULL,
     [RendimientoPromedioHa] [decimal](18,2) NOT NULL,
     
     [AnalisisSueloArs] [decimal](18,2) NOT NULL,
