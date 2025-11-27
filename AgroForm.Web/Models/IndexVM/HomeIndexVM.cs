@@ -20,13 +20,7 @@ namespace AgroForm.Web.Models.IndexVM
             new SiembraVM { CultivoNombre = "Girasol", SuperficieHa = 40 }
         };
 
-        public List<GastoVM> DistribucionGastos { get; set; } = new()
-        {
-            new GastoVM { TipoGasto = TipoGastoEnum.Sueldo, Costo = 45000 },
-            new GastoVM { TipoGasto = TipoGastoEnum.Impuestos, Costo = 28000 },
-            new GastoVM { TipoGasto = TipoGastoEnum.Mantenimiento, Costo = 15000 },
-            new GastoVM { TipoGasto = TipoGastoEnum.Combustible, Costo = 12000 }
-        };
+        public List<GastoVM> DistribucionGastos { get; set; } = new();
 
         public void CargarDistribucionGastos(List<Gasto> gastos)
         {
@@ -42,7 +36,8 @@ namespace AgroForm.Web.Models.IndexVM
                 .ToList();
 
             DistribucionGastos = gastosAgrupados;
-            Gastos = DistribucionGastos.Any() ? DistribucionGastos.Sum(g => g.Costo).Value.ToString("N0") : "-";
+            //Gastos = DistribucionGastos.Any() ? DistribucionGastos.Sum(g => g.Costo).Value.ToString("N0") : "-";
+            Gastos = "-";
         }
 
         public void CargarCultivosDesdeSiembras(List<Siembra> siembras)

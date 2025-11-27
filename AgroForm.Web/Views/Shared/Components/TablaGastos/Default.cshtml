@@ -1,0 +1,151 @@
+﻿
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="ph ph-receipt me-2 text-danger"></i>
+                    <span id="tituloGrafico">Gastos y Labores</span>
+                </h5>
+
+                <div class="d-flex gap-2">
+                    <div class="d-flex justify-content-around gap-3" style="align-items: center;">
+                        <label for="selectorMoneda" class="form-label fw-semibold">Moneda:</label>
+                        <select class="form-select" id="selectorMoneda" onchange="cambiarMoneda()">
+                            <option value="ARS">Pesos (ARS)</option>
+                            <option value="USD">Dólares (USD)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row p-1">
+                    <div id="loadingTablaGastos" class="text-center">
+                        <div class="spinner-border spinner-border-sm text-info" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <small class="text-muted ms-2">Cargando...</small>
+                    </div>
+
+                    <table class="table table-sm table-hover" id="tablaResumenGastos">
+                        <tbody id="tbodyResumenGastos">
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    let monedaActual = 'ARS';
+    let datosGastosIndex = [];
+
+    $(document).ready(function () {
+        cargarDatosGastosIndex();
+    });
+
+    function cargarDatosGastosIndex() {
+        $('#loadingTablaGastos').show();
+
+        $.ajax({
+            url: '/Gasto/GetGatosIndex',
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                $('#loadingTablaGastos').hide();
+                if (response.success) {
+                    datosGastosIndex = response.listObject;
+
+                    actualizarTablaResumen()
+                }
+            },
+            error: function () {
+                $('#loadingTablaGastos').hide();
+                console.error('Error al cargar datos de gastos para índices');
+            }
+        });
+    }
+    function actualizarTablaResumen() {
+        const tbody = $('#tbodyResumenGastos');
+        tbody.empty();
+
+        if (!datosGastosIndex || datosGastosIndex.length === 0) {
+            tbody.append('<tr><td colspan="2" class="text-center text-muted">No hay datos</td></tr>');
+            return;
+        }
+
+        const gastosAgrupados = {};
+
+        datosGastosIndex.forEach(gasto => {
+            const descripcion = gasto.descripcion || 'Sin descripción';
+            const costo = monedaActual === 'ARS' ? (gasto.costoARS || 0) : (gasto.costoUSD || 0);
+
+            if (!gastosAgrupados[descripcion]) {
+                gastosAgrupados[descripcion] = 0;
+            }
+            gastosAgrupados[descripcion] += costo;
+        });
+
+        // Ordenar por monto descendente
+        const gastosOrdenados = Object.entries(gastosAgrupados)
+            .sort(([, a], [, b]) => b - a);
+
+        // Agregar total general
+        const totalGeneral = gastosOrdenados.reduce((sum, [, monto]) => sum + monto, 0);
+        tbody.append(`
+            <tr class="table-primary">
+                <td class="fw-bold">TOTAL</td>
+                <td class="text-end fw-bold">${formatearMoneda(totalGeneral, monedaActual)}</td>
+            </tr>
+        `);
+
+        // Llenar tabla
+        gastosOrdenados.forEach(([descripcion, total]) => {
+            const fila = `
+                <tr>
+                    <td class="small">${descripcion}</td>
+                    <td class="text-end fw-semibold small">
+                        ${formatearMoneda(total, monedaActual)}
+                    </td>
+                </tr>
+            `;
+            tbody.append(fila);
+        });
+
+    }
+
+        function formatearMoneda(monto, moneda) {
+        if (!monto) return '0.00';
+
+        const opciones = {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        };
+
+        const simbolo = moneda === 'ARS' ? '$' : 'US$';
+        return simbolo + ' ' + monto.toLocaleString('es-AR', opciones);
+    }
+
+        function cambiarMoneda() {
+        const selector = document.getElementById('selectorMoneda');
+        monedaActual = selector.value;
+
+        // Actualizar tabla principal
+        document.querySelectorAll('.valor-ars').forEach(el => {
+            el.style.display = monedaActual === 'ARS' ? 'inline' : 'none';
+        });
+
+        document.querySelectorAll('.valor-usd').forEach(el => {
+            el.style.display = monedaActual === 'USD' ? 'inline' : 'none';
+        });
+
+        // Actualizar estadísticas y gráficos (usando datos de GetGatosIndex)
+        actualizarTablaResumen();
+    }
+
+
+</script>

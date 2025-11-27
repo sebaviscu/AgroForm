@@ -23,15 +23,23 @@ public class ReportesController : ControllerBase
         _pdfService = pdfService;
     }
 
-    [HttpGet("CierreCampania/{id}")]
-    public async Task<IActionResult> CierreCampania(int id)
+    [HttpGet("CierreCampania/{idCamapnia}")]
+    public async Task<IActionResult> CierreCampania(int idCamapnia)
     {
         var gResponse = new GenericResponse<byte[]>();
 
         try
         {
-            var result = await _cierreCampaniaService.GenerarPdfReporteAsync(id);
+            var resultReporteCierreCampania = await _cierreCampaniaService.GetByIdCampania(idCamapnia);
 
+            if(!resultReporteCierreCampania.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = resultReporteCierreCampania.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            var result = await _cierreCampaniaService.GenerarPdfReporteAsync(resultReporteCierreCampania.Data);
 
             if (!result.Success)
             {

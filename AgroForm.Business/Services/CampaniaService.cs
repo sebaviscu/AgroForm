@@ -105,7 +105,7 @@ namespace AgroForm.Business.Services
             }
         }
 
-        public override async Task<OperationResult<Campania>> GetByIdAsync(long id)
+        public override async Task<OperationResult<Campania>> GetByIdAsync(int id)
         {
             try
             {
@@ -125,7 +125,7 @@ namespace AgroForm.Business.Services
             }
         }
 
-        public async Task<OperationResult<bool>> FinalizarCampaña(long id)
+        public async Task<OperationResult<bool>> FinalizarCampaña(int id)
         {
             try
             {

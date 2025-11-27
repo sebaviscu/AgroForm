@@ -93,7 +93,6 @@ namespace AgroForm.Web.Controllers
                 }
 
                 gResponse.Success = true;
-                gResponse.Object = reporte.Data.Id;
                 gResponse.Message = "Campaña finalizada";
                 return Ok(gResponse);
             }

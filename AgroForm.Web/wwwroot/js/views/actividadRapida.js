@@ -35,7 +35,8 @@
                 if (!$(this).hasClass('select2-hidden-accessible')) {
                     $(this).select2({
                         dropdownParent: $('#modalActividadRapida'),
-                        width: '100%'
+                        width: '100%',
+                        placeholder: "Cargando..."
                     });
                 }
             });
@@ -51,7 +52,7 @@
         });
     }
     // FUNCIÓN: Cargar datos para selects específicos
-    function cargarDatosParaSelects(tipoActividadNombre) {
+    async function cargarDatosParaSelects(tipoActividadNombre) {
         switch (tipoActividadNombre) {
             case 'Siembra':
                 cargarCultivos();
@@ -60,9 +61,7 @@
             case 'Cosecha':
                 cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
-                setTimeout(function () {
-                    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
-                }, 500);
+                if (idCultivoSembrado != null) await setSelect2WhenReady('#idCultivoCosecha', idCultivoSembrado);
                 break;
             case 'Riego':
                 cargarCatalogos(31, 'MetodoRiego');
@@ -594,6 +593,8 @@
                         $('#superficieCosechadaHa').removeClass('is-invalid');
                     }
                 }
+
+                break;
 
             case 'Monitoreo':
                 if (!$('#idTipoMonitoreo').val()) {

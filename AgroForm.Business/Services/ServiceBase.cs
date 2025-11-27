@@ -140,7 +140,7 @@ namespace AlbaServicios.Services
             }
         }
 
-        public virtual async Task<OperationResult<T>> GetByIdAsync(long id)
+        public virtual async Task<OperationResult<T>> GetByIdAsync(int id)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace AlbaServicios.Services
             }
         }
 
-        public virtual async Task<OperationResult<T>> GetByIdWithDetailsAsync(long id)
+        public virtual async Task<OperationResult<T>> GetByIdWithDetailsAsync(int id)
         {
             try
             {
@@ -349,7 +349,7 @@ namespace AlbaServicios.Services
         }
 
 
-        public virtual async Task<OperationResult> DeleteAsync(long id)
+        public virtual async Task<OperationResult> DeleteAsync(int id)
         {
             try
             {
@@ -371,7 +371,7 @@ namespace AlbaServicios.Services
             }
         }
 
-        public virtual async Task<OperationResult> DeleteRangeAsync(List<long> ids)
+        public virtual async Task<OperationResult> DeleteRangeAsync(List<int> ids)
         {
             try
             {
@@ -391,7 +391,7 @@ namespace AlbaServicios.Services
             }
         }
 
-        public virtual async Task<bool> ExistsAsync(long id)
+        public virtual async Task<bool> ExistsAsync(int id)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Set<T>().AnyAsync(x => x.Id == id);

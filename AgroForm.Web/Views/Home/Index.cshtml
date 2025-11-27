@@ -85,10 +85,10 @@
                                             <div class="popover-cultivos">
                                                 @foreach (var cultivo in Model.Cultivos)
                                                 {
-                                                                        <div class="d-flex justify-content-between small mb-2">
-                                                                                <span>@cultivo.CultivoNombre</span>
-                                                                                    <span class="fw-semibold">@cultivo.SuperficieHa.GetValueOrDefault().ToString("N1") Ha</span>
-                                                                        </div>
+                                                    <div class="d-flex justify-content-between small mb-2">
+                                                            <span>@cultivo.CultivoNombre</span>
+                                                                <span class="fw-semibold">@cultivo.SuperficieHa.GetValueOrDefault().ToString("N1") Ha</span>
+                                                    </div>
                                                 }
                                             </div>
                                         '>
@@ -115,24 +115,6 @@
                                     <div class="text-muted small fw-semibold">GASTOS TOTALES</div>
                                     <div class="h5 mb-0 fw-bold text-danger">$@Model.Gastos</div>
                                 </div>
-                                @* <button class="btn btn-sm btn-outline-danger btn-icon gastos-popover"
-                                        data-bs-toggle="popover"
-                                        data-bs-placement="bottom"
-                                        data-bs-title="Distribución de Gastos"
-                                        data-bs-html="true"
-                                        data-bs-content='
-                                            <div class="popover-gastos">
-                                                @foreach (var gasto in Model.DistribucionGastos)
-                                                {
-                                                    <div class="d-flex justify-content-between small mb-2">
-                                                            <span>@gasto.TipoGasto</span>
-                                                            <span class="fw-semibold">$@gasto.Costo.GetValueOrDefault().ToString("N0")</span>
-                                                    </div>
-                                                }
-                                            </div>
-                                        '>
-                                    <i class="ph ph-eye"></i>
-                                </button> *@
                             </div>
                         </div>
                     </div>
@@ -164,7 +146,8 @@
         </div>
 
         <div class="col-md-6">
-            @await Component.InvokeAsync("ActividadReciente")
+            @* @await Component.InvokeAsync("ActividadReciente") *@
+            @await Component.InvokeAsync("TablaGastos")
             @await Component.InvokeAsync("Lluvia")
 
         </div>

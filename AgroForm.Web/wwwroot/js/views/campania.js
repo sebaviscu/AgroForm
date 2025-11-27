@@ -116,20 +116,10 @@ function inicializarDataTable() {
                     `;
                     }
 
-                    //if (estado === 'En Curso') {
-                    //    botones += `
-                    //    <button type="button" class="btn btn-outline-primary btn-edit"
-                    //            title="Editar" data-id="${data}">
-                    //        <i class="ph ph-pencil"></i>
-                    //    </button>
-                    //`;
-                    //}
-
                     // ----- ESTADO: FINALIZADA o CANCELADA → SOLO VER -----
-                    //if (estado === 'Finalizada' || estado === 'Cancelada') {
-                    if (estado === 'En Curso') {
+                    if (estado === 'Finalizada') {
                         botones += `
-                        <button type="button" class="btn btn-outline-secondary btn-ver"
+                        <button type="button" class="btn btn-outline-info btn-ver"
                                 title="Ver campaña" data-id="${data}">
                             <i class="ph ph-eye"></i>
                         </button>
@@ -252,7 +242,10 @@ function inicializarModalCreacion() {
 
     // Establecer fecha mínima como hoy
     var hoy = new Date();
-    var fecha = hoy.toISOString().split('T')[0];
+    var año = hoy.getFullYear();
+    var mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
+    var fecha = `${año}-${mes}`;
+
     $('#fechaInicio').val(fecha);
     $('#fechaInicio').attr('min', fecha);
 
@@ -753,7 +746,7 @@ function guardarCampania() {
     var data = {
         Nombre: $('#nombre').val(),
         EstadosCampania: 0,
-        FechaInicio: $('#fechaInicio').val(),
+        FechaInicio: $('#fechaInicio').val()+'-01',
         Lotes: []
     };
 
@@ -822,7 +815,7 @@ function finalizarCampania(id, nombre) {
                     cerrarAlertas();
                     if (response.success) {
 
-                        generarPdf(response.object);
+                        generarPdf(id);
 
                     } else {
                         mostrarError(response.message || 'Error cerrar la campaña');
@@ -859,6 +852,7 @@ function generarPdf(id) {
         }
     });
 }
+
 function abrirPDF(base64String) {
     try {
         const binaryString = atob(base64String);
@@ -908,9 +902,9 @@ function llenarFormularioCampania(campania) {
     campoSeleccionadoActual = null;
 
     // Llenar datos básicos
-    $('#idCampania').val(campania.id); // Necesitarás agregar este campo hidden
+    $('#idCampania').val(campania.id);
     $('#nombre').val(campania.nombre);
-    $('#fechaInicio').val(campania.fechaInicio ? campania.fechaInicio.split('T')[0] : '');
+    $('#fechaInicio').val(campania.fechaInicio ? campania.fechaInicio.split('T')[0].substring(0, 7) : '');
 
     // Cargar campos disponibles
     cargarCampos().then(function () {

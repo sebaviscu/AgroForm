@@ -91,6 +91,7 @@ namespace AgroForm.Model
 
     public class ResumenCampo
     {
+        public int IdCampo { get; set; }
         public string NombreCampo { get; set; } = string.Empty;
         public decimal SuperficieHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
@@ -108,5 +109,26 @@ namespace AgroForm.Model
         public decimal CostoTotalArs { get; set; }
         public decimal CostoTotalUsd { get; set; }
         public decimal RendimientoHa { get; set; }
+    }
+
+    public class ResumenGasto
+    {
+        public string Categoria { get; set; } = string.Empty;
+        public decimal CostoArs { get; set; }
+        public decimal CostoUsd { get; set; }
+    }
+
+    public class ResumenClima
+    {
+        public int IdCampo { get; set; }
+        public string Mes { get; set; } = string.Empty;
+        public decimal Lluvia { get; set; }
+    }
+
+    public class ResumenEventoExtremo
+    {
+        public int IdCampo { get; set; }
+        public DateTime Fecha { get; set; }
+        public string Tipo { get; set; } = string.Empty;
     }
 }

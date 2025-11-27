@@ -27,7 +27,7 @@ namespace AgroForm.Business.Services
 
         }
 
-        public override async Task<OperationResult<Licencia>> GetByIdAsync(long id)
+        public override async Task<OperationResult<Licencia>> GetByIdAsync(int id)
         {
             try
             {

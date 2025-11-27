@@ -30,9 +30,25 @@ namespace AgroForm.Business.Services
             _pdfService = pdfService;
         }
 
+        public async Task<OperationResult<ReporteCierreCampania>> GetByIdCampania(int idCampania)
+        {
+            var query = GetQuery().AsQueryable().Where(_ => _.IdCampania == idCampania);
+            var reporte = await query.FirstOrDefaultAsync();
+            if (reporte == null)
+            {
+                return OperationResult<ReporteCierreCampania>.Failure("No se encontro reporte", "NOT_FOUND");
+            }
+            return OperationResult<ReporteCierreCampania>.SuccessResult(reporte);
+        }
 
         public async Task<OperationResult<ReporteCierreCampania>> GenerarReporteCierreAsync(int idCampania)
         {
+            var ids = await GetAllAsync();
+            var dd = ids.Data;
+
+            if (dd.Any())
+                await base.DeleteRangeAsync(dd.Select(_ => _.Id).ToList());
+
             var campania = await _campaniaRepo.Query()
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.AnalisisSuelos)
@@ -54,7 +70,7 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Campo)
                     .ThenInclude(l => l.RegistrosClima)
-                .Include(_=>_.Gastos)
+                .Include(_ => _.Gastos)
                 .FirstOrDefaultAsync(c => c.Id == idCampania);
 
             if (campania == null) throw new Exception("Campaña no encontrada");
@@ -78,15 +94,15 @@ namespace AgroForm.Business.Services
 
             var result = await base.CreateAsync(reporte);
 
-            if(!result.Success)
+            if (!result.Success)
             {
                 return OperationResult<ReporteCierreCampania>.Failure(result.ErrorMessage, result.ErrorCode);
             }
 
             // cambiar estado campania
-            //campania.EstadosCampania = EstadosCamapaña.Finalizada;
-            //campania.FechaFin = hoy;
-            //await _campaniaRepo.UpdateAsync(campania);
+            campania.EstadosCampania = EstadosCamapaña.Finalizada;
+            campania.FechaFin = hoy;
+            await _campaniaRepo.UpdateAsync(campania);
 
             // cambair estado de las labores
 
@@ -163,16 +179,17 @@ namespace AgroForm.Business.Services
             {
                 var lotesGrupo = grupo.Select(x => x.Lote).ToList();
                 var laboresGrupo = lotesGrupo.SelectMany(l => l.Cosechas).ToList();
+                var superficieTotal = lotesGrupo.Sum(l => l.SuperficieHectareas ?? 0);
+                var toneladasTotal = laboresGrupo.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
+                var rendimiento = toneladasTotal > 0 && superficieTotal > 0 ? toneladasTotal / superficieTotal : 0;
 
                 var resumen = new ResumenCultivo
                 {
-                    // Aquí necesitarías obtener el nombre del cultivo desde la base de datos
                     NombreCultivo = $"Cultivo {grupo.Key.Nombre}",
-                    SuperficieHa = lotesGrupo.Sum(l => l.SuperficieHectareas ?? 0),
-                    ToneladasProducidas = laboresGrupo
-                        .Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                    SuperficieHa = superficieTotal,
+                    ToneladasProducidas = toneladasTotal,
                     CostoTotal = laboresGrupo.Sum(l => l.CostoARS ?? 0),
-                    RendimientoHa = 0 // Calcular basado en superficie y producción
+                    RendimientoHa = rendimiento
                 };
 
                 resumenCultivos.Add(resumen);
@@ -197,6 +214,7 @@ namespace AgroForm.Business.Services
 
                 var resumen = new ResumenCampo
                 {
+                    IdCampo = campo.Id,
                     NombreCampo = campo.Nombre,
                     SuperficieHa = lotesCampo.Sum(l => l.SuperficieHectareas ?? 0),
                     ToneladasProducidas = lotesCampo
@@ -226,28 +244,79 @@ namespace AgroForm.Business.Services
         private void CalcularDatosClimaticosAsync(Campania campania, ReporteCierreCampania reporte)
         {
             var campos = campania.Lotes.Select(l => l.Campo).ToList();
-
             var registrosClima = campos.SelectMany(l => l.RegistrosClima).ToList();
 
-            reporte.LluviaAcumuladaTotal = registrosClima.Sum(r => r.Milimetros);
+            var idsCampos = campos.Select(c => c.Id).Distinct().ToList();
 
-            var lluviasPorMes = registrosClima
-                .GroupBy(r => r.Fecha.ToString("MM-yyyy"))
-                .Select(g => new { Mes = g.Key, Lluvia = g.Sum(r => r.Milimetros) })
+            var todosLosMeses = GenerarMesesEntreFechas(campania.FechaInicio.AddMonths(-11), reporte.FechaFin);
+
+            var lluviasExistentes = registrosClima
+                .GroupBy(r => new
+                {
+                    IdCampo = r.IdCampo,
+                    Mes = r.Fecha.ToString("MM-yyyy")
+                })
+                .Select(g => new ResumenClima()
+                {
+                    IdCampo = g.Key.IdCampo,
+                    Mes = g.Key.Mes,
+                    Lluvia = g.Sum(r => r.Milimetros)
+                })
                 .ToList();
 
-            reporte.LluviasPorMesJson = JsonSerializer.Serialize(lluviasPorMes);
+            var lluviasCompletas = new List<ResumenClima>();
+
+            foreach (var idCampo in idsCampos)
+            {
+                foreach (var mes in todosLosMeses)
+                {
+                    var registroExistente = lluviasExistentes
+                        .FirstOrDefault(r => r.IdCampo == idCampo && r.Mes == mes);
+
+                    if (registroExistente != null)
+                    {
+                        lluviasCompletas.Add(registroExistente);
+                    }
+                    else
+                    {
+                        lluviasCompletas.Add(new ResumenClima()
+                        {
+                            IdCampo = idCampo,
+                            Mes = mes,
+                            Lluvia = 0
+                        });
+                    }
+                }
+            }
+
+            reporte.LluviasPorMesJson = JsonSerializer.Serialize(lluviasCompletas);
 
             var eventosExtremos = registrosClima
                 .Where(r => r.TipoClima != TipoClima.Lluvia)
-                .Select(r => new
+                .Select(r => new ResumenEventoExtremo()
                 {
+                    IdCampo = r.IdCampo,
                     Fecha = r.Fecha,
                     Tipo = r.TipoClima.ToString()
                 })
                 .ToList();
 
             reporte.EventosExtremosJson = JsonSerializer.Serialize(eventosExtremos);
+        }
+
+        private List<string> GenerarMesesEntreFechas(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var meses = new List<string>();
+            var fechaActual = new DateTime(fechaInicio.Year, fechaInicio.Month, 1);
+            var fechaFinMes = new DateTime(fechaFin.Year, fechaFin.Month, 1);
+
+            while (fechaActual <= fechaFinMes)
+            {
+                meses.Add(fechaActual.ToString("MM-yyyy"));
+                fechaActual = fechaActual.AddMonths(1);
+            }
+
+            return meses;
         }
 
         private void CalcularDatosGastosAsync(Campania campania, ReporteCierreCampania reporte)
@@ -271,9 +340,10 @@ namespace AgroForm.Business.Services
             return await _pdfService.GenerarPdfCierreCampaniaAsync(reporteCierreCampania);
         }
 
-        public async Task<OperationResult<byte[]>> GenerarPdfReporteAsync(int idCampania)
+
+        public async Task<OperationResult<byte[]>> GenerarPdfReporteAsync(int idReporte)
         {
-            var reporte = await base.GetQuery().FirstOrDefaultAsync(_ => _.Id == idCampania);
+            var reporte = await base.GetQuery().FirstOrDefaultAsync(_ => _.Id == idReporte);
 
             if (reporte == null)
             {
@@ -283,14 +353,6 @@ namespace AgroForm.Business.Services
             return await _pdfService.GenerarPdfCierreCampaniaAsync(reporte);
         }
 
-        public async Task<List<ReporteCierreCampania>> ObtenerReportesAnterioresAsync(int idLicencia)
-        {
-            return await base.GetQuery()
-                .Include(r => r.Campania)
-                .Where(r => r.IdLicencia == idLicencia)
-                .OrderByDescending(r => r.FechaFin)
-                .ToListAsync();
-        }
     }
 }
 

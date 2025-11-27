@@ -35,7 +35,7 @@ namespace AgroForm.Business.Services
             return OperationResult<List<Campo>>.SuccessResult(campos);
         }
 
-        public override async Task<OperationResult<Campo?>> GetByIdWithDetailsAsync(long id)
+        public override async Task<OperationResult<Campo?>> GetByIdWithDetailsAsync(int id)
         {
             try
             {
