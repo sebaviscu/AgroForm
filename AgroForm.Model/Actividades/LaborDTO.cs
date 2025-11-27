@@ -11,6 +11,7 @@ namespace AgroForm.Model.Actividades
         public int Id { get; set; }
         public int IdTipoActividad { get; set; }
         public int IdCampania { get; set; }
+        public string Campania { get; set; } = string.Empty;
         public int IdLote { get; set; } 
         public string Lote { get; set; } = string.Empty;
         public string Campo { get; set; } = string.Empty;

@@ -5,6 +5,17 @@ let drawnItems;
 let isDrawing = false;
 let currentPolygon = null;
 
+let viewMap;
+let currentViz = 'normal';
+let campoPolygon = null;
+let baseLayers = {};
+let overlayLayers = {};
+let weatherData = null;
+let currentFieldData = null;
+
+let historialData = [];
+
+
 $(document).ready(function () {
     inicializarDataTable();
     configurarEventos();
@@ -83,6 +94,14 @@ function inicializarDataTable() {
                 render: function (data, type, row) {
                     return `
                         <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-info btn-view"
+                                    title="Ver campo y datos satelitales" data-id="${data}">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-history"
+                                    title="Historial" data-id="${data}">
+                                <i class="ph ph-list-dashes"></i>
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-edit" 
                                     title="Editar campo" data-id="${data}">
                                 <i class="ph ph-pencil"></i>
@@ -129,6 +148,16 @@ function configurarEventos() {
     $('#tblCampos tbody').on('click', '.btn-delete', function () {
         var id = $(this).data('id');
         eliminarCampo(id);
+    });
+
+    $('#tblCampos tbody').on('click', '.btn-view', function () {
+        var id = $(this).data('id');
+        abrirModalVisualizacion(id);
+    });
+
+    $('#tblCampos tbody').on('click', '.btn-history', function () {
+        var id = $(this).data('id');
+        cargarHistorico(id);
     });
 
     // Validación del formulario
@@ -607,12 +636,952 @@ function updateFieldInfo(polygon) {
     }));
     $('#coordenadasPoligono').val(JSON.stringify(coordenadas));
 
-    // Solo agregar marcador si no estamos en modo edición/carga
-    const existingMarkers = drawnItems.getLayers().filter(layer => layer instanceof L.Marker);
-    //if (existingMarkers.length === 0) {
-    //    L.marker([center.lat, center.lng])
-    //        .addTo(map)
-    //        .bindPopup('Centro aprox. del campo')
-    //        .openPopup();
-    //}
 }
+
+
+// Función para abrir el modal de visualización
+function abrirModalVisualizacion(id) {
+    var modal = new bootstrap.Modal($('#modalVisualizacion')[0]);
+
+    // Cargar datos del campo
+    cargarDatosParaVisualizacion(id);
+
+    modal.show();
+}
+
+// Función MEJORADA para cargar datos del campo
+function cargarDatosParaVisualizacion(id) {
+    $.ajax({
+        url: '/Campo/GetById/' + id,
+        type: 'GET',
+        success: function (response) {
+            if (response.success) {
+                currentFieldData = response.object;
+
+                // Actualizar información del campo
+                $('#view-nombre').text(currentFieldData.nombre);
+                $('#view-ubicacion').text(currentFieldData.ubicacion || 'No especificada');
+                $('#view-superficie').text(currentFieldData.superficieHectareas ?
+                    parseFloat(currentFieldData.superficieHectareas).toLocaleString('es-ES', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }) + ' Ha' : '-');
+                $('#view-centro').text(currentFieldData.latitud && currentFieldData.longitud ?
+                    `${parseFloat(currentFieldData.latitud).toFixed(6)}, ${parseFloat(currentFieldData.longitud).toFixed(6)}` : '-');
+
+                // Inicializar mapa
+                inicializarMapaVisualizacion();
+
+                // INICIALIZAR FECHA
+                inicializarFecha();
+
+                // Cargar polígono del campo
+                if (currentFieldData.coordenadasPoligono) {
+                    setTimeout(() => {
+                        cargarPoligonoVisualizacion(currentFieldData.coordenadasPoligono, currentFieldData.latitud, currentFieldData.longitud);
+                        // Cargar datos y análisis
+                        cargarDatosYAnalisis();
+                    }, 500);
+                }
+
+            } else {
+                mostrarError(response.message || 'Error al cargar los datos del campo');
+            }
+        },
+        error: function () {
+            mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
+
+// Función para inicializar la fecha
+function inicializarFecha() {
+    const hoy = new Date().toISOString().split('T')[0];
+    $('#layer-date').val(hoy);
+    console.log('📅 Fecha inicializada:', hoy);
+}
+
+// Función para cargar datos y análisis
+async function cargarDatosYAnalisis() {
+    if (!currentFieldData) return;
+
+    const lat = currentFieldData.latitud;
+    const lon = currentFieldData.longitud;
+    const fecha = $('#layer-date').val();
+
+    if (lat && lon) {
+        await cargarDatosMeteorologicos(lat, lon, fecha);
+        actualizarAnalisisCompleto();
+    }
+}
+
+// Función para cargar datos meteorológicos
+async function cargarDatosMeteorologicos(lat, lon, fecha = null) {
+    try {
+        const hoy = new Date().toISOString().split('T')[0];
+        const esFechaActual = !fecha || fecha === hoy;
+
+        let url;
+
+        if (esFechaActual) {
+            // Datos en tiempo real y pronóstico
+            url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,soil_temperature_0cm,soil_moisture_0_1cm&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+        } else {
+            // Datos históricos
+            url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${fecha}&end_date=${fecha}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+        }
+
+        console.log(`🌤️ Cargando datos para fecha: ${fecha || 'hoy'}`);
+        const response = await fetch(url);
+
+        if (response.ok) {
+            const data = await response.json();
+            weatherData = data;
+            weatherData.fechaConsulta = fecha || hoy;
+            weatherData.esTiempoReal = esFechaActual;
+
+            console.log('✅ Datos meteorológicos cargados:', {
+                fecha: fecha || 'hoy',
+                tipo: esFechaActual ? 'tiempo_real' : 'historico',
+                datos: data
+            });
+        } else {
+            console.warn('❌ No se pudieron cargar datos meteorológicos');
+            weatherData = null;
+        }
+    } catch (error) {
+        console.error('Error cargando datos meteorológicos:', error);
+        weatherData = null;
+    }
+}
+
+// Función para inicializar el mapa
+function inicializarMapaVisualizacion() {
+    // Destruir mapa anterior si existe
+    if (viewMap) {
+        viewMap.remove();
+    }
+
+    viewMap = L.map('view-map').setView([-34.6037, -58.3816], 13);
+
+    // Capas base
+    baseLayers = {
+        "Google Satélite": L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: '© Google Maps',
+            maxZoom: 20
+        }),
+        "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        })
+    };
+
+    // Agregar capa base por defecto
+    baseLayers["Google Satélite"].addTo(viewMap);
+
+    // Configurar capas overlay
+    configurarCapasOverlay();
+
+    // Agregar control de capas
+    L.control.layers(baseLayers, overlayLayers, {
+        collapsed: true,
+        position: 'topright'
+    }).addTo(viewMap);
+
+    // Agregar control de escala
+    L.control.scale({ imperial: false }).addTo(viewMap);
+
+    console.log('🗺️ Mapa de visualización inicializado');
+}
+
+// Función para configurar capas overlay
+// Función MEJORADA para configurar capas overlay que SÍ funcionan
+function configurarCapasOverlay() {
+    overlayLayers = {
+        // ESRI World Imagery - SIEMPRE funciona
+        "ESRI Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© ESRI',
+            maxZoom: 19,
+            opacity: 0.9
+        }),
+
+        // Google Híbrido - SIEMPRE funciona
+        "Google Híbrido": L.tileLayer('https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+            attribution: '© Google Maps',
+            maxZoom: 20,
+            opacity: 0.9
+        }),
+
+        // OpenTopoMap - SIEMPRE funciona
+        "Mapa Topográfico": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenTopoMap',
+            maxZoom: 17,
+            opacity: 0.8
+        }),
+
+        // Mapa de Suelos (simulado)
+        "Mapa de Suelos": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap - Datos de suelo simulados',
+            opacity: 0.6
+        })
+    };
+}
+
+// Función para cargar el polígono en el mapa
+function cargarPoligonoVisualizacion(coordenadasJson, latitud, longitud) {
+    try {
+        const coordenadas = JSON.parse(coordenadasJson);
+
+        if (coordenadas && coordenadas.length >= 3) {
+            // Limpiar polígono anterior si existe
+            if (campoPolygon) {
+                viewMap.removeLayer(campoPolygon);
+            }
+
+            // Convertir coordenadas al formato de Leaflet
+            const latlngs = coordenadas.map(coord => [coord.lat, coord.lng]);
+
+            // Crear polígono con estilo normal
+            campoPolygon = L.polygon(latlngs, {
+                color: '#0d6efd',
+                fillColor: '#0d6efd',
+                fillOpacity: 0.2,
+                weight: 3,
+                opacity: 0.8
+            }).addTo(viewMap);
+
+            // Agregar popup informativo
+            campoPolygon.bindPopup(`
+                <div class="text-center">
+                    <h6>${$('#view-nombre').text()}</h6>
+                    <p class="mb-1"><small>Superficie: ${$('#view-superficie').text()}</small></p>
+                    <p class="mb-0"><small>Ubicación: ${$('#view-ubicacion').text()}</small></p>
+                </div>
+            `);
+
+            // Centrar el mapa en el polígono
+            viewMap.fitBounds(campoPolygon.getBounds().pad(0.1));
+
+            console.log('✅ Polígono del campo cargado correctamente');
+        }
+    } catch (error) {
+        console.error('Error al cargar el polígono:', error);
+        mostrarError('Error al cargar la geometría del campo');
+    }
+}
+
+// Función para cambiar visualización
+// Función MEJORADA para cambiar visualización
+function cambiarVisualizacion(vizType) {
+    console.log(`🎨 Cambiando visualización: ${vizType}`);
+
+    // PRIMERO: Restaurar capa base por defecto (Google Satélite)
+    Object.values(baseLayers).forEach(layer => {
+        if (viewMap.hasLayer(layer)) {
+            viewMap.removeLayer(layer);
+        }
+    });
+    baseLayers["Google Satélite"].addTo(viewMap);
+
+    // LUEGO: Remover capas overlay
+    Object.values(overlayLayers).forEach(layer => {
+        if (viewMap.hasLayer(layer)) {
+            viewMap.removeLayer(layer);
+        }
+    });
+
+    // Ocultar todas las leyendas
+    $('#ndvi-legend').hide();
+    $('#humidity-legend').hide();
+    $('#esri-legend').hide(); 
+
+    // Remover clase active de todos los botones
+    $('.btn-viz').removeClass('active');
+    // Agregar clase active al botón clickeado
+    $(`.btn-viz[data-viz="${vizType}"]`).addClass('active');
+
+    let vizName = '';
+
+    // Aplicar visualización según el tipo
+    switch (vizType) {
+        case 'normal':
+            aplicarVisualizacionNormal();
+            vizName = 'Vista Normal';
+            break;
+
+        case 'ndvi':
+            aplicarVisualizacionNDVI();
+            vizName = 'Color por Vegetación';
+            $('#ndvi-legend').show();
+            break;
+
+        case 'humidity':
+            aplicarVisualizacionHumedad();
+            vizName = 'Color por Humedad';
+            $('#humidity-legend').show();
+            break;
+
+        case 'sentinel':
+            aplicarVisualizacionSentinel();
+            vizName = 'Vista ESRI Satélite';
+            $('#esri-legend').show();
+            break;
+
+        default:
+            aplicarVisualizacionNormal();
+            vizName = 'Vista Normal';
+            break;
+    }
+
+    // Actualizar texto de visualización actual
+    $('#current-viz').text(vizName);
+    currentViz = vizType;
+}
+
+// Función para aplicar visualización normal
+function aplicarVisualizacionNormal() {
+    if (campoPolygon) {
+        campoPolygon.setStyle({
+            fillColor: '#0d6efd',
+            fillOpacity: 0.2,
+            color: '#0d6efd',
+            weight: 3
+        });
+    }
+}
+
+// Función para aplicar visualización NDVI
+function aplicarVisualizacionNDVI() {
+    if (!campoPolygon) return;
+
+    let ndviValue = 0.5;
+    let color = '#0d6efd';
+
+    if (weatherData) {
+        if (weatherData.esTiempoReal && weatherData.current) {
+            // Cálculo con datos en tiempo real (código existente)
+            const temp = weatherData.current.temperature_2m;
+            const humidity = weatherData.current.relative_humidity_2m;
+            const soilMoisture = weatherData.current.soil_moisture_0_1cm;
+
+            ndviValue = 0.3 + (temp / 40) * 0.3 + (humidity / 100) * 0.2 + soilMoisture * 2;
+        } else if (weatherData.daily) {
+            // Cálculo con datos históricos
+            const daily = weatherData.daily;
+            const index = 0;
+            const tempMax = daily.temperature_2m_max ? daily.temperature_2m_max[index] : 20;
+            const tempMin = daily.temperature_2m_min ? daily.temperature_2m_min[index] : 10;
+            const precip = daily.precipitation_sum ? daily.precipitation_sum[index] : 0;
+
+            const tempPromedio = (tempMax + tempMin) / 2;
+            const humedadEstimada = Math.min(80, Math.max(30, 50 + (precip * 10)));
+
+            ndviValue = 0.3 + (tempPromedio / 40) * 0.3 + (humedadEstimada / 100) * 0.2 + (precip * 0.5);
+        }
+
+        ndviValue = Math.min(Math.max(ndviValue, 0.1), 0.9);
+
+        // Determinar color según NDVI (igual para ambos casos)
+        if (ndviValue > 0.6) {
+            color = "#1a9850";
+        } else if (ndviValue > 0.3) {
+            color = "#fee08b";
+        } else {
+            color = "#d73027";
+        }
+    }
+
+    campoPolygon.setStyle({
+        fillColor: color,
+        fillOpacity: 0.6,
+        color: color,
+        weight: 3
+    });
+}
+
+// Función para aplicar visualización humedad
+function aplicarVisualizacionHumedad() {
+    if (!campoPolygon) return;
+
+    let color = '#0d6efd';
+
+    if (weatherData && weatherData.current) {
+        const soilMoisture = weatherData.current.soil_moisture_0_1cm;
+
+        // Determinar color según humedad
+        if (soilMoisture < 0.1) {
+            color = "#d73027"; // Seco
+        } else if (soilMoisture < 0.2) {
+            color = "#fdae61"; // Ligeramente húmedo
+        } else if (soilMoisture < 0.3) {
+            color = "#fee08b"; // Húmedo
+        } else {
+            color = "#1a9850"; // Muy húmedo
+        }
+    }
+
+    campoPolygon.setStyle({
+        fillColor: color,
+        fillOpacity: 0.6,
+        color: color,
+        weight: 3
+    });
+}
+
+// Función MEJORADA para aplicar visualización Sentinel/ESRI
+// Función MEJORADA para aplicar visualización ESRI Satélite
+function aplicarVisualizacionSentinel() {
+    // Remover capa base actual
+    if (viewMap && viewMap.hasLayer(baseLayers["Google Satélite"])) {
+        viewMap.removeLayer(baseLayers["Google Satélite"]);
+    }
+
+    // Agregar ESRI World Imagery
+    if (overlayLayers["ESRI Satélite"]) {
+        overlayLayers["ESRI Satélite"].addTo(viewMap);
+
+        // Agregar información contextual al polígono
+        if (campoPolygon) {
+            campoPolygon.setStyle({
+                fillColor: '#ff0000',
+                fillOpacity: 0.2,
+                color: '#ff0000',
+                weight: 3
+            });
+
+            // Actualizar el popup con información específica de vista satelital
+            campoPolygon.bindPopup(`
+                <div class="text-center">
+                    <h6>${$('#view-nombre').text()}</h6>
+                    <p class="small mb-2">📷 <strong>Vista ESRI Satélite</strong></p>
+                    <p class="small mb-1">Superficie: ${$('#view-superficie').text()}</p>
+                    <p class="small mb-2">Ubicación: ${$('#view-ubicacion').text()}</p>
+                    <div class="alert alert-info p-1 small">
+                        <strong>💡 Consejo:</strong> Observa los patrones de color para identificar tipos de vegetación y suelo
+                    </div>
+                </div>
+            `);
+        }
+
+        console.log('✅ Vista ESRI Satélite activada con leyenda');
+    } else {
+        console.warn('❌ Capa ESRI no disponible');
+        // Fallback a Google Híbrido
+        if (overlayLayers["Google Híbrido"]) {
+            overlayLayers["Google Híbrido"].addTo(viewMap);
+        }
+    }
+}
+
+// Función para actualizar análisis completo
+// Función MEJORADA para actualizar análisis completo
+function actualizarAnalisisCompleto() {
+    if (!currentFieldData) return;
+
+    const fechaSeleccionada = $('#layer-date').val();
+    const hoy = new Date().toISOString().split('T')[0];
+    const esFechaActual = fechaSeleccionada === hoy;
+
+    console.log(`📊 Actualizando análisis para fecha: ${fechaSeleccionada} (${esFechaActual ? 'hoy' : 'histórica'})`);
+
+    let contenido = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2">
+                    ${esFechaActual ? '📊 Datos en Tiempo Real' : '📊 Datos Históricos'}
+                    ${!esFechaActual ? `<br><small class="text-muted">${fechaSeleccionada}</small>` : ''}
+                </h6>
+    `;
+
+    // Datos Meteorológicos - Manejar tanto tiempo real como histórico
+    if (weatherData) {
+        const ahora = new Date().toLocaleTimeString('es-AR');
+
+        if (weatherData.esTiempoReal && weatherData.current) {
+            // DATOS EN TIEMPO REAL
+            const current = weatherData.current;
+
+            contenido += `
+                <div class="mb-3">
+                    <small class="text-muted">Actualizado: ${ahora}</small>
+                    <div class="row small mt-1">
+                        <div class="col-6 mb-2">
+                            <strong>🌡️ Temperatura:</strong><br>
+                            ${current.temperature_2m}°C
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>💧 Humedad Aire:</strong><br>
+                            ${current.relative_humidity_2m}%
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>🌧️ Precipitación:</strong><br>
+                            ${current.precipitation} mm
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>💧 Humedad Suelo:</strong><br>
+                            ${current.soil_moisture_0_1cm} /m³  
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>🌡️ Temp. Suelo:</strong><br>
+                            ${current.soil_temperature_0cm}°C
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>📅 Fecha:</strong><br>
+                            ${fechaSeleccionada}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (weatherData.daily) {
+            // DATOS HISTÓRICOS
+            const daily = weatherData.daily;
+            const index = 0; // Primer día (la fecha seleccionada)
+
+            contenido += `
+                <div class="mb-3">
+                    <small class="text-muted">Datos históricos - ${fechaSeleccionada}</small>
+                    <div class="row small mt-1">
+                        <div class="col-6 mb-2">
+                            <strong>🌡️ Temp. Máx:</strong><br>
+                            ${daily.temperature_2m_max ? daily.temperature_2m_max[index] + '°C' : 'N/D'}
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>🌡️ Temp. Mín:</strong><br>
+                            ${daily.temperature_2m_min ? daily.temperature_2m_min[index] + '°C' : 'N/D'}
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>🌧️ Precipitación:</strong><br>
+                            ${daily.precipitation_sum ? daily.precipitation_sum[index] + ' mm' : 'N/D'}
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>💧 Humedad Suelo:</strong><br>
+                            <em class="text-muted">-</em>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>🌡️ Temp. Suelo:</strong><br>
+                            <em class="text-muted">-</em>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>📊 Tipo:</strong><br>
+                            Datos Históricos
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        contenido += `
+            <div class="alert alert-warning p-2 small">
+                <i class="ph ph-warning-circle me-1"></i>
+                No se pudieron cargar los datos para esta fecha
+            </div>
+        `;
+    }
+
+    contenido += `
+            </div>
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2">🌱 Análisis y Recomendaciones</h6>
+    `;
+
+    // Análisis de Vegetación - Adaptado para datos históricos
+    let ndviValue = 0.5;
+    let estadoVegetacion = "Media";
+    let recomendacionVegetacion = "Monitorear crecimiento regularmente";
+    let baseAnalisis = "";
+
+    if (weatherData) {
+        if (weatherData.esTiempoReal && weatherData.current) {
+            // ANÁLISIS CON DATOS EN TIEMPO REAL
+            const temp = weatherData.current.temperature_2m;
+            const humidity = weatherData.current.relative_humidity_2m;
+            const soilMoisture = weatherData.current.soil_moisture_0_1cm;
+
+            ndviValue = 0.3 + (temp / 40) * 0.3 + (humidity / 100) * 0.2 + soilMoisture * 2;
+            ndviValue = Math.min(Math.max(ndviValue, 0.1), 0.9);
+            baseAnalisis = `Basado en condiciones actuales (${temp}°C, ${humidity}% humedad)`;
+
+        } else if (weatherData.daily) {
+            // ANÁLISIS CON DATOS HISTÓRICOS
+            const daily = weatherData.daily;
+            const index = 0;
+            const tempMax = daily.temperature_2m_max ? daily.temperature_2m_max[index] : 20;
+            const tempMin = daily.temperature_2m_min ? daily.temperature_2m_min[index] : 10;
+            const precip = daily.precipitation_sum ? daily.precipitation_sum[index] : 0;
+
+            const tempPromedio = (tempMax + tempMin) / 2;
+            const humedadEstimada = Math.min(80, Math.max(30, 50 + (precip * 10)));
+
+            ndviValue = 0.3 + (tempPromedio / 40) * 0.3 + (humedadEstimada / 100) * 0.2 + (precip * 0.5);
+            ndviValue = Math.min(Math.max(ndviValue, 0.1), 0.9);
+            baseAnalisis = `Basado en datos históricos (${tempPromedio.toFixed(1)}°C promedio, ${precip}mm lluvia)`;
+        }
+
+        // Determinar estado (común para ambos casos)
+        if (ndviValue > 0.6) {
+            estadoVegetacion = "Alta";
+            recomendacionVegetacion = "Condiciones óptimas para el crecimiento";
+        } else if (ndviValue > 0.3) {
+            estadoVegetacion = "Media";
+            recomendacionVegetacion = "Monitorear crecimiento regularmente";
+        } else {
+            estadoVegetacion = "Baja";
+            recomendacionVegetacion = "Evaluar necesidad de riego y nutrientes";
+        }
+    }
+
+    contenido += `
+        <div class="mb-3">
+            <strong>Estado de Vegetación:</strong>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+                <span>${estadoVegetacion}</span>
+                <small class="text-muted">NDVI: ${ndviValue.toFixed(3)}</small>
+            </div>
+            <div class="mt-1 small text-muted">
+                ${baseAnalisis}<br>
+                ${recomendacionVegetacion}
+            </div>
+        </div>
+    `;
+
+    // Análisis de Suelo - Adaptado para datos históricos
+    let estadoSuelo = "Óptimo";
+    let recomendacionSuelo = "Condiciones adecuadas";
+    let humedadSueloTexto = "N/D";
+
+    if (weatherData) {
+        if (weatherData.esTiempoReal && weatherData.current) {
+            // SUELO CON DATOS EN TIEMPO REAL
+            const soilMoisture = weatherData.current.soil_moisture_0_1cm;
+            const soilTemp = weatherData.current.soil_temperature_0cm;
+            humedadSueloTexto = `${soilMoisture} /m³`;
+
+            if (soilMoisture < 0.1) {
+                estadoSuelo = "Seco";
+                recomendacionSuelo = "Considerar programa de riego";
+            } else if (soilMoisture < 0.2) {
+                estadoSuelo = "Ligeramente húmedo";
+                recomendacionSuelo = "Monitorear humedad regularmente";
+            } else if (soilMoisture < 0.3) {
+                estadoSuelo = "Húmedo";
+                recomendacionSuelo = "Condiciones adecuadas";
+            } else {
+                estadoSuelo = "Muy húmedo";
+                recomendacionSuelo = "Condiciones óptimas";
+            }
+
+            if (soilTemp < 10) {
+                recomendacionSuelo += ". Temperatura baja para siembra";
+            } else if (soilTemp > 25) {
+                recomendacionSuelo += ". Temperatura alta, monitorear estrés";
+            }
+
+        } else if (weatherData.daily) {
+            // SUELO CON DATOS HISTÓRICOS
+            const daily = weatherData.daily;
+            const index = 0;
+            const precip = daily.precipitation_sum ? daily.precipitation_sum[index] : 0;
+
+            // Estimación basada en precipitación
+            if (precip > 10) {
+                estadoSuelo = "Muy húmedo";
+                humedadSueloTexto = "Estimada (alta)";
+                recomendacionSuelo = "Condiciones óptimas de humedad";
+            } else if (precip > 5) {
+                estadoSuelo = "Húmedo";
+                humedadSueloTexto = "Estimada (media)";
+                recomendacionSuelo = "Condiciones adecuadas";
+            } else if (precip > 1) {
+                estadoSuelo = "Ligeramente húmedo";
+                humedadSueloTexto = "Estimada (baja)";
+                recomendacionSuelo = "Monitorear humedad regularmente";
+            } else {
+                estadoSuelo = "Seco";
+                humedadSueloTexto = "Estimada (muy baja)";
+                recomendacionSuelo = "Considerar programa de riego";
+            }
+        }
+    }
+
+    contenido += `
+        <div class="mb-3">
+            <strong>Estado del Suelo:</strong>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+                <span>${estadoSuelo}</span>
+                <small class="text-muted">Humedad: ${humedadSueloTexto}</small>
+            </div>
+            <div class="mt-1 small text-muted">
+                ${recomendacionSuelo}
+            </div>
+        </div>
+    `;
+
+    contenido += `
+            </div>
+        </div>
+    `;
+
+    $('#analisis-completo').html(contenido);
+
+    // Actualizar visualización si está activa
+    if (currentViz === 'ndvi' || currentViz === 'humidity') {
+        cambiarVisualizacion(currentViz);
+    }
+}
+
+// Eventos
+$(document).on('click', '.btn-viz', function () {
+    const vizType = $(this).data('viz');
+    cambiarVisualizacion(vizType);
+});
+
+// Evento para cambios de fecha
+$('#layer-date').on('change', function () {
+    const fechaSeleccionada = $(this).val();
+    console.log('📅 Fecha cambiada:', fechaSeleccionada);
+
+    // Mostrar loading
+    $('#analisis-completo').html(`
+        <div class="text-center text-muted">
+            <i class="ph ph-hourglass me-1"></i>Cargando datos para ${fechaSeleccionada}...
+        </div>
+    `);
+
+    // Recargar datos con la nueva fecha
+    setTimeout(() => {
+        cargarDatosYAnalisis();
+    }, 500);
+});
+
+// Evento para el modal
+$('#modalVisualizacion').on('shown.bs.modal', function () {
+    if (viewMap) {
+        setTimeout(() => {
+            viewMap.invalidateSize();
+            // Aplicar visualización por defecto
+            cambiarVisualizacion('normal');
+        }, 300);
+    }
+});
+
+// Evento para exportar análisis
+$('#btn-export-analysis').on('click', function () {
+    // Implementar exportación si es necesario
+    mostrarExito('Función de exportación en desarrollo');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function cargarHistorico(id) {
+    var modal = new bootstrap.Modal($('#modalHistorial')[0]);
+
+    // Mostrar loading
+    $('#contenido-historial').html(`
+        <div class="text-center text-muted py-4">
+            <i class="ph ph-hourglass me-1"></i>Cargando historial...
+        </div>
+    `);
+
+    $.ajax({
+        url: '/Campo/GetHistorialById/' + id,
+        type: 'GET',
+        success: function (response) {
+            if (response.success) {
+                historialData = response.listObject || [];
+                mostrarHistorial(historialData);
+                modal.show();
+            } else {
+                mostrarError(response.message || 'Error al cargar el historial');
+            }
+        },
+        error: function () {
+            mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
+
+// Función para mostrar el historial
+function mostrarHistorial(datos) {
+    if (!datos || datos.length === 0) {
+        $('#contenido-historial').html(`
+            <div class="text-center text-muted py-4">
+                <i class="ph ph-clipboard-text me-1"></i>
+                No hay actividades registradas
+            </div>
+        `);
+        $('#historial-total').text('0 actividades');
+        return;
+    }
+
+    // Ordenar por fecha (más reciente primero)
+    datos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // Actualizar información general
+    $('#historial-total').text(`${datos.length} actividades`);
+
+    // Obtener información del campo
+    if (datos.length > 0) {
+        const primerRegistro = datos[0];
+        $('#historial-nombre').text(primerRegistro.campo || 'Campo');
+        $('#historial-superficie').text(primerRegistro.lote ? `Lote: ${primerRegistro.lote}` : '');
+    }
+
+    // Agrupar por año
+    const actividadesPorAnio = agruparPorAnio(datos);
+
+    // Llenar filtro de años
+    llenarFiltroAnios(actividadesPorAnio);
+
+    // Mostrar el historial
+    mostrarHistorialSimple(actividadesPorAnio);
+}
+
+// Función para agrupar actividades por año
+function agruparPorAnio(datos) {
+    const agrupado = {};
+
+    datos.forEach(actividad => {
+        const fecha = new Date(actividad.fecha);
+        const anio = fecha.getFullYear();
+
+        if (!agrupado[anio]) {
+            agrupado[anio] = [];
+        }
+
+        agrupado[anio].push(actividad);
+    });
+
+    return agrupado;
+}
+
+// Función para llenar el filtro de años
+function llenarFiltroAnios(actividadesPorAnio) {
+    $('#filtro-anio').empty().append('<option value="todos">Todos los años</option>');
+
+    // Años ordenados descendente
+    const anios = Object.keys(actividadesPorAnio).sort((a, b) => b - a);
+    anios.forEach(anio => {
+        const cantidad = actividadesPorAnio[anio].length;
+        $('#filtro-anio').append(`<option value="${anio}">${anio} (${cantidad})</option>`);
+    });
+}
+
+// Función para mostrar historial simple
+function mostrarHistorialSimple(actividadesPorAnio) {
+    let contenido = '';
+    const anios = Object.keys(actividadesPorAnio).sort((a, b) => b - a);
+
+    anios.forEach(anio => {
+        const actividades = actividadesPorAnio[anio];
+
+        contenido += `
+            <div class="card mb-3" data-anio="${anio}">
+                <div class="card-header bg-light py-2">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="ph ph-calendar-blank me-1"></i>${anio}
+                        <span class="badge bg-secondary ms-2">${actividades.length}</span>
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+        `;
+
+        actividades.forEach(actividad => {
+            const fecha = new Date(actividad.fecha);
+            const fechaFormateada = fecha.toLocaleDateString('es-AR');
+            const icono = actividad.iconoTipoActividad || 'ph-activity';
+            const color = actividad.iconoColorTipoActividad || '#6c757d';
+
+            contenido += `
+                <div class="list-group-item border-0 py-2" data-anio="${anio}">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="${icono} fs-5" style="color: ${color};"></i>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">${actividad.tipoActividad || 'Actividad'}</h6>
+                                    <p class="mb-0 small text-muted">${actividad.detalle || 'Sin detalles'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">${fechaFormateada}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        contenido += `
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    $('#contenido-historial').html(contenido);
+}
+
+// Función para aplicar filtro
+function aplicarFiltro() {
+    const anioSeleccionado = $('#filtro-anio').val();
+
+    if (anioSeleccionado === 'todos') {
+        // Mostrar todo
+        const actividadesPorAnio = agruparPorAnio(historialData);
+        mostrarHistorialSimple(actividadesPorAnio);
+    } else {
+        // Filtrar por año específico
+        const actividadesFiltradas = historialData.filter(a =>
+            new Date(a.fecha).getFullYear().toString() === anioSeleccionado
+        );
+
+        if (actividadesFiltradas.length === 0) {
+            $('#contenido-historial').html(`
+                <div class="text-center text-muted py-4">
+                    <i class="ph ph-magnifying-glass me-1"></i>
+                    No hay actividades para el año ${anioSeleccionado}
+                </div>
+            `);
+        } else {
+            const actividadesPorAnio = { [anioSeleccionado]: actividadesFiltradas };
+            mostrarHistorialSimple(actividadesPorAnio);
+        }
+    }
+}
+
+// Filtro
+$('#filtro-anio').on('change', aplicarFiltro);
+
+// Reiniciar modal cuando se cierra
+$('#modalHistorial').on('hidden.bs.modal', function () {
+    historialData = [];
+    $('#filtro-anio').empty().append('<option value="todos">Todos los años</option>');
+});

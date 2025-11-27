@@ -74,7 +74,7 @@ namespace AgroForm.Web.Controllers
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetHistorialById(int id)
         {
-            var response = new GenericResponse<int>();
+            var response = new GenericResponse<LaborDTO>();
 
             var result = await _service.GetByIdWithDetailsAsync(id);
             if (!result.Success)
@@ -98,7 +98,7 @@ namespace AgroForm.Web.Controllers
             }
 
             response.Success = true;
-            //gResponse.Object = Map<TEntity, TDto>(result.Data);
+            response.ListObject = labores;
             response.Message = "Historial obtenido correctamente";
             return Ok(response);
         }
