@@ -27,6 +27,17 @@ namespace AgroForm.Business.Services
             return OperationResult<List<RegistroClima>>.SuccessResult(campos);
         }
 
+        public async Task<OperationResult<List<RegistroClima>>> GetByCampaniaAsync(int idCampania)
+        {
+            var campos = await base.GetQuery(). Where(_=>_.IdCampania == idCampania)
+                     .Where(c => c.IdLicencia == _userAuth.IdLicencia)
+                     .Include(c => c.Campo)
+                     .AsNoTracking()
+                     .ToListAsync();
+
+            return OperationResult<List<RegistroClima>>.SuccessResult(campos);
+        }
+
         public async Task<OperationResult<List<RegistroClima>>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0)
         {
             try

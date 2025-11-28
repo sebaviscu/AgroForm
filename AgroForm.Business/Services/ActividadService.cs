@@ -87,6 +87,7 @@ namespace AgroForm.Business.Services
                 if (idsLotes != null && idsLotes.Any())
                     query = query.Where(x => idsLotes.Contains(x.IdLote));
                 return query.Include(_ => _.TipoActividad)
+                            .Include(_ => _.Campania)
                             .Include(_ => _.Lote)
                                 .ThenInclude(_ => _.Campo);
             }
@@ -110,6 +111,7 @@ namespace AgroForm.Business.Services
                         CostoUSD = s.CostoUSD,
                         CostoARS = s.CostoARS,
                         IdCampania = s.IdCampania,
+                        Campania = s.Campania.Nombre,
                         Observacion = s.Observacion,
                         IdLote = s.IdLote,
                         Lote = s.Lote.Nombre,
@@ -140,6 +142,7 @@ namespace AgroForm.Business.Services
                     CostoUSD = r.CostoUSD,
                     CostoARS = r.CostoARS,
                     IdCampania = r.IdCampania,
+                    Campania = r.Campania.Nombre,
                     Observacion = r.Observacion,
                     IdLote = r.IdLote,
                     Lote = r.Lote.Nombre,
@@ -170,6 +173,7 @@ namespace AgroForm.Business.Services
                     CostoUSD = f.CostoUSD,
                     CostoARS = f.CostoARS,
                     IdCampania = f.IdCampania,
+                    Campania = f.Campania.Nombre,
                     Observacion = f.Observacion,
                     IdLote = f.IdLote,
                     Lote = f.Lote.Nombre,
@@ -195,11 +199,15 @@ namespace AgroForm.Business.Services
                     Fecha = p.Fecha,
                     RegistrationDate = p.RegistrationDate,
                     Responsable = p.RegistrationUser,
-                    Detalle = $"Producto: {p.ProductoAgroquimico.Nombre}, Volumen: {p.VolumenLitrosHa} L/ha",
+                    Detalle = $"Producto: {p.ProductoAgroquimico.Nombre}" +
+                      $"{(p.VolumenLitrosHa.HasValue ? $", Volumen: {p.VolumenLitrosHa:N1} L/ha" : "")}" +
+                      $"{(p.Dosis.HasValue ? $", Dosis: {p.Dosis:N1}" : "")}" +
+                      $"{(string.IsNullOrEmpty(p.CondicionesClimaticas) ? "" : $", Cond: {p.CondicionesClimaticas}")}",
                     Costo = p.Costo,
                     CostoUSD = p.CostoUSD,
                     CostoARS = p.CostoARS,
                     IdCampania = p.IdCampania,
+                    Campania = p.Campania.Nombre,
                     Observacion = p.Observacion,
                     IdLote = p.IdLote,
                     Lote = p.Lote.Nombre,
@@ -230,6 +238,7 @@ namespace AgroForm.Business.Services
                     CostoUSD = m.CostoUSD,
                     CostoARS = m.CostoARS,
                     IdCampania = m.IdCampania,
+                    Campania = m.Campania.Nombre,
                     Observacion = m.Observacion,
                     IdLote = m.IdLote,
                     Lote = m.Lote.Nombre,
@@ -255,11 +264,15 @@ namespace AgroForm.Business.Services
                     Fecha = c.Fecha,
                     Responsable = c.RegistrationUser,
                     RegistrationDate = c.RegistrationDate,
-                    Detalle = $"Cultivo: {c.Cultivo.Nombre}, Rendimiento: {c.RendimientoTonHa} ton/ha",
+                    Detalle = $"Cultivo: {c.Cultivo.Nombre}" +
+                      $"{(c.RendimientoTonHa.HasValue ? $", Rendimiento: {c.RendimientoTonHa:N1} ton/ha" : "")}" +
+                      $"{(c.HumedadGrano.HasValue ? $", Humedad: {c.HumedadGrano:N1}%" : "")}" +
+                      $"{(c.SuperficieCosechadaHa.HasValue ? $", Sup: {c.SuperficieCosechadaHa:N1} ha" : "")}",
                     Costo = c.Costo,
                     CostoUSD = c.CostoUSD,
                     CostoARS = c.CostoARS,
                     IdCampania = c.IdCampania,
+                    Campania = c.Campania.Nombre,
                     Observacion = c.Observacion,
                     IdLote = c.IdLote,
                     Lote = c.Lote.Nombre,
@@ -288,8 +301,19 @@ namespace AgroForm.Business.Services
                     CostoARS = a.CostoARS,
                     Responsable = a.RegistrationUser,
                     RegistrationDate = a.RegistrationDate,
-                    Detalle = $"pH: {a.PH}, MO: {a.MateriaOrganica}%",
+                    Detalle = (a.PH.HasValue || a.MateriaOrganica.HasValue || a.Nitrogeno.HasValue || a.Fosforo.HasValue || a.Potasio.HasValue || a.ConductividadElectrica.HasValue || a.CIC.HasValue || !string.IsNullOrEmpty(a.Textura))
+                        ? $"{(a.PH.HasValue ? $"pH: {a.PH:N1}, " : "")}" +
+                          $"{(a.MateriaOrganica.HasValue ? $"MO: {a.MateriaOrganica:N1}%, " : "")}" +
+                          $"{(a.Nitrogeno.HasValue ? $"N: {a.Nitrogeno:N1}, " : "")}" +
+                          $"{(a.Fosforo.HasValue ? $"P: {a.Fosforo:N1}, " : "")}" +
+                          $"{(a.Potasio.HasValue ? $"K: {a.Potasio:N1}, " : "")}" +
+                          $"{(a.ConductividadElectrica.HasValue ? $"CE: {a.ConductividadElectrica:N1}, " : "")}" +
+                          $"{(a.CIC.HasValue ? $"CIC: {a.CIC:N1}, " : "")}" +
+                          $"{(string.IsNullOrEmpty(a.Textura) ? "" : $"Textura: {a.Textura}")}"
+                            .TrimEnd(',', ' ')
+                        : string.Empty,
                     IdCampania = a.IdCampania,
+                    Campania = a.Campania.Nombre,
                     Observacion = a.Observacion,
                     IdLote = a.IdLote,
                     Lote = a.Lote.Nombre,
@@ -320,6 +344,7 @@ namespace AgroForm.Business.Services
                     CostoUSD = o.CostoUSD,
                     CostoARS = o.CostoARS,
                     IdCampania = o.IdCampania,
+                    Campania = o.Campania.Nombre,
                     Observacion = o.Observacion,
                     IdLote = o.IdLote,
                     Lote = o.Lote.Nombre,

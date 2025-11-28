@@ -31,8 +31,10 @@ namespace AgroForm.Model.Actividades
         public int IdTipoActividad { get; set; }
         public TipoActividad? TipoActividad { get; set; }
 
-        public int? IdUsuario { get; set; }
+        public Campania? Campania { get; set; }
         public int IdCampania { get; set; }
+
+        public int? IdUsuario { get; set; }
         public int IdLicencia { get; set; }
     }
 }

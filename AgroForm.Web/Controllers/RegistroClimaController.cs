@@ -28,11 +28,11 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                ValidarAutorizacion(new[] { Roles.Administrador });
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
 
                 var campos = await _campoService.GetAllWithDetailsAsync();
 
-                var climas = await _service.GetAllWithDetailsAsync();
+                var climas = await _service.GetByCampaniaAsync(user.IdCampaña);
 
                 if (!climas.Success)
                 {

@@ -1,4 +1,5 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
@@ -13,6 +14,7 @@ namespace AgroForm.Web.Components
         private readonly ITipoActividadService _tipoActividadService;
         private readonly ILoteService _loteService;
         private readonly IMapper _mapper;
+
         public ActividadRapidaViewComponent(
             ITipoActividadService tipoActividadService,
             ILoteService loteService,
@@ -25,6 +27,9 @@ namespace AgroForm.Web.Components
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
+            var claimUser = HttpContext.User;
+            var idCampania = UtilidadService.GetClaimValue<int>(claimUser, "Campania");
+
             var tiposActividad = await _tipoActividadService.GetAllByCamapniaAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
 

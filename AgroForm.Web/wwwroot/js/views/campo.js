@@ -1400,18 +1400,15 @@ $('#btn-export-analysis').on('click', function () {
 function cargarHistorico(id) {
     var modal = new bootstrap.Modal($('#modalHistorial')[0]);
 
-    // Mostrar loading
-    $('#contenido-historial').html(`
-        <div class="text-center text-muted py-4">
-            <i class="ph ph-hourglass me-1"></i>Cargando historial...
-        </div>
-    `);
+    mostrarLoading();
 
     $.ajax({
         url: '/Campo/GetHistorialById/' + id,
         type: 'GET',
         success: function (response) {
+            cerrarAlertas();
             if (response.success) {
+                modal.show();
                 historialData = response.listObject || [];
                 mostrarHistorial(historialData);
                 modal.show();
@@ -1420,6 +1417,7 @@ function cargarHistorico(id) {
             }
         },
         error: function () {
+            cerrarAlertas();
             mostrarError('Error al conectar con el servidor');
         }
     });
@@ -1518,25 +1516,30 @@ function mostrarHistorialSimple(actividadesPorAnio) {
             const color = actividad.iconoColorTipoActividad || '#6c757d';
 
             contenido += `
-                <div class="list-group-item border-0 py-2" data-anio="${anio}">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <i class="${icono} fs-5" style="color: ${color};"></i>
+    <div class="list-group-item border-0 py-2" data-anio="${anio}">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="actividad-icono me-2 flex-shrink-0">
+                    <i class="ph ${icono} fs-5" style="color: ${color};"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <h6 class="mb-0 fw-semibold me-2">${actividad.tipoActividad || 'Actividad'}</h6>
+                            <small class="text-muted">${actividad.detalle || 'Sin detalles'}</small>
                         </div>
-                        <div class="col">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1 fw-semibold">${actividad.tipoActividad || 'Actividad'}</h6>
-                                    <p class="mb-0 small text-muted">${actividad.detalle || 'Sin detalles'}</p>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">${fechaFormateada}</small>
-                                </div>
-                            </div>
-                        </div>
+                        ${actividad.campania ? `<small class="text-muted d-block">${actividad.campania}</small>` : ''}
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="text-muted">${fechaFormateada}</small>
                     </div>
                 </div>
-            `;
+            </div>
+        </div>
+    </div>
+`;
         });
 
         contenido += `

@@ -53,5 +53,23 @@ namespace AgroForm.Business.Services
                 return OperationResult<Campo?>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
+
+        public async Task<OperationResult<Campo?>> GetHistorialByIdAsync(int id)
+        {
+            try
+            {
+                var entity = await base.GetQuery()
+                    .Include(c => c.Lotes)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == id);
+
+                return OperationResult<Campo?>.SuccessResult(entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer el registro con detalles con ID {Id}", id);
+                return OperationResult<Campo?>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
     }
 }

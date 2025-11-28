@@ -89,7 +89,8 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var campania = await GetQuery().FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
+                var campania = await GetQuery().Where(_=>_.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Iniciada)
+                    .FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
                 if (campania == null)
                 {

@@ -39,12 +39,12 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                ValidarAutorizacion(new[] { Roles.Administrador });
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
 
                 var campos = await _campoService.GetAllAsync();
                 var idsLotes = campos.Data.SelectMany(c => c.Lotes).Select(l => l.Id).ToList();
 
-                var actividades = await _service.GetLaboresByAsync(IdsLotes: idsLotes);
+                var actividades = await _service.GetLaboresByAsync(IdCampania: user.IdCampaña, IdsLotes: idsLotes);
 
                 if (!actividades.Success)
                 {

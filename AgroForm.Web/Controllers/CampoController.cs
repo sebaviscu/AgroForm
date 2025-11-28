@@ -76,7 +76,7 @@ namespace AgroForm.Web.Controllers
         {
             var response = new GenericResponse<LaborDTO>();
 
-            var result = await _service.GetByIdWithDetailsAsync(id);
+            var result = await _service.GetHistorialByIdAsync(id);
             if (!result.Success)
             {
                 gResponse.Success = false;

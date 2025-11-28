@@ -5,7 +5,7 @@
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="ph ph-receipt me-2 text-danger"></i>
-                    <span id="tituloGrafico">Gastos y Labores</span>
+                    <span id="tituloGrafico">Gastos</span>
                 </h5>
 
                 <div class="d-flex gap-2">
@@ -96,12 +96,9 @@
 
         // Agregar total general
         const totalGeneral = gastosOrdenados.reduce((sum, [, monto]) => sum + monto, 0);
-        tbody.append(`
-            <tr class="table-primary">
-                <td class="fw-bold">TOTAL</td>
-                <td class="text-end fw-bold">${formatearMoneda(totalGeneral, monedaActual)}</td>
-            </tr>
-        `);
+        var totalGastos = formatearMoneda(totalGeneral, monedaActual);
+
+        $("#txtGastos").html(totalGastos);
 
         // Llenar tabla
         gastosOrdenados.forEach(([descripcion, total]) => {
@@ -118,19 +115,19 @@
 
     }
 
-        function formatearMoneda(monto, moneda) {
-        if (!monto) return '0.00';
+    function formatearMoneda(monto, moneda) {
+        if (!monto) return '0';
 
         const opciones = {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
         };
 
         const simbolo = moneda === 'ARS' ? '$' : 'US$';
         return simbolo + ' ' + monto.toLocaleString('es-AR', opciones);
     }
 
-        function cambiarMoneda() {
+    function cambiarMoneda() {
         const selector = document.getElementById('selectorMoneda');
         monedaActual = selector.value;
 

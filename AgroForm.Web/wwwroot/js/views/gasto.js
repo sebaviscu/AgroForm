@@ -273,8 +273,8 @@ function formatearMoneda(monto, moneda) {
     if (!monto) return '0.00';
 
     const opciones = {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     };
 
     const simbolo = moneda === 'ARS' ? '$' : 'US$';

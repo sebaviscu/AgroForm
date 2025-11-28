@@ -10,5 +10,6 @@ namespace AgroForm.Business.Contracts
 {
     public interface ICampoService : IServiceBase<Campo>
     {
+        Task<OperationResult<Campo?>> GetHistorialByIdAsync(int id);
     }
 }
