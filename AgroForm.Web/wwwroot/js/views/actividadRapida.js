@@ -78,7 +78,7 @@
                 cargarSwitchMoneda("switchMonedaCostoFertilizado", "labelMonedaCostoFertilizado");
                 break;
             case 'Pulverizacion':
-                cargarCatalogos(22, 'ProductoAgroquimico');
+                //cargarCatalogos(22, 'ProductoAgroquimico');
                 cargarSwitchMoneda("switchMonedaCostoPulverizacion", "labelMonedaCostoPulverizacion");
                 break;
             case 'Monitoreo':
@@ -86,7 +86,7 @@
                 cargarSwitchMoneda("switchMonedaCostoMonitoreo", "labelMonedaCostoMonitoreo");
                 break;
             case 'Analisis de suelo':
-                cargarCatalogos(50, 'Laboratorio');
+                //cargarCatalogos(50, 'Laboratorio');
                 cargarSwitchMoneda("switchMonedaCostoAnalisisSuelo", "labelMonedaCostoAnalisisSuelo");
                 break;
             case 'Otras labores':
