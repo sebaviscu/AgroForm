@@ -98,7 +98,7 @@
     // FUNCIÓN: Cargar cultivos
     function cargarCultivos() {
         $.ajax({
-            url: '/Cultivo/GetAll',
+            url: '/Cultivo/GetByCampania',
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {

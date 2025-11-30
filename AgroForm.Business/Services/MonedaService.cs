@@ -35,7 +35,7 @@ namespace AgroForm.Business.Services
                 foreach (var item in dolarInfos)
                 {
                     var cotizacion = monedas.FirstOrDefault(_ => _.Nombre.ToUpper() == item.Nombre.ToUpper());
-                    var precio = (item.Venta + item.Compra) / 2;
+                    //var precio = (item.Venta + item.Compra) / 2;
 
                     if (cotizacion == null)
                     {
@@ -44,7 +44,8 @@ namespace AgroForm.Business.Services
                             Nombre = item.Nombre,
                             Codigo = "USD",
                             Simbolo = "US$",
-                            TipoCambioReferencia = precio,
+                            //TipoCambioReferencia = precio,
+                            TipoCambioReferencia = item.Venta,
                             ModificationDate = item.FechaActualizacion,
                             ModificationUser = "DolarApi"
                         };
@@ -54,7 +55,8 @@ namespace AgroForm.Business.Services
                     }
                     else
                     {
-                        cotizacion.TipoCambioReferencia = precio;
+                        //cotizacion.TipoCambioReferencia = precio;
+                        cotizacion.TipoCambioReferencia = item.Venta;
                         cotizacion.ModificationDate = item.FechaActualizacion;
                         cotizacion.ModificationUser = "DolarApi";
                         await base.UpdateAsync(cotizacion);

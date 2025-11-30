@@ -85,10 +85,10 @@
                                             <div class="popover-cultivos">
                                                 @foreach (var cultivo in Model.Cultivos)
                                                 {
-                                                    <div class="d-flex justify-content-between small mb-2">
-                                                            <span>@cultivo.CultivoNombre</span>
-                                                                <span class="fw-semibold">@cultivo.SuperficieHa.GetValueOrDefault().ToString("N1") Ha</span>
-                                                    </div>
+                                                        <div class="d-flex justify-content-between small mb-2">
+                                                                <span>@cultivo.CultivoNombre</span>
+                                                                    <span class="fw-semibold">@cultivo.SuperficieHa.GetValueOrDefault().ToString("N1") Ha</span>
+                                                        </div>
                                                 }
                                             </div>
                                         '>
@@ -188,6 +188,37 @@
                 }
             });
         });
+
+                cargarCampos();
+
+        function cargarCampos() {
+            $.ajax({
+                url: '@Url.Action("GetByCampania", "Campo")',
+                type: 'GET',
+                success: function(result) {
+                    if (result.success && result.listObject) {
+                        var menu = $('#filtroCampoMenu');
+                        menu.find('.filtro-campo:not([data-campo-id="0"])').remove();
+
+                        var menuActividad = $('#filtroCampoActividadMenu');
+                        menuActividad.find('.filtro-campo-actividad:not([data-campo-id="0"])').remove();
+
+                        result.listObject.forEach(function(campo) {
+                            menu.append(`
+                                <li><a class="dropdown-item filtro-campo" href="#" data-campo-id="${campo.id}">${campo.nombre}</a></li>
+                            `);
+
+                            menuActividad.append(`
+                                <li><a class="dropdown-item filtro-campo-actividad" href="#" data-campo-id="${campo.id}">${campo.nombre}</a></li>
+                            `);
+                        });
+                    }
+                },
+                error: function(error) {
+                    console.error('Error al cargar campos:', error);
+                }
+            });
+        }
     });
 </script>
 
