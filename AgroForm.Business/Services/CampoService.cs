@@ -6,12 +6,6 @@ using AlbaServicios.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
@@ -32,7 +26,9 @@ namespace AgroForm.Business.Services
                 .AsNoTracking()
                 .ToListAsync();
 
-            return OperationResult<List<Campo>>.SuccessResult(campos);
+            var camposFiltrados = campos.Where(c => c.Lotes.Any()).ToList();
+
+            return OperationResult<List<Campo>>.SuccessResult(camposFiltrados);
         }
 
         public override async Task<OperationResult<Campo?>> GetByIdWithDetailsAsync(int id)

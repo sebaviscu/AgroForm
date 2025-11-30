@@ -13,5 +13,6 @@ namespace AgroForm.Business.Contracts
     {
 
         Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogoEnum tipo);
+        Task<OperationResult<List<Catalogo>>> GetAllActive();
     }
 }

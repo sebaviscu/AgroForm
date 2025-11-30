@@ -26,6 +26,7 @@ namespace AgroForm.Business.Services
                 var entities = await context.Set<Catalogo>()
                     .AsNoTracking()
                     .Where(_=>_.Tipo == tipo)
+                    .Where(_ => _.Activo)
                     .ToListAsync();
 
                 if (!entities.Any())
@@ -39,5 +40,27 @@ namespace AgroForm.Business.Services
                 return OperationResult<List<Catalogo>>.Failure("Error al obtener Catalogos por tipo");
             }
         }
+
+        public async Task<OperationResult<List<Catalogo>>> GetAllActive()
+        {
+            try
+            {
+                var entities = await base.GetQuery()
+                    .AsNoTracking()
+                    .Where(_ => _.Activo)
+                    .ToListAsync();
+
+                if (!entities.Any())
+                    return OperationResult<List<Catalogo>>.Failure("Catalogo por tipo no encontrados");
+
+                return OperationResult<List<Catalogo>>.SuccessResult((List<Catalogo>)(object)entities);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener todos los Catalogos activos");
+                return OperationResult<List<Catalogo>>.Failure("Error al obtener todos los Catalogos activos");
+            }
+        }
+        
     }
 }

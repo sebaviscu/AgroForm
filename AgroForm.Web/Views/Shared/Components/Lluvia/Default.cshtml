@@ -237,7 +237,7 @@
 
     function cargarCampos() {
         $.ajax({
-            url: '@Url.Action("GetAll", "Campo")',
+            url: '@Url.Action("GetByCampania", "Campo")',
             type: 'GET',
             success: function(result) {
                 if (result.success && result.listObject) {

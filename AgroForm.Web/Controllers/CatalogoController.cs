@@ -37,5 +37,25 @@ namespace AgroForm.Web.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllActive()
+        {
+            try
+            {
+                var entities = await _service.GetAllActive();
+                if (!entities.Success)
+                    return Json(new { success = false, message = entities.ErrorMessage });
+
+                gResponse.Success = true;
+                gResponse.ListObject = Map<List<Catalogo>, List<CatalogoVM>>(entities.Data);
+                gResponse.Message = "Datos obtenidos correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al obtener catalogos activos", "GetAllActive");
+            }
+        }
+
     }
 }

@@ -1,13 +1,4 @@
 
-alter table ReporteCierreCampania
-add [CostoPorHaUsd] [decimal](18,2) NOT NULL,
-    [CostoPorToneladaUsd] [decimal](18,2) NOT NULL
-
-EXEC sp_rename 'ReporteCierreCampania.CostoPorHa', 'CostoPorHaArs', 'COLUMN';
-EXEC sp_rename 'ReporteCierreCampania.CostoPorTonelada', 'CostoPorToneladaArs', 'COLUMN';
-
------------------------------------------------------
-
 CREATE DATABASE AgroForm;
 
 

@@ -188,7 +188,8 @@ namespace AgroForm.Business.Services
                     NombreCultivo = $"Cultivo {grupo.Key.Nombre}",
                     SuperficieHa = superficieTotal,
                     ToneladasProducidas = toneladasTotal,
-                    CostoTotal = laboresGrupo.Sum(l => l.CostoARS ?? 0),
+                    CostoTotalArs = laboresGrupo.Sum(l => l.CostoARS ?? 0),
+                    CostoTotalUsd = laboresGrupo.Sum(l => l.CostoUSD ?? 0),
                     RendimientoHa = rendimiento
                 };
 

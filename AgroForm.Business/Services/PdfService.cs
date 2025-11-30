@@ -200,14 +200,25 @@ namespace AgroForm.Business.Services
             var sectionTitle = CrearTituloSeccion("DISTRIBUCIÓN DE COSTOS OPERATIVOS");
             document.Add(sectionTitle);
 
-            var costosTable = new Table(4)
+            var costosTable = new Table(new float[] { 3, 2, 2, 1 })
                 .SetWidth(UnitValue.CreatePercentValue(100))
                 .SetMarginBottom(5);
 
             // Header de la tabla
             costosTable.AddCell(CrearCeldaHeader("LABORES"));
-            costosTable.AddCell(CrearCeldaHeader("INVERSIÓN ARS"));
-            costosTable.AddCell(CrearCeldaHeader("INVERSIÓN USD"));
+            costosTable.AddCell(
+
+            new Cell(1, 2)
+                .Add(new Paragraph("INVERSIÓN")
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
+                    .SetFontSize(9)
+                    .SetFontColor(ColorConstants.WHITE))
+                .SetBackgroundColor(_colorPrimario)
+                .SetPadding(8)
+                .SetTextAlignment(TextAlignment.CENTER));
+
+
+
             costosTable.AddCell(CrearCeldaHeader("PARTICIPACIÓN"));
 
             // Datos de costos
@@ -231,7 +242,7 @@ namespace AgroForm.Business.Services
 
                     costosTable.AddCell(CrearCeldaDatos(costo.Nombre));
                     costosTable.AddCell(CrearCeldaDatos($"${costo.Ars:N0}", TextAlignment.RIGHT));
-                    costosTable.AddCell(CrearCeldaDatos($"${costo.Usd:N2}", TextAlignment.RIGHT));
+                    costosTable.AddCell(CrearCeldaDatos($"US${costo.Usd:N0}", TextAlignment.RIGHT));
                     costosTable.AddCell(CrearCeldaDatos($"{porcentaje:N1}%", TextAlignment.RIGHT));
                 }
             }
@@ -239,7 +250,7 @@ namespace AgroForm.Business.Services
             // Total
             costosTable.AddCell(CrearCeldaTotal("TOTAL GENERAL"));
             costosTable.AddCell(CrearCeldaTotal($"${reporte.CostoTotalArs:N0}", TextAlignment.RIGHT));
-            costosTable.AddCell(CrearCeldaTotal($"${reporte.CostoTotalUsd:N2}", TextAlignment.RIGHT));
+            costosTable.AddCell(CrearCeldaTotal($"US${reporte.CostoTotalUsd:N0}", TextAlignment.RIGHT));
             costosTable.AddCell(CrearCeldaTotal("100%", TextAlignment.RIGHT));
 
             document.Add(costosTable);
@@ -255,7 +266,7 @@ namespace AgroForm.Business.Services
                 var sectionTitle = CrearTituloSeccion("ANÁLISIS POR CULTIVO");
                 document.Add(sectionTitle);
 
-                // Crear tabla principal con 3 columnas (3 cultivos por fila)
+                // Mantener 3 columnas (3 cultivos por fila)
                 var mainTable = new Table(3)
                     .SetWidth(UnitValue.CreatePercentValue(100))
                     .SetMarginBottom(0);
@@ -263,6 +274,16 @@ namespace AgroForm.Business.Services
                 for (int i = 0; i < cultivos.Count; i++)
                 {
                     var cultivo = cultivos[i];
+
+                    // Calcular métricas adicionales
+                    var costoPorTnArs = cultivo.ToneladasProducidas > 0 ?
+                        cultivo.CostoTotalArs / cultivo.ToneladasProducidas : 0;
+                    var costoPorTnUsd = cultivo.ToneladasProducidas > 0 ?
+                        cultivo.CostoTotalUsd / cultivo.ToneladasProducidas : 0;
+                    var costoPorHaArs = cultivo.SuperficieHa > 0 ?
+                        cultivo.CostoTotalArs / cultivo.SuperficieHa : 0;
+                    var costoPorHaUsd = cultivo.SuperficieHa > 0 ?
+                        cultivo.CostoTotalUsd / cultivo.SuperficieHa : 0;
 
                     // Crear tarjeta individual para cada cultivo
                     var cultivoCard = new Table(1)
@@ -290,13 +311,19 @@ namespace AgroForm.Business.Services
                         .SetWidth(UnitValue.CreatePercentValue(100))
                         .SetMarginTop(5);
 
-                    // Fila 1
+                    // Fila 1: Superficie y Producción
                     metricsTable.AddCell(CrearCeldaCultivoCompacta("Superficie", $"{cultivo.SuperficieHa:N1} ha"));
                     metricsTable.AddCell(CrearCeldaCultivoCompacta("Producción", $"{cultivo.ToneladasProducidas:N1} Tn"));
 
-                    // Fila 2
+                    // Fila 2: Rendimiento y Costo por Tonelada
                     metricsTable.AddCell(CrearCeldaCultivoCompacta("Rendimiento", $"{cultivo.RendimientoHa:N1} Tn/ha"));
-                    metricsTable.AddCell(CrearCeldaCultivoCompacta("Inversión", $"${cultivo.CostoTotal:N0}"));
+                    metricsTable.AddCell(CrearCeldaCultivoCompacta("Costo/Tn", CrearTablaInversionCompacta(costoPorTnArs, costoPorTnUsd, "Costo/Tn")));
+
+                    // Fila 3: Inversión Total
+                    metricsTable.AddCell(CrearCeldaCultivoCompacta("Inversión", CrearTablaInversionCompacta(cultivo.CostoTotalArs, cultivo.CostoTotalUsd, "Inversión")));
+
+                    // Fila 4: Costo por Hectárea
+                    metricsTable.AddCell(CrearCeldaCultivoCompacta("Costo/ha", CrearTablaInversionCompacta(costoPorHaArs, costoPorHaUsd, "Costo/ha")));
 
                     cultivoCard.AddCell(new Cell().Add(metricsTable).SetBorder(Border.NO_BORDER));
 
@@ -328,6 +355,83 @@ namespace AgroForm.Business.Services
             {
                 // Si hay error en la deserialización, omitir esta sección
             }
+        }
+
+        private Table CrearTablaInversionCompacta(decimal valorArs, decimal valorUsd, string titulo)
+        {
+            var tablaInversion = new Table(3) // 3 columnas: ARS | Separador | USD
+                .SetWidth(UnitValue.CreatePercentValue(100))
+                .SetBorder(Border.NO_BORDER)
+                .SetHorizontalAlignment(HorizontalAlignment.CENTER);
+
+            // Número ARS
+            tablaInversion.AddCell(new Cell()
+                .SetBorder(Border.NO_BORDER)
+                .SetPadding(0)
+                .SetTextAlignment(TextAlignment.RIGHT)
+                .Add(new Paragraph($"${valorArs:N0}")
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
+                    .SetFontSize(7)
+                    .SetFontColor(_colorPrimario)));
+
+            // Separador |
+            tablaInversion.AddCell(new Cell()
+                .SetWidth(5)
+                .SetBorder(Border.NO_BORDER)
+                .SetPadding(0)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetVerticalAlignment(VerticalAlignment.MIDDLE)
+                .Add(new Paragraph("|")
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
+                    .SetFontSize(6)
+                    .SetFontColor(_colorBorde)));
+
+            // Número USD
+            tablaInversion.AddCell(new Cell()
+                .SetBorder(Border.NO_BORDER)
+                .SetPadding(0)
+                .SetTextAlignment(TextAlignment.LEFT)
+                .Add(new Paragraph($"US${valorUsd:N2}")
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
+                    .SetFontSize(6)
+                    .SetFontColor(_colorPrimario)));
+
+            // Crear tabla contenedora para ambas filas
+            var tablaContenedora = new Table(1)
+                .SetWidth(UnitValue.CreatePercentValue(100))
+                .SetBorder(Border.NO_BORDER);
+
+            tablaContenedora.AddCell(new Cell().Add(tablaInversion).SetBorder(Border.NO_BORDER).SetPadding(0));
+
+            return tablaContenedora;
+        }
+
+        private Cell CrearCeldaCultivoCompacta(string titulo, string valor)
+        {
+            return new Cell()
+                .SetPadding(2)
+                .SetBorder(Border.NO_BORDER)
+                .Add(new Paragraph(titulo)
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
+                    .SetFontSize(7)
+                    .SetFontColor(ColorConstants.DARK_GRAY))
+                .Add(new Paragraph(valor)
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
+                    .SetFontSize(8))
+                .SetTextAlignment(TextAlignment.CENTER);
+        }
+
+        private Cell CrearCeldaCultivoCompacta(string titulo, Table tablaValor)
+        {
+            return new Cell()
+                .SetPadding(2)
+                .SetBorder(Border.NO_BORDER)
+                .Add(new Paragraph(titulo)
+                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
+                    .SetFontSize(7)
+                    .SetFontColor(ColorConstants.DARK_GRAY))
+                .Add(tablaValor)
+                .SetTextAlignment(TextAlignment.CENTER);
         }
 
         private void AgregarDatosPorCampoYLotes(Document document, ReporteCierreCampania reporte)
@@ -367,10 +471,6 @@ namespace AgroForm.Business.Services
                     headerTable.AddCell(CrearHeaderCampo("SUPERFICIE", $"{campo.SuperficieHa:N1} ha"));
                     headerTable.AddCell(CrearHeaderCampo("PRODUCCIÓN", $"{campo.ToneladasProducidas:N1} Tn"));
 
-                    // NUEVO: Celda unificada para inversión con diseño mejorado
-                    // NUEVO: Celda unificada para inversión
-                    // NUEVO: Celda unificada para inversión compacta
-                    // NUEVO: Celda unificada para inversión con diseño mejorado
                     var tablaInversion = new Table(3) // 3 columnas: ARS | Separador | USD
                         .SetWidth(UnitValue.CreatePercentValue(80))
                         .SetBorder(Border.NO_BORDER)
@@ -415,7 +515,7 @@ namespace AgroForm.Business.Services
                         .SetTextAlignment(TextAlignment.CENTER)
                         .Add(new Paragraph("INVERSIÓN")
                             .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
-                            .SetFontSize(6)
+                            .SetFontSize(8)
                             .SetFontColor(_colorSecundario));
 
                     // Crear tabla contenedora para ambas filas
@@ -441,7 +541,7 @@ namespace AgroForm.Business.Services
                     // Tabla de lotes (código existente)
                     if (campo.Lotes != null && campo.Lotes.Any())
                     {
-                        var tablaLotes = new Table(new float[] { 3, 2, 2, 2, 2, 2 })
+                        var tablaLotes = new Table(new float[] { 3, 2, 2, 2, 2, 2, 2 }) // 7 columnas ahora
                             .SetWidth(UnitValue.CreatePercentValue(100))
                             .SetMarginTop(3);
 
@@ -451,7 +551,15 @@ namespace AgroForm.Business.Services
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("SUPERFICIE"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("PRODUCCIÓN"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("RENDIMIENTO"));
-                        tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("INVERSIÓN"));
+                        tablaLotes.AddHeaderCell(new Cell(1, 2) // INVERSIÓN ocupa 2 columnas
+                            .Add(new Paragraph("INVERSIÓN")
+                                .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
+                                .SetFontSize(8)
+                                .SetFontColor(ColorConstants.WHITE))
+                            .SetBackgroundColor(_colorPrimario)
+                            .SetTextAlignment(TextAlignment.CENTER)
+                            .SetPadding(5)
+                            .SetBorder(Border.NO_BORDER));
 
                         // Filas de lotes
                         foreach (var lote in campo.Lotes)
@@ -462,9 +570,11 @@ namespace AgroForm.Business.Services
                             tablaLotes.AddCell(CrearCeldaLote($"{lote.ToneladasProducidas:N1} Tn", TextAlignment.RIGHT));
                             tablaLotes.AddCell(CrearCeldaLote($"{lote.RendimientoHa:N1} Tn/ha", TextAlignment.RIGHT));
                             tablaLotes.AddCell(CrearCeldaLote($"${lote.CostoTotalArs:N0}", TextAlignment.RIGHT));
+                            tablaLotes.AddCell(CrearCeldaLote($"${lote.CostoTotalUsd:N0}", TextAlignment.RIGHT));
                         }
 
                         campoCard.AddCell(new Cell().Add(tablaLotes).SetBorder(Border.NO_BORDER));
+
                     }
                     else
                     {
@@ -785,38 +895,6 @@ namespace AgroForm.Business.Services
                     .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA)));
         }
 
-        private Cell CrearCeldaTotal(string texto, TextAlignment alineacion, int colSpan = 1)
-        {
-            var cell = new Cell(1, colSpan)
-                .SetPadding(5)
-                .SetFontSize(8)
-                .SetTextAlignment(alineacion)
-                .SetBackgroundColor(_colorFondo)
-                .SetBorderTop(new SolidBorder(_colorPrimario, 1))
-                .SetBorderBottom(Border.NO_BORDER)
-                .Add(new Paragraph(texto)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD)));
-
-            return cell;
-        }
-
-        private Cell CrearCeldaCultivoCompacta(string label, string valor)
-        {
-            return new Cell()
-                .SetTextAlignment(TextAlignment.CENTER)
-                .SetPadding(6)
-                .SetBorder(Border.NO_BORDER)
-                .Add(new Paragraph(valor)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
-                    .SetFontSize(9)
-                    .SetFontColor(_colorPrimario)
-                    .SetMarginBottom(2))
-                .Add(new Paragraph(label)
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
-                    .SetFontSize(7)
-                    .SetFontColor(_colorSecundario));
-
-        }
         private void AgregarFooter(Document document)
         {
             var footer = new Paragraph($"Generado por el Sistema de Gestión AgroLab el {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}")

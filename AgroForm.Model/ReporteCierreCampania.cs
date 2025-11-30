@@ -83,7 +83,8 @@ namespace AgroForm.Model
         public string NombreCultivo { get; set; } = string.Empty;
         public decimal SuperficieHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
-        public decimal CostoTotal { get; set; }
+        public decimal CostoTotalArs { get; set; }
+        public decimal CostoTotalUsd { get; set; }
         public decimal RendimientoHa { get; set; }
         public Dictionary<string, decimal> CostosPorTipo { get; set; } = new();
         public Dictionary<string, int> LaboresPorTipo { get; set; } = new();

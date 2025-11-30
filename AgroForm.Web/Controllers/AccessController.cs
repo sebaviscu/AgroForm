@@ -23,7 +23,21 @@ namespace AgroForm.Web.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            try
+            {
+                ClaimsPrincipal claimuser = HttpContext.User;
+                if (claimuser.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                return View();
+
+            }
+            catch (Exception ex)
+            {
+                ViewBag["Error"] = $"Error: {ex.ToString()}.";
+                return View();
+            }
         }
 
         [HttpPost]
@@ -114,7 +128,7 @@ namespace AgroForm.Web.Controllers
                     IsPersistent = rememberMe,
                     ExpiresUtc = rememberMe
                         ? DateTimeOffset.UtcNow.AddDays(30)
-                        : DateTimeOffset.UtcNow.AddHours(12)
+                        : DateTimeOffset.UtcNow.AddHours(1)
                 }
             );
         }

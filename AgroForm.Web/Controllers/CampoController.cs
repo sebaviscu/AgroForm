@@ -66,7 +66,7 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException(ex,"Error al cargar campos y lotes con actividades", "GetCamposConLotesYActividades");
+                return HandleException(ex, "Error al cargar campos y lotes con actividades", "GetCamposConLotesYActividades");
             }
         }
 
@@ -99,6 +99,25 @@ namespace AgroForm.Web.Controllers
 
             response.Success = true;
             response.ListObject = labores;
+            response.Message = "Historial obtenido correctamente";
+            return Ok(response);
+        }
+
+        [HttpGet]
+        public virtual async Task<IActionResult> GetByCampania()
+        {
+            var response = new GenericResponse<CampoVM>();
+
+            var result = await _service.GetAllWithDetailsAsync();
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return NotFound(gResponse);
+            }
+
+            response.Success = true;
+            response.ListObject = Map<List<Campo>, List<CampoVM>>(result.Data);
             response.Message = "Historial obtenido correctamente";
             return Ok(response);
         }

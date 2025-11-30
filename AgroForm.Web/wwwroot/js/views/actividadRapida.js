@@ -35,8 +35,7 @@
                 if (!$(this).hasClass('select2-hidden-accessible')) {
                     $(this).select2({
                         dropdownParent: $('#modalActividadRapida'),
-                        width: '100%',
-                        placeholder: "Cargando..."
+                        width: '100%'
                     });
                 }
             });
@@ -51,28 +50,32 @@
             $(this).next("label").text(esUSD ? "USD" : "ARS");
         });
     }
+
     // FUNCIÓN: Cargar datos para selects específicos
     async function cargarDatosParaSelects(tipoActividadNombre) {
         switch (tipoActividadNombre) {
             case 'Siembra':
-                cargarCultivos();
-                cargarCatalogos(30, 'MetodoSiembra');
+                //cargarCultivos();
+                //cargarCatalogos(30, 'MetodoSiembra');
                 cargarSwitchMoneda("switchMonedaCostoSiembra", "labelMonedaCostoSiembra");
             case 'Cosecha':
-                cargarCultivos();
+                //cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
-                if (idCultivoSembrado != null) await setSelect2WhenReady('#idCultivoCosecha', idCultivoSembrado);
+                if (idCultivoSembrado)
+                    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
+
+                //if (idCultivoSembrado != null) await setSelect2WhenReady('#idCultivoCosecha', idCultivoSembrado);
                 break;
             case 'Riego':
-                cargarCatalogos(31, 'MetodoRiego');
-                cargarCatalogos(41, 'FuenteAgua');
+                //cargarCatalogos(31, 'MetodoRiego');
+                //cargarCatalogos(41, 'FuenteAgua');
                 cargarSwitchMoneda("switchMonedaCostoRiego", "labelMonedaCostoRiego");
                 break;
             case 'Fertilizado':
-                cargarCatalogos(21, 'Nutriente');
-                cargarCatalogos(20, 'TipoFertilizante');
-                cargarCatalogos(32, 'MetodoAplicacion');
-                cargarSwitchMoneda("switchMonedaCostoFertilizacion", "labelMonedaCostoFertilizacion");
+                //cargarCatalogos(21, 'Nutriente');
+                //cargarCatalogos(20, 'TipoFertilizante');
+                //cargarCatalogos(32, 'MetodoAplicacion');
+                cargarSwitchMoneda("switchMonedaCostoFertilizado", "labelMonedaCostoFertilizado");
                 break;
             case 'Pulverizacion':
                 cargarCatalogos(22, 'ProductoAgroquimico');
@@ -100,14 +103,26 @@
             success: function (result) {
                 if (result.success && result.listObject) {
                     var selectCultivo = $('#idCultivo, #idCultivoCosecha');
+
+                    // PRIMERO limpiar los selects
+                    selectCultivo.empty();
+
+                    // Agregar opción vacía al principio
+                    selectCultivo.append($('<option>', {
+                        value: '',
+                        text: 'Seleccione un cultivo'
+                    }));
+
+                    // Luego agregar los cultivos
                     $.each(result.listObject, function (index, cultivo) {
                         selectCultivo.append($('<option>', {
                             value: cultivo.id,
                             text: cultivo.nombre
                         }));
                     });
-                    $('#idCultivo').val(null).trigger('change');
-                    $('#idCultivoCosecha').val(null).trigger('change');
+
+                    // Forzar que quede en blanco
+                    selectCultivo.val('').trigger('change');
                 }
             },
             error: function (error) {
@@ -132,13 +147,91 @@
                             text: catalogo.nombre
                         }));
                     });
-                    $('#' + selectId).val(null).trigger('change');
+                    setTimeout(function () {
+                        $('#' + selectId).val(null).trigger('change');
+                    }, 500);
                 }
             },
             error: function (error) {
                 console.error('Error cargando catálogos:', error);
             }
         });
+    }
+
+    function cargarTodosCatalogos() {
+        $.ajax({
+            url: '/Catalogo/GetAllActive',
+            type: 'GET',
+            success: function (result) {
+                if (result.success && result.listObject) {
+                    cargarDatosSelect2(result.listObject);
+                }
+            },
+            error: function (error) {
+                console.error('Error cargando catálogos:', error);
+            }
+        });
+    }
+
+    async function cargarDatosSelect2(todosCatalogos) {
+        if (!todosCatalogos) {
+            return;
+        }
+        //siembra
+        cargarCultivos();
+        llenarSelectConCatalogo(30, 'MetodoSiembra', todosCatalogos);
+
+        //cosecha
+        cargarCultivos();
+        cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
+
+        // riego
+        llenarSelectConCatalogo(31, 'MetodoRiego', todosCatalogos);
+        llenarSelectConCatalogo(41, 'FuenteAgua', todosCatalogos);
+
+        //fertilizante
+        llenarSelectConCatalogo(21, 'Nutriente', todosCatalogos);
+        llenarSelectConCatalogo(20, 'TipoFertilizante', todosCatalogos);
+        llenarSelectConCatalogo(32, 'MetodoAplicacion', todosCatalogos);
+
+        //pulverizacion
+        llenarSelectConCatalogo(22, 'ProductoAgroquimico', todosCatalogos);
+
+        //monitoreo
+        cargarEstadosFenologicos();
+
+        //analisis suelo
+        llenarSelectConCatalogo(50, 'Laboratorio', todosCatalogos);
+
+        //otros lavores
+
+    }
+
+    function llenarSelectConCatalogo(tipoCatalogo, idSelect2, todosCatalogos) {
+        if (!todosCatalogos) {
+            return;
+        }
+
+        const catalogosFiltrados = todosCatalogos.filter(catalogo => catalogo.tipo === tipoCatalogo);
+
+        var selectId = 'id' + idSelect2;
+        var $select = $('#' + selectId);
+
+        $select.empty();
+
+        $select.append($('<option>', {
+            value: '',
+            text: 'Seleccione una opción'
+        }));
+
+        $.each(catalogosFiltrados, function (index, catalogo) {
+            $select.append($('<option>', {
+                value: catalogo.id,
+                text: catalogo.nombre
+            }));
+        });
+
+        $select.val('').trigger('change');
     }
 
     // FUNCIÓN: Cargar estados fenológicos
@@ -493,6 +586,9 @@
         $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
         inicializarSelectConIconos();
         inicializarSelectLotes();
+
+        cargarTodosCatalogos();
+
         $('#tipoidActividad').prop('disabled', true);
 
         $('#IdLote').prop('disabled', false);

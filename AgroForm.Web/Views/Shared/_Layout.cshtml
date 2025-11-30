@@ -15,6 +15,13 @@
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
+    <link rel="manifest" href="~/manifest.json">
+    <link rel="icon" href="~/images/android-launchericon-72-72.png" type="image/png" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="AgriApp">
+    <link rel="apple-touch-icon" href="~/images/android-launchericon-192-192.png">
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -119,6 +126,20 @@
     <script src="https://unpkg.com/@@phosphor-icons/web"></script>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registrado con éxito: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Error registrando ServiceWorker: ', error);
+                    });
+            });
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 
