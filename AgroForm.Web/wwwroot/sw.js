@@ -3,16 +3,16 @@ const urlsToCache = [
     '/',
     '/css/site.css',
     '/site.js',
-    'js/actividad.js',
-    'js/cultivo.js',
-    'js/actividadRapida.js',
-    'js/administradorLicencias.js',
-    'js/campania.js',
-    'js/campo.js',
-    'js/Gasto.js',
-    'js/registroClima.js',
-    'js/selectorCampania.js',
-    'js/usuario.js'
+    'js/view/actividad.js',
+    'js/view/cultivo.js',
+    'js/view/actividadRapida.js',
+    'js/view/administradorLicencias.js',
+    'js/view/campania.js',
+    'js/view/campo.js',
+    'js/view/Gasto.js',
+    'js/view/registroClima.js',
+    'js/view/selectorCampania.js',
+    'js/view/usuario.js'
 ];
 
 self.addEventListener('install', event => {
