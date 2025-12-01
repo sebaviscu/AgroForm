@@ -126,11 +126,12 @@ function abrirModalParaEdicionActividad(actividad, tipoActividadNombre) {
     // Abrir el modal
     $('#modalActividadRapida').modal('show');
 
-    // Esperar a que el modal esté completamente visible
-    $('#modalActividadRapida').one('shown.bs.modal', function () {
-        // Configurar modo edición
+    mostrarLoading();
+    setTimeout(() => {
         configurarModoEdicionActividad(actividad, tipoActividadNombre);
-    });
+        cerrarAlertas();
+
+    }, 1000);
 }
 
 // Función para configurar el modal en modo edición
@@ -142,8 +143,6 @@ function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
 
     if (actividad.idLote) {
         loteChoicesInstance.setChoiceByValue(actividad.idLote.toString());
-
-        //$('#IdLote').val(actividad.idLote).trigger('change');
     }
     loteChoicesInstance.disable()
 
@@ -151,11 +150,7 @@ function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
 
     $('#tipoidActividad').prop('disabled', true);
 
-    // esperamos a que carguen todos los select2
-    setTimeout(() => {
-        cargarDatosEspecificosEditar(actividad, actividad.idTipoActividad);
-        cerrarAlertas();
-    }, 1000);
+    cargarDatosEspecificosEditar(actividad, actividad.idTipoActividad);
 
     $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar Labor');
 
@@ -182,9 +177,16 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiembra').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
             if (datosEspecificos.idCultivo != null) setSelectWhenReady('#idCultivo', datosEspecificos.idCultivo);
+            $('#idCultivo').trigger('change');
 
-            if (datosEspecificos.idVariedad != null) setSelectWhenReady('#idVariedad', datosEspecificos.idVariedad);
+            if (datosEspecificos.idVariedad != null) {
 
+                mostrarLoading();
+                setTimeout(() => {
+                    setSelectWhenReady('#idVariedad', datosEspecificos.idVariedad);
+                    cerrarAlertas();
+                }, 1000);
+            }
             break;
 
         case 5:
@@ -246,7 +248,7 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoCosecha').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
             if (datosEspecificos.idCultivo != null) setSelectWhenReady('#idCultivoCosecha', datosEspecificos.idCultivo);
-            
+
             break;
 
         case 8:
