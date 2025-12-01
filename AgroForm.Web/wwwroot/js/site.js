@@ -237,39 +237,55 @@ function mostrarMensaje(mensaje, tipo) {
 }
 
 
-function setSelect2WhenReady(selector, value) {
-    return new Promise(resolve => {
+//function setSelect2WhenReady(selector, value) {
+//    return new Promise(resolve => {
 
-        let lastCount = -1;
-        let stableFor = 0;
+//        let lastCount = -1;
+//        let stableFor = 0;
 
-        const interval = setInterval(() => {
-            const count = $(selector).find("option").length;
+//        const interval = setInterval(() => {
+//            const count = $(selector).find("option").length;
 
-            // Si el número de opciones sigue cambiando
-            if (count !== lastCount) {
-                lastCount = count;
-                stableFor = 0;
-            } else {
-                // Sigue igual → sumamos tiempo estable
-                stableFor += 100;
-            }
+//            // Si el número de opciones sigue cambiando
+//            if (count !== lastCount) {
+//                lastCount = count;
+//                stableFor = 0;
+//            } else {
+//                // Sigue igual → sumamos tiempo estable
+//                stableFor += 100;
+//            }
 
-            // Cuando estuvo 300ms sin cambiar
-            if (stableFor >= 300 && count > 0) {
-                clearInterval(interval);
+//            // Cuando estuvo 300ms sin cambiar
+//            if (stableFor >= 300 && count > 0) {
+//                clearInterval(interval);
 
-                $(selector).val(value).trigger('change');
+//                $(selector).val(value).trigger('change');
 
-                resolve(true);
-            }
+//                resolve(true);
+//            }
 
-        }, 100);
+//        }, 100);
 
-        // Timeout 5s
-        setTimeout(() => {
-            clearInterval(interval);
-            resolve(false);
-        }, 5000);
-    });
+//        // Timeout 5s
+//        setTimeout(() => {
+//            clearInterval(interval);
+//            resolve(false);
+//        }, 5000);
+//    });
+//}
+
+
+
+function setSelectWhenReady(elementId, value) {
+
+    const cleanId = elementId.replace(/^#/, '');
+    const el = document.getElementById(cleanId);
+    if (!el) return console.warn(`Elemento ${cleanId} no encontrado`);
+
+    const instance = el._choicesInstance || el.choices; // fallback
+    if (instance) {
+        instance.removeActiveItems(); // limpia selección previa
+        instance.setChoiceByValue(String(value));
+    }
 }
+

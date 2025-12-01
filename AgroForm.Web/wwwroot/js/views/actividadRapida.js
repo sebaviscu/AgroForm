@@ -1,4 +1,7 @@
-﻿$(document).ready(function () {
+﻿let loteChoicesInstance = null;
+
+
+$(document).ready(function () {
     var form = $('#formActividadRapida');
     var cantidadInput = $('#cantidad');
     var unidadMedidaText = $('#unidadMedidaText');
@@ -29,17 +32,24 @@
             var template = $(templateId).html();
             camposEspecificosContainer.html(template);
 
-            // Inicializar Select2 para los nuevos selects
-            //setTimeout(function () {
+
             $('.form-select', camposEspecificosContainer).each(function () {
-                if (!$(this).hasClass('select2-hidden-accessible')) {
-                    $(this).select2({
-                        dropdownParent: $('#modalActividadRapida'),
-                        width: '100%'
-                    });
+                const element = this;
+
+                if (element._choicesInstance) {
+                    element._choicesInstance.destroy();
                 }
+
+                const instance = new Choices(element, {
+                    searchEnabled: false,
+                    placeholder: true,
+                    shouldSort: false,
+                    placeholderValue: 'Seleccione una opción...',
+                });
+
+                element._choicesInstance = instance;
             });
-            //}, 100);
+
         }
     }
 
@@ -56,29 +66,19 @@
         switch (tipoActividadNombre) {
             case 'Siembra':
                 //cargarCultivos();
-                //cargarCatalogos(30, 'MetodoSiembra');
                 cargarSwitchMoneda("switchMonedaCostoSiembra", "labelMonedaCostoSiembra");
             case 'Cosecha':
                 //cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
-                if (idCultivoSembrado)
-                    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
-
-                //if (idCultivoSembrado != null) await setSelect2WhenReady('#idCultivoCosecha', idCultivoSembrado);
+                if (idCultivoSembrado != null) await setSelectWhenReady('idCultivoCosecha', idCultivoSembrado);
                 break;
             case 'Riego':
-                //cargarCatalogos(31, 'MetodoRiego');
-                //cargarCatalogos(41, 'FuenteAgua');
                 cargarSwitchMoneda("switchMonedaCostoRiego", "labelMonedaCostoRiego");
                 break;
             case 'Fertilizado':
-                //cargarCatalogos(21, 'Nutriente');
-                //cargarCatalogos(20, 'TipoFertilizante');
-                //cargarCatalogos(32, 'MetodoAplicacion');
                 cargarSwitchMoneda("switchMonedaCostoFertilizado", "labelMonedaCostoFertilizado");
                 break;
             case 'Pulverizacion':
-                //cargarCatalogos(22, 'ProductoAgroquimico');
                 cargarSwitchMoneda("switchMonedaCostoPulverizacion", "labelMonedaCostoPulverizacion");
                 break;
             case 'Monitoreo':
@@ -86,7 +86,6 @@
                 cargarSwitchMoneda("switchMonedaCostoMonitoreo", "labelMonedaCostoMonitoreo");
                 break;
             case 'Analisis de suelo':
-                //cargarCatalogos(50, 'Laboratorio');
                 cargarSwitchMoneda("switchMonedaCostoAnalisisSuelo", "labelMonedaCostoAnalisisSuelo");
                 break;
             case 'Otras labores':
@@ -98,7 +97,7 @@
     // FUNCIÓN: Cargar cultivos
     function cargarCultivos() {
         $.ajax({
-            url: '/Cultivo/GetByCampania',
+            url: '/Cultivo/GetAll',
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {
@@ -304,122 +303,6 @@
         });
     }
 
-    // CÓDIGO EXISTENTE PARA CLIMA (sin cambios)
-    function cargarCamposParaClima() {
-        $.ajax({
-            url: '/Campo/GetAll',
-            type: 'GET',
-            success: function (result) {
-                if (result.success) {
-                    var select = $('#campoClima');
-                    select.empty().append('<option value="" selected disabled>Seleccione un campo...</option>');
-                    $.each(result.listObject, function (index, lote) {
-                        select.append($('<option>', {
-                            value: lote.id,
-                            text: lote.nombre
-                        }));
-                    });
-                } else {
-                    mostrarMensaje('Error al cargar los campos', 'error');
-                }
-            },
-            error: function (error) {
-                mostrarMensaje('Error al conectar con el servidor', 'error');
-            }
-        });
-    }
-
-    $('#btnClima').on('click', function () {
-        cargarCamposParaClima();
-        $('#modalClima').modal('show');
-        $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Crear Registro de Clima');
-        $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
-    });
-
-    $('#tipoClima').on('change', function () {
-        var tipo = $(this).val();
-        if (tipo == "1") { // Granizo
-            $('#milimetros').val('').prop('disabled', true);
-        } else { // Lluvia
-            $('#milimetros').prop('disabled', false);
-        }
-    });
-
-    // Validación y envío del formulario de clima
-    $('#formClima').on('submit', function (e) {
-        e.preventDefault();
-
-        if (!$('#campoClima').val()) {
-            $('#campoClima').addClass('is-invalid');
-            return;
-        } else {
-            $('#campoClima').removeClass('is-invalid');
-        }
-
-        var tipo = $('#tipoClima').val();
-        var milimetros = parseFloat($('#milimetros').val());
-
-        if (tipo == "0" && (isNaN(milimetros) || milimetros <= 0)) {
-            e.preventDefault();
-            $('#milimetros').addClass('is-invalid');
-            return;
-        } else {
-            $('#milimetros').removeClass('is-invalid');
-        }
-        var registroClimaId = $('#registroClimaId').val();
-        var esEdicion = registroClimaId && registroClimaId > 0;
-
-        var data = {
-            IdCampo: parseInt($('#campoClima').val()),
-            TipoClima: parseInt($('#tipoClima').val()),
-            Milimetros: $('#milimetros').val() ? parseFloat($('#milimetros').val()) : 0,
-            Fecha: $('#fechaClima').val(),
-            Observaciones: $('#observacionesClima').val(),
-            id: esEdicion ? parseInt(registroClimaId) : 0,
-        };
-
-        var submitBtn = $('#formClima').find('button[type="submit"]');
-        var originalText = submitBtn.html();
-
-        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
-        var url = esEdicion ? '/RegistroClima/Update' : '/RegistroClima/Create';
-        var mensajeExito = esEdicion ? 'Registro de Clima actualizado correctamente' : 'Registro de Clima creado correctamente';
-
-        $.ajax({
-            url: url,
-            type: esEdicion ? 'PUT' : 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
-            success: function (result) {
-                if (result.success) {
-                    mostrarMensaje(mensajeExito, 'success');
-                    $('#modalClima').modal('hide');
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 500);
-
-                } else {
-                    mostrarMensaje(result.message || 'Error al guardar el registro de clima', 'error');
-                }
-            },
-            error: function (error) {
-                mostrarMensaje('Error al conectar con el servidor', 'error');
-            },
-            complete: function () {
-                submitBtn.html(originalText).prop('disabled', false);
-            }
-        });
-    });
-
-    // Resetear el modal cuando se cierre
-    $('#modalClima').on('hidden.bs.modal', function () {
-        $('#formClima')[0].reset();
-        $('#campoClima').removeClass('is-invalid');
-    });
-
     // MODIFICADA: Inicializar Select2 para tipo de actividad
     function inicializarSelectConIconos() {
         var tipoActividadSelect = $('#tipoidActividad');
@@ -484,95 +367,140 @@
     }
 
     function inicializarSelectLotes() {
-        if ($('#IdLote').hasClass('select2-hidden-accessible')) {
-            $('#IdLote').select2('destroy');
+        // Destruir instancia anterior si existe
+        if (loteChoicesInstance) {
+            loteChoicesInstance.destroy();
         }
 
-        loteSelect.select2({
-            dropdownParent: $('#modalActividadRapida'),
-            placeholder: 'Seleccione un lote...',
-            allowClear: true,
-            //multiple: true,
-            width: '100%',
-            closeOnSelect: true
+        // Obtener el elemento DOM
+        const loteSelectElement = document.getElementById('IdLote');
+
+        loteChoicesInstance = new Choices(loteSelectElement, {
+            searchEnabled: true,
+            placeholder: true,
+            placeholderValue: 'Seleccione un lote...',
+            removeItemButton: true,
+            shouldSort: false,
+            searchPlaceholder: 'Buscar lote...',
+            itemSelectText: '',
+            allowHTML: false, // Cambia a true si necesitas HTML en las opciones
+
+            // IMPORTANTE: Para que funcione bien en modales
+            position: 'auto',
+            renderSelectedChoices: 'always',
+
+            // Eventos similares a los que tenías en Select2
+            callbackOnInit: function () {
+                // Limpiar selección inicial
+                this.removeActiveItems();
+                this.setChoiceByValue('');
+
+                // Limpiar contenedor de campos específicos
+                camposEspecificosContainer.empty();
+            }
         });
 
-        loteSelect.val(null).trigger('change');
+        // Manejar el evento change
+        loteSelectElement.addEventListener('change', function () {
+            handleLoteChange();
+        }, false);
 
-        loteSelect.on("change", function () {
+        // También manejar eventos específicos de Choices
+        loteSelectElement.addEventListener('choice', function (event) {
+            // Este evento se dispara cuando se selecciona una opción
+            handleLoteChange();
+        }, false);
+
+        loteChoicesInstance.enable()
+
+        // Función para manejar el cambio
+        function handleLoteChange() {
             camposEspecificosContainer.empty();
 
-            var selectedOption = $(this).find('option:selected');
+            // Obtener la opción seleccionada
+            const selectedValue = loteChoicesInstance.getValue(true);
+            const selectElement = document.getElementById('IdLote');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
 
-            var permiteCosechasString = selectedOption.data('permite-cosechas');
-            var permiteSiembraString = selectedOption.data('permite-siembra');
+            // Si no hay selección, salir
+            if (!selectedOption) return;
 
-            var permiteCosechas = permiteCosechasString == "True"
-            var permiteSiembra = permiteSiembraString == "True";
+            // Obtener datos de la opción seleccionada
+            const permiteCosechasString = selectedOption.getAttribute('data-permite-cosechas');
+            const permiteSiembraString = selectedOption.getAttribute('data-permite-siembra');
 
-            var siembraACosechar = selectedOption.data('siembra-a-cosechar');
-            var superficieMaxima = parseFloat(selectedOption.data('superficie-sembrada'));
+            const permiteCosechas = permiteCosechasString === "True";
+            const permiteSiembra = permiteSiembraString === "True";
 
-            if (permiteCosechas)
-                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
-            else
-                $('#info-cosecha').text("");
+            const siembraACosechar = selectedOption.getAttribute('data-siembra-a-cosechar');
+            const superficieMaxima = parseFloat(selectedOption.getAttribute('data-superficie-sembrada'));
 
+            // Actualizar info de cosecha
             if (permiteCosechas) {
-                var inputSuperficie = $('#superficieCosechadaHa');
+                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
+            } else {
+                $('#info-cosecha').text("");
+            }
+
+            // Configurar superficie según tipo
+            if (permiteCosechas) {
+                const inputSuperficie = $('#superficieCosechadaHa');
 
                 inputSuperficie.attr('max', superficieMaxima);
                 inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
                 inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
 
-                idCultivoSembrado = parseInt(selectedOption.data('id-cultivo'));
-
-                //setTimeout(function () {
-                //    $('#idCultivoCosecha').val(idCultivoSembrado).trigger('change');
-                //}, 500);
+                window.idCultivoSembrado = parseInt(selectedOption.getAttribute('data-id-cultivo'));
 
             } else if (permiteSiembra) {
-                var superficieMaximaSembrar = parseFloat(selectedOption.data('superficie-para-sembrar'));
-                var inputSuperficieMaxima = $('#superficieHa');
+                const superficieMaximaSembrar = parseFloat(selectedOption.getAttribute('data-superficie-para-sembrar'));
+                const inputSuperficieMaxima = $('#superficieHa');
 
                 inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
                 inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieMaximaSembrar} ha`);
                 inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieMaximaSembrar} ha`);
-
             }
 
-            // HABILITAR/DESHABILITAR OPCIONES DEL SELECT2
-            var selectActividad = $('#tipoidActividad');
-            selectActividad.val('').trigger('change');
+            // HABILITAR/DESHABILITAR OPCIONES DEL SELECT DE ACTIVIDAD
+            const selectActividad = document.getElementById('tipoidActividad');
 
             // Primero habilitar todas las opciones
-            selectActividad.find('option').prop('disabled', false);
+            Array.from(selectActividad.options).forEach(option => {
+                option.disabled = false;
+            });
 
             // Deshabilitar siembra (id 2) si no permite siembra
             if (!permiteSiembra) {
-                selectActividad.find('option[data-id-tipo-actividad="2"]').prop('disabled', true);
+                const siembraOption = selectActividad.querySelector('option[data-id-tipo-actividad="2"]');
+                if (siembraOption) siembraOption.disabled = true;
             }
 
             // Deshabilitar cosecha (id 7) si no permite cosecha
             if (!permiteCosechas) {
-                selectActividad.find('option[data-id-tipo-actividad="7"]').prop('disabled', true);
+                const cosechaOption = selectActividad.querySelector('option[data-id-tipo-actividad="7"]');
+                if (cosechaOption) cosechaOption.disabled = true;
             }
 
             // Si después de deshabilitar, la opción seleccionada está deshabilitada, limpiar selección
-            var selectedValue = selectActividad.val();
-            if (selectedValue) {
-                var selectedOptionActividad = selectActividad.find('option:selected');
-                if (selectedOptionActividad.prop('disabled')) {
-                    selectActividad.val('').trigger('change');
+            const selectedValueActividad = selectActividad.value;
+            if (selectedValueActividad) {
+                const selectedOptionActividad = selectActividad.options[selectActividad.selectedIndex];
+                if (selectedOptionActividad && selectedOptionActividad.disabled) {
+                    selectActividad.value = '';
+                    // Si estás usando Choices para este select también, actualizarlo
+                    if (selectActividad.choices) {
+                        selectActividad.choices.setChoiceByValue('');
+                    }
                 }
             }
 
-            // Actualizar el select2 para reflejar los cambios
-            selectActividad.trigger('change.select2');
+            // Disparar evento change para el select de actividad
+            $(selectActividad).trigger('change');
 
-            $('#tipoidActividad').prop('disabled', false);
+            // Habilitar el select de actividad
+            selectActividad.disabled = false;
+        }
 
-        });
     }
 
     // Evento para abrir el modal
@@ -984,4 +912,121 @@
     $('#modalGasto').on('hidden.bs.modal', function () {
         $('#formGasto')[0].reset();
     });
+});
+
+
+// CÓDIGO EXISTENTE PARA CLIMA (sin cambios)
+function cargarCamposParaClima() {
+    $.ajax({
+        url: '/Campo/GetAll',
+        type: 'GET',
+        success: function (result) {
+            if (result.success) {
+                var select = $('#campoClima');
+                select.empty().append('<option value="" selected disabled>Seleccione un campo...</option>');
+                $.each(result.listObject, function (index, lote) {
+                    select.append($('<option>', {
+                        value: lote.id,
+                        text: lote.nombre
+                    }));
+                });
+            } else {
+                mostrarMensaje('Error al cargar los campos', 'error');
+            }
+        },
+        error: function (error) {
+            mostrarMensaje('Error al conectar con el servidor', 'error');
+        }
+    });
+}
+
+$('#btnClima').on('click', function () {
+    cargarCamposParaClima();
+    $('#modalClima').modal('show');
+    $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Crear Registro de Clima');
+    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+});
+
+$('#tipoClima').on('change', function () {
+    var tipo = $(this).val();
+    if (tipo == "1") { // Granizo
+        $('#milimetros').val('').prop('disabled', true);
+    } else { // Lluvia
+        $('#milimetros').prop('disabled', false);
+    }
+});
+
+// Validación y envío del formulario de clima
+$('#formClima').on('submit', function (e) {
+    e.preventDefault();
+
+    if (!$('#campoClima').val()) {
+        $('#campoClima').addClass('is-invalid');
+        return;
+    } else {
+        $('#campoClima').removeClass('is-invalid');
+    }
+
+    var tipo = $('#tipoClima').val();
+    var milimetros = parseFloat($('#milimetros').val());
+
+    if (tipo == "0" && (isNaN(milimetros) || milimetros <= 0)) {
+        e.preventDefault();
+        $('#milimetros').addClass('is-invalid');
+        return;
+    } else {
+        $('#milimetros').removeClass('is-invalid');
+    }
+    var registroClimaId = $('#registroClimaId').val();
+    var esEdicion = registroClimaId && registroClimaId > 0;
+
+    var data = {
+        IdCampo: parseInt($('#campoClima').val()),
+        TipoClima: parseInt($('#tipoClima').val()),
+        Milimetros: $('#milimetros').val() ? parseFloat($('#milimetros').val()) : 0,
+        Fecha: $('#fechaClima').val(),
+        Observaciones: $('#observacionesClima').val(),
+        id: esEdicion ? parseInt(registroClimaId) : 0,
+    };
+
+    var submitBtn = $('#formClima').find('button[type="submit"]');
+    var originalText = submitBtn.html();
+
+    submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+    var url = esEdicion ? '/RegistroClima/Update' : '/RegistroClima/Create';
+    var mensajeExito = esEdicion ? 'Registro de Clima actualizado correctamente' : 'Registro de Clima creado correctamente';
+
+    $.ajax({
+        url: url,
+        type: esEdicion ? 'PUT' : 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        headers: {
+            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        success: function (result) {
+            if (result.success) {
+                mostrarMensaje(mensajeExito, 'success');
+                $('#modalClima').modal('hide');
+                setTimeout(function () {
+                    window.location.reload();
+                }, 500);
+
+            } else {
+                mostrarMensaje(result.message || 'Error al guardar el registro de clima', 'error');
+            }
+        },
+        error: function (error) {
+            mostrarMensaje('Error al conectar con el servidor', 'error');
+        },
+        complete: function () {
+            submitBtn.html(originalText).prop('disabled', false);
+        }
+    });
+});
+
+// Resetear el modal cuando se cierre
+$('#modalClima').on('hidden.bs.modal', function () {
+    $('#formClima')[0].reset();
+    $('#campoClima').removeClass('is-invalid');
 });
