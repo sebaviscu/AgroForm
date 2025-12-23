@@ -497,5 +497,5 @@ function configurarModoEdicion(registroGasto) {
     $('#costoGasto').val(registroGasto.costo);
     $('#switchMonedaCostoGasto').prop('checked', registroGasto.esDolarEdit).trigger('change');
     $('#modalGastoLabel').html('<i class="ph ph-pencil me-2"></i>Editar Registro de Gasto');
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
+    $('#btnGuardarGasto').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
 }

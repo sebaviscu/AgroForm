@@ -152,7 +152,7 @@ function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
 
     cargarDatosEspecificosEditar(actividad, actividad.idTipoActividad);
 
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar Labor');
+    $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Actualizar Labor');
 
     if (!$('#actividadId').length) {
         $('<input>').attr({

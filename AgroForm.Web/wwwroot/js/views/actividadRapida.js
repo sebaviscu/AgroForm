@@ -45,6 +45,8 @@ $(document).ready(function () {
                     placeholder: true,
                     shouldSort: false,
                     placeholderValue: 'Seleccione una opción...',
+                    itemSelectText: '',
+                    removeItemButton: true
                 });
 
                 element._choicesInstance = instance;
@@ -314,6 +316,8 @@ $(document).ready(function () {
                         placeholder: true,
                         shouldSort: false,
                         placeholderValue: 'Seleccione una opción...',
+                        itemSelectText: '',
+                        removeItemButton: true
                     });
 
                     // Guardar la instancia en el elemento
@@ -410,9 +414,7 @@ function inicializarSelectLotes() {
         shouldSort: false,
         searchPlaceholder: 'Buscar lote...',
         itemSelectText: '',
-        allowHTML: false, // Cambia a true si necesitas HTML en las opciones
-
-        // IMPORTANTE: Para que funcione bien en modales
+        allowHTML: false, 
         position: 'auto',
         renderSelectedChoices: 'always',
 
@@ -538,7 +540,7 @@ $('#btnAddActividad').on('click', function () {
 // Inicializar Select2 cuando el modal se muestra
 $('#modalActividadRapida').on('shown.bs.modal', function () {
     $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Crear Labor');
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
+    $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
     inicializarSelectConIconos();
     inicializarSelectLotes();
 
@@ -876,7 +878,7 @@ function mostrarMensaje(mensaje, tipo) {
 $('#btnGasto').on('click', function () {
     $('#modalGasto').modal('show');
     $('#modalGastoLabel').html('<i class="ph ph-receipt me-2"></i>Crear Gasto');
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+    $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar');
 
     cargarSwitchMoneda("switchMonedaCostoGasto", "labelMonedaCostoGasto");
 });
@@ -970,7 +972,7 @@ $('#btnClima').on('click', function () {
     cargarCamposParaClima();
     $('#modalClima').modal('show');
     $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Crear Registro de Clima');
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+    $('#btnGuardarClima').html('<i class="ph ph-check-circle me-1"></i>Guardar');
 });
 
 $('#tipoClima').on('change', function () {

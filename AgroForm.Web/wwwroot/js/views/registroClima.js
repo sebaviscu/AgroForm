@@ -92,7 +92,7 @@ function configurarModoEdicion(registroClima) {
     }
 
     $('#modalClimaLabel').html('<i class="ph ph-cloud-rain me-2"></i>Editar Registro de Clima');
-    $('button[type="submit"]').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
+    $('#btnGuardarClima').html('<i class="ph ph-check-circle me-1"></i>Actualizar');
 
 }
 
