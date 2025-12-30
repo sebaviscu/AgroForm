@@ -698,7 +698,6 @@ function cargarDatosParaVisualizacion(id) {
 function inicializarFecha() {
     const hoy = new Date().toISOString().split('T')[0];
     $('#layer-date').val(hoy);
-    console.log('📅 Fecha inicializada:', hoy);
 }
 
 // Función para cargar datos y análisis
@@ -731,7 +730,6 @@ async function cargarDatosMeteorologicos(lat, lon, fecha = null) {
             url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${fecha}&end_date=${fecha}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
         }
 
-        console.log(`🌤️ Cargando datos para fecha: ${fecha || 'hoy'}`);
         const response = await fetch(url);
 
         if (response.ok) {
@@ -739,18 +737,10 @@ async function cargarDatosMeteorologicos(lat, lon, fecha = null) {
             weatherData = data;
             weatherData.fechaConsulta = fecha || hoy;
             weatherData.esTiempoReal = esFechaActual;
-
-            console.log('✅ Datos meteorológicos cargados:', {
-                fecha: fecha || 'hoy',
-                tipo: esFechaActual ? 'tiempo_real' : 'historico',
-                datos: data
-            });
         } else {
-            console.warn('❌ No se pudieron cargar datos meteorológicos');
             weatherData = null;
         }
     } catch (error) {
-        console.error('Error cargando datos meteorológicos:', error);
         weatherData = null;
     }
 }
@@ -790,8 +780,6 @@ function inicializarMapaVisualizacion() {
 
     // Agregar control de escala
     L.control.scale({ imperial: false }).addTo(viewMap);
-
-    console.log('🗺️ Mapa de visualización inicializado');
 }
 
 // Función para configurar capas overlay
@@ -862,7 +850,6 @@ function cargarPoligonoVisualizacion(coordenadasJson, latitud, longitud) {
             // Centrar el mapa en el polígono
             viewMap.fitBounds(campoPolygon.getBounds().pad(0.1));
 
-            console.log('✅ Polígono del campo cargado correctamente');
         }
     } catch (error) {
         console.error('Error al cargar el polígono:', error);
@@ -873,8 +860,6 @@ function cargarPoligonoVisualizacion(coordenadasJson, latitud, longitud) {
 // Función para cambiar visualización
 // Función MEJORADA para cambiar visualización
 function cambiarVisualizacion(vizType) {
-    console.log(`🎨 Cambiando visualización: ${vizType}`);
-
     // PRIMERO: Restaurar capa base por defecto (Google Satélite)
     Object.values(baseLayers).forEach(layer => {
         if (viewMap.hasLayer(layer)) {
@@ -1062,10 +1047,7 @@ function aplicarVisualizacionSentinel() {
                 </div>
             `);
         }
-
-        console.log('✅ Vista ESRI Satélite activada con leyenda');
     } else {
-        console.warn('❌ Capa ESRI no disponible');
         // Fallback a Google Híbrido
         if (overlayLayers["Google Híbrido"]) {
             overlayLayers["Google Híbrido"].addTo(viewMap);
@@ -1082,7 +1064,6 @@ function actualizarAnalisisCompleto() {
     const hoy = new Date().toISOString().split('T')[0];
     const esFechaActual = fechaSeleccionada === hoy;
 
-    console.log(`📊 Actualizando análisis para fecha: ${fechaSeleccionada} (${esFechaActual ? 'hoy' : 'histórica'})`);
 
     let contenido = `
         <div class="row">
@@ -1338,7 +1319,6 @@ $(document).on('click', '.btn-viz', function () {
 // Evento para cambios de fecha
 $('#layer-date').on('change', function () {
     const fechaSeleccionada = $(this).val();
-    console.log('📅 Fecha cambiada:', fechaSeleccionada);
 
     // Mostrar loading
     $('#analisis-completo').html(`

@@ -52,7 +52,6 @@
                                 <label for="IdLote" class="form-label">Lotes *</label>
                                 <select class="form-select" id="IdLote" name="IdLote" required>
                                     @{
-                                        // Agrupar los lotes por Campo.Nombre
                                         var lotesAgrupados = Model.Lotes.GroupBy(l => l.Campo.Nombre.ToUpper())
                                         .OrderBy(g => g.Key);
                                     }
@@ -273,7 +272,7 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="cantidadKgHa" class="form-label">Cantidad (Kg/Ha) </label>
+                            <label for="cantidadKgHa" class="form-label">Cantidad (Kg) </label>
                             <input type="number" class="form-control" id="cantidadKgHa" name="CantidadKgHa"
                                    min="0.01" step="0.01">
                         </div>
@@ -341,7 +340,7 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="volumenLitrosHa" class="form-label">Volumen (Lt/Ha)</label>
+                            <label for="volumenLitrosHa" class="form-label">Volumen (Lt)</label>
                             <input type="number" class="form-control" id="volumenLitrosHa" name="VolumenLitrosHa"
                                    min="0.01" step="0.01">
                         </div>
@@ -434,9 +433,9 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="idMonitoreo" class="form-label">Tipo de Monitoreo </label>
+                            <label for="idMonitoreo" class="form-label">Monitoreo </label>
                             <select class="form-select" id="idMonitoreo" name="Textura">
-                                <option value="" selected disabled></option>
+                                <option value="" selected disabled>Seleccione una opción...</option>
                                 <option value="10">Plaga</option>
                                 <option value="11">Maleza</option>
                                 <option value="12">Enfermedad</option>
@@ -445,18 +444,20 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="idTipoMonitoreo" class="form-label">Tipo *</label>
-                            <select class="form-select" id="idTipoMonitoreo" name="IdTipoMonitoreo">
+                            <label for="idTipoMonitoreo" class="form-label">Tipo</label>
+                            <select class="form-select" id="idTipoMonitoreo" name="idTipoMonitoreo">
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="mb-3">
                             <label for="idEstadoFenologico" class="form-label">Estado Fenológico</label>
-                            <select class="form-select" id="idEstadoFenologico" name="IdEstadoFenologico">
+                            <select class="form-select" id="idEstadoFenologico" name="idEstadoFenologico">
                             </select>
                         </div>
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-md-5">
                         <div class="mb-3">
                             <label for="costoMonitoreoTotal" class="form-label">Costo</label>

@@ -1,5 +1,4 @@
-﻿const CACHE_NAME = "gestionapp-v1";
-const CORE_ASSETS = [
+﻿const CORE_ASSETS = [
     "/",
     '/css/site.css',
     '/site.js',
@@ -13,40 +12,10 @@ const CORE_ASSETS = [
 
 // INSTALACIÓN
 self.addEventListener("install", (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
-    );
     self.skipWaiting();
 });
 
 // ACTIVACIÓN (limpiar versiones viejas)
 self.addEventListener("activate", (event) => {
-    event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(
-                keys.filter(key => key !== CACHE_NAME)
-                    .map(key => caches.delete(key))
-            )
-        )
-    );
     self.clients.claim();
-});
-
-// FETCH: Cache first + network fallback + dynamic cache
-self.addEventListener("fetch", (event) => {
-    event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) return cachedResponse;
-
-            return fetch(event.request).then(networkResponse => {
-                return caches.open(CACHE_NAME).then(cache => {
-                    // Cache dinámico (solo GET)
-                    if (event.request.method === "GET") {
-                        cache.put(event.request, networkResponse.clone());
-                    }
-                    return networkResponse;
-                });
-            });
-        })
-    );
 });

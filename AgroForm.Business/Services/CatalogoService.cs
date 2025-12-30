@@ -27,6 +27,7 @@ namespace AgroForm.Business.Services
                     .AsNoTracking()
                     .Where(_=>_.Tipo == tipo)
                     .Where(_ => _.Activo)
+                    .OrderBy(_=>_.Nombre)
                     .ToListAsync();
 
                 if (!entities.Any())

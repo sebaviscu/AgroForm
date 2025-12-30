@@ -834,7 +834,7 @@ function generarPdf(id) {
 
     mostrarLoading();
     $.ajax({
-        url: '/Reportes/CierreCampania/' + id,
+        url: '/Reporte/CierreCampania/' + id,
         type: 'GET',
         success: function (response) {
             cerrarAlertas();

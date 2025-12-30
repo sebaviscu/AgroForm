@@ -132,33 +132,6 @@ $(document).ready(function () {
         });
     }
 
-    // FUNCIÓN: Cargar catalogos por tipo
-    function cargarCatalogos(tipoCatalogo, idSelect2) {
-        $.ajax({
-            url: '/Catalogo/GetByTipo',
-            type: 'GET',
-            data: { tipo: tipoCatalogo },
-            success: function (result) {
-                if (result.success && result.listObject) {
-                    var selectId = 'id' + idSelect2;
-                    $('#' + selectId).empty();
-                    $.each(result.listObject, function (index, catalogo) {
-                        $('#' + selectId).append($('<option>', {
-                            value: catalogo.id,
-                            text: catalogo.nombre
-                        }));
-                    });
-                    setTimeout(function () {
-                        $('#' + selectId).val(null).trigger('change');
-                    }, 500);
-                }
-            },
-            error: function (error) {
-                console.error('Error cargando catálogos:', error);
-            }
-        });
-    }
-
     function cargarTodosCatalogos() {
         $.ajax({
             url: '/Catalogo/GetAllActive',
@@ -244,16 +217,37 @@ $(document).ready(function () {
             url: '/EstadoFenologico/GetByCultivo/' + idCultivoSembrado,
             type: 'GET',
             success: function (result) {
-                if (result.success && result.listObject) {
-                    var select = $('#idEstadoFenologico');
-                    select.empty().append('<option value="">Seleccionar estado</option>');
-                    $.each(result.listObject, function (index, estado) {
-                        select.append($('<option>', {
-                            value: estado.id,
-                            text: estado.nombre + ' (' + estado.codigo + ')'
-                        }));
+
+
+                var selectElement = document.getElementById("idEstadoFenologico");
+
+                if (selectElement && selectElement._choicesInstance) {
+                    selectElement._choicesInstance.clearChoices();
+                    selectElement._choicesInstance.removeActiveItems();
+
+                    var choicesArray = result.listObject.map(function (catalogo) {
+                        return {
+                            value: catalogo.id.toString(),
+                            label: catalogo.nombre + " (" + catalogo.codigo + ")",
+                            selected: false,
+                            disabled: false
+                        };
                     });
+
+                    try {
+                        selectElement._choicesInstance.setChoices(
+                            choicesArray,
+                            'value',
+                            'label',
+                            false
+                        );
+
+                        selectElement._choicesInstance.removeActiveItems();
+                    } catch (error) {
+                        console.error('Error actualizando Choices:', error);
+                    }
                 }
+
             },
             error: function (error) {
                 console.error('Error cargando estados fenológicos:', error);
@@ -274,672 +268,665 @@ $(document).ready(function () {
     $(document).on('change', '#idMonitoreo', function () {
         var idTipoCatalogo = $(this).val();
         if (idTipoCatalogo) {
-            cargarCatalogos(idTipoCatalogo, 'TipoMonitoreo');
+            cargarCatalogos(idTipoCatalogo, 'idTipoMonitoreo');
         } else {
-            $('#IdTipoMonitoreo').empty().val(null).trigger('change');
+            $('#idTipoMonitoreo').empty().val(null).trigger('change');
         }
     });
 
-    // FUNCIÓN: Cargar variedades por cultivo
-
-    function cargarVariedades(cultivoId) {
+    function cargarCatalogos(tipoCatalogo, idSelect) {
         $.ajax({
-            url: '/Variedad/GetByCultivo',
+            url: '/Catalogo/GetByTipo',
             type: 'GET',
-            data: { idCultivo: cultivoId },
+            data: { tipo: tipoCatalogo },
             success: function (result) {
                 if (result.success && result.listObject) {
-                    const element = document.getElementById('idVariedad');
+                    var selectElement = document.getElementById(idSelect);
 
-                    // 1. Destruir instancia anterior si existe
-                    if (element._choicesInstance) {
-                        element._choicesInstance.destroy();
+                    if (selectElement && selectElement._choicesInstance) {
+                        selectElement._choicesInstance.clearChoices();
+                        selectElement._choicesInstance.removeActiveItems();
+
+                        var choicesArray = result.listObject.map(function (catalogo) {
+                            return {
+                                value: catalogo.id.toString(),
+                                label: catalogo.nombre,
+                                selected: false,
+                                disabled: false
+                            };
+                        });
+
+                        try {
+                            selectElement._choicesInstance.setChoices(
+                                choicesArray,
+                                'value',
+                                'label',
+                                false
+                            );
+
+                            selectElement._choicesInstance.removeActiveItems();
+                        } catch (error) {
+                            console.error('Error actualizando Choices:', error);
+                        }
                     }
 
-                    // 2. Limpiar opciones del select nativo
-                    $(element).empty().append($('<option>', {
-                        value: '',
-                        text: 'Seleccione una opción'
-                    }));
-
-                    // 3. Agregar nuevas opciones
-                    $.each(result.listObject, function (index, variedad) {
-                        $(element).append($('<option>', {
-                            value: variedad.id,
-                            text: variedad.nombre
-                        }));
-                    });
-
-                    // 4. Crear nueva instancia de Choices
-                    const instance = new Choices(element, {
-                        searchEnabled: false,
-                        placeholder: true,
-                        shouldSort: false,
-                        placeholderValue: 'Seleccione una opción...',
-                        itemSelectText: '',
-                        removeItemButton: true
-                    });
-
-                    // Guardar la instancia en el elemento
-                    element._choicesInstance = instance;
-
-                    // 5. Resetear selección
-                    instance.setChoiceByValue('');
                 }
             },
             error: function (error) {
-                console.error('Error cargando variedades:', error);
+                console.error('Error cargando catálogos:', error);
             }
         });
     }
 
 
-// MODIFICADA: Inicializar Select2 para tipo de actividad
-function inicializarSelectConIconos() {
-    var tipoActividadSelect = $('#tipoidActividad');
+    // MODIFICADA: Inicializar Select2 para tipo de actividad
+    function inicializarSelectConIconos() {
+        var tipoActividadSelect = $('#tipoidActividad');
 
-    // Solo inicializar si no existe
-    if (!tipoActividadSelect.hasClass('select2-hidden-accessible')) {
-        tipoActividadSelect.select2({
-            dropdownParent: $('#modalActividadRapida'),
-            templateResult: function (option) {
-                if (!option.id) return option.text;
-                var icono = $(option.element).data('icono');
-                var iconoColor = $(option.element).data('icono-color') || '#000';
+        // Solo inicializar si no existe
+        if (!tipoActividadSelect.hasClass('select2-hidden-accessible')) {
+            tipoActividadSelect.select2({
+                minimumResultsForSearch: Infinity,
+                dropdownParent: $('#modalActividadRapida'),
+                templateResult: function (option) {
+                    if (!option.id) return option.text;
+                    var icono = $(option.element).data('icono');
+                    var iconoColor = $(option.element).data('icono-color') || '#000';
 
-                if (icono) {
-                    var $span = $('<span></span>');
-                    $span.append($('<i></i>', {
-                        class: 'ph ' + icono + ' me-2',
-                        style: 'color: ' + iconoColor
-                    }));
-                    $span.append(option.text);
-                    return $span;
+                    if (icono) {
+                        var $span = $('<span></span>');
+                        $span.append($('<i></i>', {
+                            class: 'ph ' + icono + ' me-2',
+                            style: 'color: ' + iconoColor
+                        }));
+                        $span.append(option.text);
+                        return $span;
+                    }
+                    return option.text;
+                },
+                templateSelection: function (option) {
+                    var icono = $(option.element).data('icono');
+                    var iconoColor = $(option.element).data('icono-color') || '#000';
+
+                    if (icono && option.id) {
+                        var $span = $('<span></span>');
+                        $span.append($('<i></i>', {
+                            class: 'ph ' + icono + ' me-2',
+                            style: 'color: ' + iconoColor
+                        }));
+                        $span.append(option.text);
+                        return $span;
+                    }
+                    return option.text;
+                },
+                escapeMarkup: function (markup) { return markup; },
+                width: '100%',
+                placeholder: 'Seleccione un tipo...',
+                allowClear: false
+            });
+
+            // El evento change solo se asigna una vez
+            tipoActividadSelect.off('change.selectActividad').on('change.selectActividad', function () {
+                var selectedOption = $(this).find('option:selected');
+                var tipoActividadNombre = selectedOption.data('tipo-actividad');
+
+                if (tipoActividadNombre) {
+                    cargarCamposEspecificos(tipoActividadNombre);
+                    cargarDatosParaSelects(tipoActividadNombre);
+                } else {
+                    camposEspecificosContainer.empty();
                 }
-                return option.text;
-            },
-            templateSelection: function (option) {
-                var icono = $(option.element).data('icono');
-                var iconoColor = $(option.element).data('icono-color') || '#000';
+            });
+        }
 
-                if (icono && option.id) {
-                    var $span = $('<span></span>');
-                    $span.append($('<i></i>', {
-                        class: 'ph ' + icono + ' me-2',
-                        style: 'color: ' + iconoColor
-                    }));
-                    $span.append(option.text);
-                    return $span;
-                }
-                return option.text;
-            },
-            escapeMarkup: function (markup) { return markup; },
-            width: '100%',
-            placeholder: 'Seleccione un tipo...',
-            allowClear: false
-        });
+        // Asegurarse de que esté visible
+        tipoActividadSelect.show();
+    }
 
-        // El evento change solo se asigna una vez
-        tipoActividadSelect.off('change.selectActividad').on('change.selectActividad', function () {
-            var selectedOption = $(this).find('option:selected');
-            var tipoActividadNombre = selectedOption.data('tipo-actividad');
+    function inicializarSelectLotes() {
+        // Destruir instancia anterior si existe
+        if (loteChoicesInstance) {
+            loteChoicesInstance.destroy();
+        }
 
-            if (tipoActividadNombre) {
-                cargarCamposEspecificos(tipoActividadNombre);
-                cargarDatosParaSelects(tipoActividadNombre);
-            } else {
+        // Obtener el elemento DOM
+        const loteSelectElement = document.getElementById('IdLote');
+
+        loteChoicesInstance = new Choices(loteSelectElement, {
+            searchEnabled: false,
+            placeholder: true,
+            placeholderValue: 'Seleccione un lote...',
+            removeItemButton: true,
+            shouldSort: false,
+            searchPlaceholder: 'Buscar lote...',
+            itemSelectText: '',
+            allowHTML: false,
+            position: 'auto',
+            renderSelectedChoices: 'always',
+
+            // Eventos similares a los que tenías en Select2
+            callbackOnInit: function () {
+                // Limpiar selección inicial
+                this.removeActiveItems();
+                this.setChoiceByValue('');
+
+                // Limpiar contenedor de campos específicos
                 camposEspecificosContainer.empty();
             }
         });
-    }
 
-    // Asegurarse de que esté visible
-    tipoActividadSelect.show();
-}
+        // Manejar el evento change
+        loteSelectElement.addEventListener('change', function () {
+            handleLoteChange();
+        }, false);
 
-function inicializarSelectLotes() {
-    // Destruir instancia anterior si existe
-    if (loteChoicesInstance) {
-        loteChoicesInstance.destroy();
-    }
+        // También manejar eventos específicos de Choices
+        loteSelectElement.addEventListener('choice', function (event) {
+            // Este evento se dispara cuando se selecciona una opción
+            handleLoteChange();
+        }, false);
 
-    // Obtener el elemento DOM
-    const loteSelectElement = document.getElementById('IdLote');
+        loteChoicesInstance.enable()
 
-    loteChoicesInstance = new Choices(loteSelectElement, {
-        searchEnabled: true,
-        placeholder: true,
-        placeholderValue: 'Seleccione un lote...',
-        removeItemButton: true,
-        shouldSort: false,
-        searchPlaceholder: 'Buscar lote...',
-        itemSelectText: '',
-        allowHTML: false, 
-        position: 'auto',
-        renderSelectedChoices: 'always',
-
-        // Eventos similares a los que tenías en Select2
-        callbackOnInit: function () {
-            // Limpiar selección inicial
-            this.removeActiveItems();
-            this.setChoiceByValue('');
-
-            // Limpiar contenedor de campos específicos
+        // Función para manejar el cambio
+        function handleLoteChange() {
             camposEspecificosContainer.empty();
+
+            // Obtener la opción seleccionada
+            const selectedValue = loteChoicesInstance.getValue(true);
+            const selectElement = document.getElementById('IdLote');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+
+            // Si no hay selección, salir
+            if (!selectedOption) return;
+
+            // Obtener datos de la opción seleccionada
+            const permiteCosechasString = selectedOption.getAttribute('data-permite-cosechas');
+            const permiteSiembraString = selectedOption.getAttribute('data-permite-siembra');
+
+            const permiteCosechas = permiteCosechasString === "True";
+            const permiteSiembra = permiteSiembraString === "True";
+
+            const siembraACosechar = selectedOption.getAttribute('data-siembra-a-cosechar');
+            const superficieMaxima = parseFloat(selectedOption.getAttribute('data-superficie-sembrada'));
+
+            // Actualizar info de cosecha
+            if (permiteCosechas) {
+                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
+            } else {
+                $('#info-cosecha').text("");
+            }
+
+            // Configurar superficie según tipo
+            if (permiteCosechas) {
+                const inputSuperficie = $('#superficieCosechadaHa');
+
+                inputSuperficie.attr('max', superficieMaxima);
+                inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
+                inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
+
+                idCultivoSembrado = parseInt(selectedOption.getAttribute('data-id-cultivo'));
+
+            } else if (permiteSiembra) {
+                const superficieMaximaSembrar = parseFloat(selectedOption.getAttribute('data-superficie-para-sembrar'));
+                const inputSuperficieMaxima = $('#superficieHa');
+
+                inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
+                inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieMaximaSembrar} ha`);
+                inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieMaximaSembrar} ha`);
+            }
+
+            // HABILITAR/DESHABILITAR OPCIONES DEL SELECT DE ACTIVIDAD
+            const selectActividad = document.getElementById('tipoidActividad');
+
+            // Primero habilitar todas las opciones
+            Array.from(selectActividad.options).forEach(option => {
+                option.disabled = false;
+            });
+
+            // Deshabilitar siembra (id 2) si no permite siembra
+            if (!permiteSiembra) {
+                const siembraOption = selectActividad.querySelector('option[data-id-tipo-actividad="2"]');
+                if (siembraOption) siembraOption.disabled = true;
+            }
+
+            // Deshabilitar cosecha (id 7) si no permite cosecha
+            if (!permiteCosechas) {
+                const cosechaOption = selectActividad.querySelector('option[data-id-tipo-actividad="7"]');
+                if (cosechaOption) cosechaOption.disabled = true;
+            }
+
+            // Si después de deshabilitar, la opción seleccionada está deshabilitada, limpiar selección
+            const selectedValueActividad = selectActividad.value;
+            if (selectedValueActividad) {
+                const selectedOptionActividad = selectActividad.options[selectActividad.selectedIndex];
+                if (selectedOptionActividad && selectedOptionActividad.disabled) {
+                    selectActividad.value = '';
+                    // Si estás usando Choices para este select también, actualizarlo
+                    if (selectActividad.choices) {
+                        selectActividad.choices.setChoiceByValue('');
+                    }
+                }
+            }
+
+            // Disparar evento change para el select de actividad
+            $(selectActividad).trigger('change');
+
+            // Habilitar el select de actividad
+            $('#tipoidActividad').prop('disabled', false);
+
         }
+
+    }
+
+    // Evento para abrir el modal
+    $('#btnAddActividad').on('click', function () {
+        $('#modalActividadRapida').modal('show');
     });
 
-    // Manejar el evento change
-    loteSelectElement.addEventListener('change', function () {
-        handleLoteChange();
-    }, false);
+    // Inicializar Select2 cuando el modal se muestra
+    $('#modalActividadRapida').on('shown.bs.modal', function () {
+        $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Crear Labor');
+        $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
+        inicializarSelectConIconos();
+        inicializarSelectLotes();
 
-    // También manejar eventos específicos de Choices
-    loteSelectElement.addEventListener('choice', function (event) {
-        // Este evento se dispara cuando se selecciona una opción
-        handleLoteChange();
-    }, false);
+        cargarTodosCatalogos();
 
-    loteChoicesInstance.enable()
+        $('#tipoidActividad').prop('disabled', true);
+        $('#IdLote').prop('disabled', false);
 
-    // Función para manejar el cambio
-    function handleLoteChange() {
+        $('#tipoidActividad').trigger('change.select2');
+    });
+
+    // MODIFICADA: Validación del formulario
+    form.on('submit', function (e) {
+        e.preventDefault();
+
+        // Validar campos requeridos base
+        var fechaVal = $('#fecha').val();
+        var lotesVal = loteSelect.val();
+
+        if (!fechaVal) {
+            $('#fecha').addClass('is-invalid');
+            e.stopPropagation();
+            return;
+        } else {
+            $('#fecha').removeClass('is-invalid');
+        }
+
+        if (!lotesVal || lotesVal.length === 0) {
+            loteSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            mostrarMensaje('Debe seleccionar al menos un lote', 'error');
+            e.stopPropagation();
+            return;
+        } else {
+            loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        }
+
+        // Validar campos específicos según tipo de actividad
+        var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
+        if (!validarCamposEspecificos(tipoActividadNombre)) {
+            return;
+        }
+
+        guardarActividad();
+    });
+
+    // FUNCIÓN: Validar campos específicos
+    function validarCamposEspecificos(tipoActividadNombre) {
+        var isValid = true;
+        var errorMessage = '';
+
+        switch (tipoActividadNombre) {
+            case 'Siembra':
+                if (!$('#idCultivo').val()) {
+                    errorMessage = 'Debe seleccionar un cultivo';
+                    isValid = false;
+                }
+                if (!$('#idVariedad').val()) {
+                    errorMessage = 'Debe seleccionar una variedad de cultivo';
+                    isValid = false;
+                }
+
+                var superficieMaxString = $('#superficieHa').attr('max');
+                var superficieValString = $('#superficieHa').val();
+
+                if (superficieMaxString && superficieValString) {
+
+                    var superficieMax = parseFloat(superficieMaxString);
+                    var superficieVal = parseFloat(superficieValString);
+
+                    if (superficieVal > superficieMax) {
+                        $('#superficieHa').addClass('is-invalid');
+                        mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
+                        e.stopPropagation();
+                        return;
+                    } else {
+                        $('#superficieHa').removeClass('is-invalid');
+                    }
+                }
+
+                break;
+
+            case 'Cosecha':
+                if (!$('#idCultivoCosecha').val()) {
+                    errorMessage = 'Debe seleccionar un cultivo';
+                    isValid = false;
+                }
+
+                var superficieMaxString = $('#superficieCosechadaHa').attr('max');
+                var superficieValString = $('#superficieCosechadaHa').val();
+
+                if (superficieMaxString && superficieValString) {
+
+                    var superficieMax = parseFloat(superficieMaxString);
+                    var superficieVal = parseFloat(superficieValString);
+
+                    if (superficieVal > superficieMax) {
+                        $('#superficieCosechadaHa').addClass('is-invalid');
+                        mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
+                        e.stopPropagation();
+                        return;
+                    } else {
+                        $('#superficieCosechadaHa').removeClass('is-invalid');
+                    }
+                }
+
+                break;
+
+            case 'Monitoreo':
+                if (!$('#idTipoMonitoreo').val()) {
+                    errorMessage = 'Debe seleccionar un tipo de monitoreo';
+                    isValid = false;
+                }
+                break;
+        }
+        if (!isValid)
+            mostrarMensaje(errorMessage);
+
+        return isValid;
+    }
+
+    $('#modalActividadRapida').on('show.bs.modal', function () {
+        $('#tipoidActividad').val('').trigger('change');
         camposEspecificosContainer.empty();
 
-        // Obtener la opción seleccionada
-        const selectedValue = loteChoicesInstance.getValue(true);
-        const selectElement = document.getElementById('IdLote');
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
+    });
+    // Resetear formulario cuando se cierra el modal
+    $('#modalActividadRapida').on('hidden.bs.modal', function () {
+        $('#actividadId').val(null)
 
-        // Si no hay selección, salir
-        if (!selectedOption) return;
+        form[0].reset();
+        cantidadInput.prop('disabled', true);
+        unidadMedidaText.text('-').addClass('text-muted');
+        camposEspecificosContainer.empty();
 
-        // Obtener datos de la opción seleccionada
-        const permiteCosechasString = selectedOption.getAttribute('data-permite-cosechas');
-        const permiteSiembraString = selectedOption.getAttribute('data-permite-siembra');
-
-        const permiteCosechas = permiteCosechasString === "True";
-        const permiteSiembra = permiteSiembraString === "True";
-
-        const siembraACosechar = selectedOption.getAttribute('data-siembra-a-cosechar');
-        const superficieMaxima = parseFloat(selectedOption.getAttribute('data-superficie-sembrada'));
-
-        // Actualizar info de cosecha
-        if (permiteCosechas) {
-            $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
-        } else {
-            $('#info-cosecha').text("");
+        // Destruir todos los Select2
+        if (tipoActividadSelect.hasClass('select2-hidden-accessible')) {
+            tipoActividadSelect.select2('destroy');
+        }
+        if (loteSelect.hasClass('select2-hidden-accessible')) {
+            loteSelect.select2('destroy');
         }
 
-        // Configurar superficie según tipo
-        if (permiteCosechas) {
-            const inputSuperficie = $('#superficieCosechadaHa');
+        // Restablecer fecha actual
+        $('#fecha').val(new Date().toISOString().slice(0, 10));
+    });
 
-            inputSuperficie.attr('max', superficieMaxima);
-            inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
-            inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
+    // MODIFICADA: Función guardar actividad
+    function guardarActividad() {
+        var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
+        //var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
 
-            window.idCultivoSembrado = parseInt(selectedOption.getAttribute('data-id-cultivo'));
+        var idTipoActividadNombre = tipoActividadSelect.find('option:selected').data('id-tipo-actividad');
+        var dataEspecifica = obtenerDatosEspecificos(idTipoActividadNombre);
 
-        } else if (permiteSiembra) {
-            const superficieMaximaSembrar = parseFloat(selectedOption.getAttribute('data-superficie-para-sembrar'));
-            const inputSuperficieMaxima = $('#superficieHa');
+        var actividadId = $('#actividadId').val();
+        var esEdicion = actividadId && actividadId > 0;
 
-            inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
-            inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieMaximaSembrar} ha`);
-            inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieMaximaSembrar} ha`);
-        }
+        const loteId = parseInt(loteSelect.val());
+        const loteArray = [loteId];
 
-        // HABILITAR/DESHABILITAR OPCIONES DEL SELECT DE ACTIVIDAD
-        const selectActividad = document.getElementById('tipoidActividad');
+        var data = {
+            fecha: $('#fecha').val(),
+            //lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
+            //    return parseInt(id);
+            //}) : [],
+            lotesIds: loteArray,
+            tipoidActividad: idTipoActividadNombre,
+            observacion: $('#observacion').val(),
+            tipoActividad: tipoActividadNombre,
+            datosEspecificos: dataEspecifica,
+            idLabor: esEdicion ? parseInt(actividadId) : null,
+            idLote: esEdicion ? parseInt($('#IdLote').val()[0]) : null
+        };
 
-        // Primero habilitar todas las opciones
-        Array.from(selectActividad.options).forEach(option => {
-            option.disabled = false;
-        });
+        // Mostrar loading en el botón
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+        var url = esEdicion ? '/Actividad/EditarLabor' : '/Actividad/CrearLabor';
+        var mensajeExito = esEdicion ? 'Actividad actualizada correctamente' : 'Actividad creada correctamente';
 
-        // Deshabilitar siembra (id 2) si no permite siembra
-        if (!permiteSiembra) {
-            const siembraOption = selectActividad.querySelector('option[data-id-tipo-actividad="2"]');
-            if (siembraOption) siembraOption.disabled = true;
-        }
+        // Enviar al servidor
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (result) {
+                if (result.success) {
+                    $('#modalActividadRapida').modal('hide');
+                    mostrarExito(mensajeExito);
 
-        // Deshabilitar cosecha (id 7) si no permite cosecha
-        if (!permiteCosechas) {
-            const cosechaOption = selectActividad.querySelector('option[data-id-tipo-actividad="7"]');
-            if (cosechaOption) cosechaOption.disabled = true;
-        }
-
-        // Si después de deshabilitar, la opción seleccionada está deshabilitada, limpiar selección
-        const selectedValueActividad = selectActividad.value;
-        if (selectedValueActividad) {
-            const selectedOptionActividad = selectActividad.options[selectActividad.selectedIndex];
-            if (selectedOptionActividad && selectedOptionActividad.disabled) {
-                selectActividad.value = '';
-                // Si estás usando Choices para este select también, actualizarlo
-                if (selectActividad.choices) {
-                    selectActividad.choices.setChoiceByValue('');
-                }
-            }
-        }
-
-        // Disparar evento change para el select de actividad
-        $(selectActividad).trigger('change');
-
-        // Habilitar el select de actividad
-        selectActividad.disabled = false;
-    }
-
-}
-
-// Evento para abrir el modal
-$('#btnAddActividad').on('click', function () {
-    $('#modalActividadRapida').modal('show');
-});
-
-// Inicializar Select2 cuando el modal se muestra
-$('#modalActividadRapida').on('shown.bs.modal', function () {
-    $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Crear Labor');
-    $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
-    inicializarSelectConIconos();
-    inicializarSelectLotes();
-
-    cargarTodosCatalogos();
-
-    $('#tipoidActividad').prop('disabled', false);
-    $('#IdLote').prop('disabled', false);
-
-    $('#tipoidActividad').trigger('change.select2');
-});
-
-// MODIFICADA: Validación del formulario
-form.on('submit', function (e) {
-    e.preventDefault();
-
-    // Validar campos requeridos base
-    var fechaVal = $('#fecha').val();
-    var lotesVal = loteSelect.val();
-
-    if (!fechaVal) {
-        $('#fecha').addClass('is-invalid');
-        e.stopPropagation();
-        return;
-    } else {
-        $('#fecha').removeClass('is-invalid');
-    }
-
-    if (!lotesVal || lotesVal.length === 0) {
-        loteSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
-        mostrarMensaje('Debe seleccionar al menos un lote', 'error');
-        e.stopPropagation();
-        return;
-    } else {
-        loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-    }
-
-    // Validar campos específicos según tipo de actividad
-    var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
-    if (!validarCamposEspecificos(tipoActividadNombre)) {
-        return;
-    }
-
-    guardarActividad();
-});
-
-// FUNCIÓN: Validar campos específicos
-function validarCamposEspecificos(tipoActividadNombre) {
-    var isValid = true;
-    var errorMessage = '';
-
-    switch (tipoActividadNombre) {
-        case 'Siembra':
-            if (!$('#idCultivo').val()) {
-                errorMessage = 'Debe seleccionar un cultivo';
-                isValid = false;
-            }
-            if (!$('#idVariedad').val()) {
-                errorMessage = 'Debe seleccionar una variedad de cultivo';
-                isValid = false;
-            }
-
-            var superficieMaxString = $('#superficieHa').attr('max');
-            var superficieValString = $('#superficieHa').val();
-
-            if (superficieMaxString && superficieValString) {
-
-                var superficieMax = parseFloat(superficieMaxString);
-                var superficieVal = parseFloat(superficieValString);
-
-                if (superficieVal > superficieMax) {
-                    $('#superficieHa').addClass('is-invalid');
-                    mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
-                    e.stopPropagation();
-                    return;
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 500);
                 } else {
-                    $('#superficieHa').removeClass('is-invalid');
+                    mostrarError(result.message || (esEdicion ? 'Error al actualizar actividad' : 'Error al crear actividad'));
+                    submitBtn.html(originalText).prop('disabled', false);
                 }
-            }
-
-            break;
-
-        case 'Cosecha':
-            if (!$('#idCultivoCosecha').val()) {
-                errorMessage = 'Debe seleccionar un cultivo';
-                isValid = false;
-            }
-
-            var superficieMaxString = $('#superficieCosechadaHa').attr('max');
-            var superficieValString = $('#superficieCosechadaHa').val();
-
-            if (superficieMaxString && superficieValString) {
-
-                var superficieMax = parseFloat(superficieMaxString);
-                var superficieVal = parseFloat(superficieValString);
-
-                if (superficieVal > superficieMax) {
-                    $('#superficieCosechadaHa').addClass('is-invalid');
-                    mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
-                    e.stopPropagation();
-                    return;
-                } else {
-                    $('#superficieCosechadaHa').removeClass('is-invalid');
-                }
-            }
-
-            break;
-
-        case 'Monitoreo':
-            if (!$('#idTipoMonitoreo').val()) {
-                errorMessage = 'Debe seleccionar un tipo de monitoreo';
-                isValid = false;
-            }
-            break;
-    }
-    if (!isValid)
-        mostrarMensaje(errorMessage);
-
-    return isValid;
-}
-
-$('#modalActividadRapida').on('show.bs.modal', function () {
-    $('#tipoidActividad').val('').trigger('change');
-    camposEspecificosContainer.empty();
-
-});
-// Resetear formulario cuando se cierra el modal
-$('#modalActividadRapida').on('hidden.bs.modal', function () {
-    $('#actividadId').val(null)
-
-    form[0].reset();
-    cantidadInput.prop('disabled', true);
-    unidadMedidaText.text('-').addClass('text-muted');
-    camposEspecificosContainer.empty();
-
-    // Destruir todos los Select2
-    if (tipoActividadSelect.hasClass('select2-hidden-accessible')) {
-        tipoActividadSelect.select2('destroy');
-    }
-    if (loteSelect.hasClass('select2-hidden-accessible')) {
-        loteSelect.select2('destroy');
-    }
-
-    // Restablecer fecha actual
-    $('#fecha').val(new Date().toISOString().slice(0, 10));
-});
-
-// MODIFICADA: Función guardar actividad
-function guardarActividad() {
-    var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
-    //var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
-
-    var idTipoActividadNombre = tipoActividadSelect.find('option:selected').data('id-tipo-actividad');
-    var dataEspecifica = obtenerDatosEspecificos(idTipoActividadNombre);
-
-    var actividadId = $('#actividadId').val();
-    var esEdicion = actividadId && actividadId > 0;
-
-    const loteId = parseInt(loteSelect.val());
-    const loteArray = [loteId];
-
-    var data = {
-        fecha: $('#fecha').val(),
-        //lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
-        //    return parseInt(id);
-        //}) : [],
-        lotesIds: loteArray,
-        tipoidActividad: idTipoActividadNombre,
-        observacion: $('#observacion').val(),
-        tipoActividad: tipoActividadNombre,
-        datosEspecificos: dataEspecifica,
-        idLabor: esEdicion ? parseInt(actividadId) : null,
-        idLote: esEdicion ? parseInt($('#IdLote').val()[0]) : null
-    };
-
-    // Mostrar loading en el botón
-    var submitBtn = form.find('button[type="submit"]');
-    var originalText = submitBtn.html();
-    submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
-    var url = esEdicion ? '/Actividad/EditarLabor' : '/Actividad/CrearLabor';
-    var mensajeExito = esEdicion ? 'Actividad actualizada correctamente' : 'Actividad creada correctamente';
-
-    // Enviar al servidor
-    $.ajax({
-        url: url,
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        success: function (result) {
-            if (result.success) {
-                $('#modalActividadRapida').modal('hide');
-                mostrarExito(mensajeExito);
-
-                setTimeout(function () {
-                    window.location.reload();
-                }, 500);
-            } else {
-                mostrarError(result.message || (esEdicion ? 'Error al actualizar actividad' : 'Error al crear actividad'));
+            },
+            error: function (error) {
+                mostrarMensaje('Error al conectar con el servidor', 'error');
                 submitBtn.html(originalText).prop('disabled', false);
             }
-        },
-        error: function (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'error');
-            submitBtn.html(originalText).prop('disabled', false);
-        }
-    });
-}
-
-// FUNCIÓN: Obtener datos específicos según tipo de actividad
-function obtenerDatosEspecificos(tipoActividadNombre) {
-    var datos = {};
-
-    switch (tipoActividadNombre) {
-        //case 'Siembra':
-        case 2:
-            datos = {
-                SuperficieHa: parseFloat($('#superficieHa').val()) || 0,
-                DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
-                Costo: parseFloat($('#costoSiembra').val()) || 0,
-                IdCultivo: parseInt($('#idCultivo').val()),
-                IdVariedad: $('#idVariedad').val() ? parseInt($('#idVariedad').val()) : null,
-                IdMetodoSiembra: parseInt($('#idMetodoSiembra').val()),
-                EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
-            };
-            break;
-
-        //case 'Riego':
-        case 5:
-            datos = {
-                HorasRiego: parseFloat($('#horasRiego').val()) || 0,
-                VolumenAguaM3: parseFloat($('#volumenAguaM3').val()) || 0,
-                IdMetodoRiego: parseInt($('#idMetodoRiego').val()),
-                IdFuenteAgua: $('#idFuenteAgua').val() ? parseInt($('#idFuenteAgua').val()) : null,
-                Costo: parseFloat($('#costoRiegoTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoRiego').is(':checked')
-            };
-            break;
-
-        //case 'Fertilizado':
-        case 4:
-            datos = {
-                CantidadKgHa: parseFloat($('#cantidadKgHa').val()) || 0,
-                DosisKgHa: parseFloat($('#dosisKgHa').val()) || 0,
-                Costo: parseFloat($('#costoFertilizado').val()) || 0,
-                IdNutriente: parseInt($('#idNutriente').val()),
-                IdTipoFertilizante: parseInt($('#idTipoFertilizante').val()),
-                IdMetodoAplicacion: parseInt($('#idMetodoAplicacion').val()),
-                EsDolar: $('#switchMonedaCostoFertilizacion').is(':checked')
-            };
-            break;
-
-        //case 'Pulverizacion':
-        case 3:
-            datos = {
-                VolumenLitrosHa: parseFloat($('#volumenLitrosHa').val()) || 0,
-                Dosis: parseFloat($('#dosisPulverizacion').val()) || 0,
-                CondicionesClimaticas: $('#condicionesClimaticas').val() || '',
-                IdProductoAgroquimico: parseInt($('#idProductoAgroquimico').val()),
-                Costo: parseFloat($('#costoPulverizacionTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoPulverizacion').is(':checked')
-            };
-            break;
-
-        //case 'Monitoreo':
-        case 6:
-            datos = {
-                IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
-                IdMonitoreo: parseInt($('#idMonitoreo').val()),
-                IdEstadoFenologico: $('#idEstadoFenologico').val() ? parseInt($('#idEstadoFenologico').val()) : null,
-                Costo: parseFloat($('#costoMonitoreoTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoMonitoreo').is(':checked')
-            };
-            break;
-
-        //case 'AnalisisSuelo':
-        case 1:
-            datos = {
-                ProfundidadCm: $('#profundidadCm').val() ? parseFloat($('#profundidadCm').val()) : null,
-                PH: $('#ph').val() ? parseFloat($('#ph').val()) : null,
-                MateriaOrganica: $('#materiaOrganica').val() ? parseFloat($('#materiaOrganica').val()) : null,
-                Nitrogeno: $('#nitrogeno').val() ? parseFloat($('#nitrogeno').val()) : null,
-                Fosforo: $('#fosforo').val() ? parseFloat($('#fosforo').val()) : null,
-                Potasio: $('#potasio').val() ? parseFloat($('#potasio').val()) : null,
-                ConductividadElectrica: $('#conductividadElectrica').val() ? parseFloat($('#conductividadElectrica').val()) : null,
-                CIC: $('#cic').val() ? parseFloat($('#cic').val()) : null,
-                Textura: $('#textura').val() || '',
-                IdLaboratorio: $('#idLaboratorio').val() ? parseInt($('#idLaboratorio').val()) : null,
-                Costo: parseFloat($('#costoAnalisisSueloTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoAnalisisSuelo').is(':checked')
-            };
-            break;
-
-        //case 'Cosecha':
-        case 7:
-            datos = {
-                RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
-                HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
-                SuperficieCosechadaHa: parseFloat($('#superficieCosechadaHa').val()) || 0,
-                IdCultivo: parseInt($('#idCultivoCosecha').val()),
-                Costo: parseFloat($('#costoCosechaTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoCosecha').is(':checked')
-            };
-            break;
-
-        //case 'OtraLabor':
-        case 8:
-            datos = {
-                Costo: parseFloat($('#costoOtraLaborTotal').val()) || 0,
-                EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
-            };
-            break;
+        });
     }
 
-    return datos;
-}
+    // FUNCIÓN: Obtener datos específicos según tipo de actividad
+    function obtenerDatosEspecificos(tipoActividadNombre) {
+        var datos = {};
 
-function mostrarMensaje(mensaje, tipo) {
-    if (typeof toastr !== 'undefined') {
-        if (tipo === 'success') {
-            toastr.success(mensaje);
-        } else {
-            toastr.error(mensaje);
+        switch (tipoActividadNombre) {
+            //case 'Siembra':
+            case 2:
+                datos = {
+                    SuperficieHa: parseFloat($('#superficieHa').val()) || 0,
+                    DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
+                    Costo: parseFloat($('#costoSiembra').val()) || 0,
+                    IdCultivo: parseInt($('#idCultivo').val()),
+                    IdVariedad: $('#idVariedad').val() ? parseInt($('#idVariedad').val()) : null,
+                    IdMetodoSiembra: parseInt($('#idMetodoSiembra').val()),
+                    EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
+                };
+                break;
+
+            //case 'Riego':
+            case 5:
+                datos = {
+                    HorasRiego: parseFloat($('#horasRiego').val()) || 0,
+                    VolumenAguaM3: parseFloat($('#volumenAguaM3').val()) || 0,
+                    IdMetodoRiego: parseInt($('#idMetodoRiego').val()),
+                    IdFuenteAgua: $('#idFuenteAgua').val() ? parseInt($('#idFuenteAgua').val()) : null,
+                    Costo: parseFloat($('#costoRiegoTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoRiego').is(':checked')
+                };
+                break;
+
+            //case 'Fertilizado':
+            case 4:
+                datos = {
+                    CantidadKgHa: parseFloat($('#cantidadKgHa').val()) || 0,
+                    DosisKgHa: parseFloat($('#dosisKgHa').val()) || 0,
+                    Costo: parseFloat($('#costoFertilizado').val()) || 0,
+                    IdNutriente: parseInt($('#idNutriente').val()),
+                    IdTipoFertilizante: parseInt($('#idTipoFertilizante').val()),
+                    IdMetodoAplicacion: parseInt($('#idMetodoAplicacion').val()),
+                    EsDolar: $('#switchMonedaCostoFertilizacion').is(':checked')
+                };
+                break;
+
+            //case 'Pulverizacion':
+            case 3:
+                datos = {
+                    VolumenLitrosHa: parseFloat($('#volumenLitrosHa').val()) || 0,
+                    Dosis: parseFloat($('#dosisPulverizacion').val()) || 0,
+                    CondicionesClimaticas: $('#condicionesClimaticas').val() || '',
+                    IdProductoAgroquimico: parseInt($('#idProductoAgroquimico').val()),
+                    Costo: parseFloat($('#costoPulverizacionTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoPulverizacion').is(':checked')
+                };
+                break;
+
+            //case 'Monitoreo':
+            case 6:
+                datos = {
+                    IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
+                    IdMonitoreo: parseInt($('#idMonitoreo').val()),
+                    IdEstadoFenologico: $('#idEstadoFenologico').val() ? parseInt($('#idEstadoFenologico').val()) : null,
+                    Costo: parseFloat($('#costoMonitoreoTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoMonitoreo').is(':checked')
+                };
+                break;
+
+            //case 'AnalisisSuelo':
+            case 1:
+                datos = {
+                    ProfundidadCm: $('#profundidadCm').val() ? parseFloat($('#profundidadCm').val()) : null,
+                    PH: $('#ph').val() ? parseFloat($('#ph').val()) : null,
+                    MateriaOrganica: $('#materiaOrganica').val() ? parseFloat($('#materiaOrganica').val()) : null,
+                    Nitrogeno: $('#nitrogeno').val() ? parseFloat($('#nitrogeno').val()) : null,
+                    Fosforo: $('#fosforo').val() ? parseFloat($('#fosforo').val()) : null,
+                    Potasio: $('#potasio').val() ? parseFloat($('#potasio').val()) : null,
+                    ConductividadElectrica: $('#conductividadElectrica').val() ? parseFloat($('#conductividadElectrica').val()) : null,
+                    CIC: $('#cic').val() ? parseFloat($('#cic').val()) : null,
+                    Textura: $('#textura').val() || '',
+                    IdLaboratorio: $('#idLaboratorio').val() ? parseInt($('#idLaboratorio').val()) : null,
+                    Costo: parseFloat($('#costoAnalisisSueloTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoAnalisisSuelo').is(':checked')
+                };
+                break;
+
+            //case 'Cosecha':
+            case 7:
+                datos = {
+                    RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
+                    HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
+                    SuperficieCosechadaHa: parseFloat($('#superficieCosechadaHa').val()) || 0,
+                    IdCultivo: parseInt($('#idCultivoCosecha').val()),
+                    Costo: parseFloat($('#costoCosechaTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoCosecha').is(':checked')
+                };
+                break;
+
+            //case 'OtraLabor':
+            case 8:
+                datos = {
+                    Costo: parseFloat($('#costoOtraLaborTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
+                };
+                break;
         }
-    } else {
-        alert(mensaje);
+
+        return datos;
     }
-}
 
-
-
-// CÓDIGO EXISTENTE PARA GASTOS
-
-$('#btnGasto').on('click', function () {
-    $('#modalGasto').modal('show');
-    $('#modalGastoLabel').html('<i class="ph ph-receipt me-2"></i>Crear Gasto');
-    $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar');
-
-    cargarSwitchMoneda("switchMonedaCostoGasto", "labelMonedaCostoGasto");
-});
-
-$('#formGasto').on('submit', function (e) {
-    e.preventDefault();
-
-    var gastoId = $('#gastoId').val();
-    var esEdicion = gastoId && gastoId > 0;
-
-    var data = {
-        id: esEdicion ? parseInt(gastoId) : 0,
-        tipoGasto: parseInt($('#tipoGasto').val()),
-        fecha: $('#fechaGasto').val(),
-        observacion: $('#observacionesGasto').val(),
-        costo: parseFloat($('#costoGasto').val()) || 0,
-        esDolar: $('#switchMonedaCostoGasto').is(':checked')
-    };
-
-    $('#gastoId').val(null);
-
-    var submitBtn = $('#formGasto').find('button[type="submit"]');
-    var originalText = submitBtn.html();
-
-    submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
-    var url = esEdicion ? '/Gasto/Update' : '/Gasto/Create';
-    var mensajeExito = esEdicion ? 'Gasto actualizado correctamente' : 'Gasto creado correctamente';
-
-    $.ajax({
-        url: url,
-        type: esEdicion ? 'PUT' : 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        success: function (result) {
-            if (result.success) {
-                mostrarMensaje(mensajeExito, 'success');
-                $('#modalGasto').modal('hide');
-                setTimeout(function () {
-                    window.location.reload();
-                }, 500);
-
+    function mostrarMensaje(mensaje, tipo) {
+        if (typeof toastr !== 'undefined') {
+            if (tipo === 'success') {
+                toastr.success(mensaje);
             } else {
-                mostrarMensaje(result.message || 'Error al guardar gasto', 'error');
+                toastr.error(mensaje);
             }
-        },
-        error: function (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'error');
-        },
-        complete: function () {
-            submitBtn.html(originalText).prop('disabled', false);
+        } else {
+            alert(mensaje);
         }
-    });
-});
+    }
 
-// Resetear el modal cuando se cierre
-$('#modalGasto').on('hidden.bs.modal', function () {
-    $('#formGasto')[0].reset();
-});
+
+
+    // CÓDIGO EXISTENTE PARA GASTOS
+
+    $('#btnGasto').on('click', function () {
+        $('#modalGasto').modal('show');
+        $('#modalGastoLabel').html('<i class="ph ph-receipt me-2"></i>Crear Gasto');
+        $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar');
+
+        cargarSwitchMoneda("switchMonedaCostoGasto", "labelMonedaCostoGasto");
+    });
+
+    $('#formGasto').on('submit', function (e) {
+        e.preventDefault();
+
+        var gastoId = $('#gastoId').val();
+        var esEdicion = gastoId && gastoId > 0;
+
+        var data = {
+            id: esEdicion ? parseInt(gastoId) : 0,
+            tipoGasto: parseInt($('#tipoGasto').val()),
+            fecha: $('#fechaGasto').val(),
+            observacion: $('#observacionesGasto').val(),
+            costo: parseFloat($('#costoGasto').val()) || 0,
+            esDolar: $('#switchMonedaCostoGasto').is(':checked')
+        };
+
+        $('#gastoId').val(null);
+
+        var submitBtn = $('#formGasto').find('button[type="submit"]');
+        var originalText = submitBtn.html();
+
+        submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
+        var url = esEdicion ? '/Gasto/Update' : '/Gasto/Create';
+        var mensajeExito = esEdicion ? 'Gasto actualizado correctamente' : 'Gasto creado correctamente';
+
+        $.ajax({
+            url: url,
+            type: esEdicion ? 'PUT' : 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (result) {
+                if (result.success) {
+                    mostrarMensaje(mensajeExito, 'success');
+                    $('#modalGasto').modal('hide');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 500);
+
+                } else {
+                    mostrarMensaje(result.message || 'Error al guardar gasto', 'error');
+                }
+            },
+            error: function (error) {
+                mostrarMensaje('Error al conectar con el servidor', 'error');
+            },
+            complete: function () {
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+
+    // Resetear el modal cuando se cierre
+    $('#modalGasto').on('hidden.bs.modal', function () {
+        $('#formGasto')[0].reset();
+    });
 });
 
 

@@ -1,0 +1,82 @@
+﻿
+@{
+    ViewData["Title"] = "Reporte de Campos";
+}
+
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph ph-chart-bar text-primary me-2"></i> Reporte de Campos
+            </h1>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-end">
+                <div class="d-flex align-items-end">
+                    <div class="me-3">
+                        <label for="selectCampos" class="form-label">Campo</label>
+                        <select class="form-select" id="selectCampos" name="idCampo">
+                            <!-- Aquí se cargarán los lotes/campos -->
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header border-bottom-0 bg-transparent p-0">
+            <ul class="nav nav-tabs nav-tabs-custom" id="reporteTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
+                            data-bs-target="#general-content" type="button" role="tab"
+                            aria-controls="general" aria-selected="true">
+                        <i class="ph ph-chart-pie me-2"></i> General
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="historico-tab" data-bs-toggle="tab"
+                            data-bs-target="#historico-content" type="button" role="tab"
+                            aria-controls="historico" aria-selected="false">
+                        <i class="ph ph-clock-counter-clockwise me-2"></i> Histórico
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="reporteTabsContent">
+                <!-- Contenido General -->
+                <div class="tab-pane fade show active" id="general-content"
+                     role="tabpanel" aria-labelledby="general-tab">
+                    <div class="text-center py-5">
+                        <i class="ph ph-chart-pie display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Contenido del reporte general</h5>
+                        <p class="text-muted">Aquí irá la información general del campo seleccionado.</p>
+                    </div>
+                </div>
+
+                <!-- Contenido Histórico -->
+                <div class="tab-pane fade" id="historico-content"
+                     role="tabpanel" aria-labelledby="historico-tab">
+                    <div class="text-center py-5">
+                        <i class="ph ph-clock-counter-clockwise display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Contenido del histórico</h5>
+                        <p class="text-muted">Aquí irá el histórico de actividades del campo seleccionado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="~/js/views/reporteCampos.js" asp-append-version="true"></script>
+}

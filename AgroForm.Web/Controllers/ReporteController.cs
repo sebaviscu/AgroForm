@@ -1,26 +1,26 @@
 ﻿using AgroForm.Business.Contracts;
-using AgroForm.Model;
-using AgroForm.Web.Models;
+using AgroForm.Business.Services;
 using AgroForm.Web.Utilities;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using static AgroForm.Model.EnumClass;
 
-[ApiController]
-[Route("Reportes")]
 [Authorize(AuthenticationSchemes = "AgroFormAuth")]
-
-public class ReportesController : ControllerBase
+public class ReporteController : Controller
 {
     private readonly ICierreCampaniaService _cierreCampaniaService;
-    private readonly IPdfService _pdfService;
+    private readonly ICampoService _campoService;
 
-    public ReportesController(ICierreCampaniaService cierreCampaniaService, IPdfService pdfService)
+    public ReporteController(ICierreCampaniaService cierreCampaniaService, ICampoService campoService)
     {
         _cierreCampaniaService = cierreCampaniaService;
-        _pdfService = pdfService;
+        _campoService = campoService;
+    }
+
+    public async Task<IActionResult> Campo()
+    {
+        var campos = await _campoService.GetAllAsync();
+
+        return View();
     }
 
     [HttpGet("CierreCampania/{idCamapnia}")]
@@ -62,17 +62,3 @@ public class ReportesController : ControllerBase
 
     }
 }
-
-//// Para descargar
-// fetch(`/api/reportes/cierre-campania/${idCampania}/pdf`)
-//     .then(response => response.blob())
-//     .then(blob => {
-//         const url = window.URL.createObjectURL(blob);
-//         const a = document.createElement('a');
-//         a.href = url;
-//         a.download = `reporte_cierre_${idCampania}.pdf`;
-//         a.click();
-//     });
-
-// // Para previsualizar
-// window.open(`/api/reportes/cierre-campania/${idCampania}/preview`, '_blank');
