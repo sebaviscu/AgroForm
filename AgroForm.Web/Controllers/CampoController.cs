@@ -3,7 +3,7 @@ using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
@@ -15,8 +15,8 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IActividadService _actividadService;
 
-        public CampoController(ILogger<CampoController> logger, IMapper mapper, ICampoService service, IActividadService actividadService)
-            : base(logger, mapper, service)
+        public CampoController(ILogger<CampoController> logger, ICampoService service, IActividadService actividadService)
+            : base(logger, service)
         {
             _actividadService = actividadService;
         }

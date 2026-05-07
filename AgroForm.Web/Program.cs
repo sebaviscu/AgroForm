@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Mapster;
 
 public class Program
 {
@@ -97,7 +98,9 @@ public class Program
             });
 
             // Servicios de aplicación
-            builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+            // Configuración de Mapster
+            builder.Services.AddMapster();
+            MapsterConfig.Configure();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddApplicationServices();

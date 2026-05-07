@@ -3,7 +3,7 @@ using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -13,16 +13,13 @@ namespace AgroForm.Web.Components
     {
         private readonly ITipoActividadService _tipoActividadService;
         private readonly ILoteService _loteService;
-        private readonly IMapper _mapper;
 
         public ActividadRapidaViewComponent(
             ITipoActividadService tipoActividadService,
-            ILoteService loteService,
-            IMapper mapper)
+            ILoteService loteService)
         {
             _tipoActividadService = tipoActividadService;
             _loteService = loteService;
-            _mapper = mapper;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -33,7 +30,7 @@ namespace AgroForm.Web.Components
             var tiposActividad = await _tipoActividadService.GetAllByCamapniaAsync();
             var lotes = await _loteService.GetAllWithDetailsAsync();
 
-            var lotesVM = _mapper.Map<List<LoteVM>>(lotes.Data);
+            var lotesVM = lotes.Data.Adapt<List<LoteVM>>();
 
             var vm = new ActividadRapidaVM
             {

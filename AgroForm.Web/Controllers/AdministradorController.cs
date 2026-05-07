@@ -2,7 +2,7 @@
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
 
@@ -12,8 +12,8 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IUsuarioService _usuarioService;
 
-        public AdministradorController(ILogger<CampaniaController> logger, IMapper mapper, ILicenciaService service, IUsuarioService usuarioService)
-            : base(logger, mapper, service)
+        public AdministradorController(ILogger<CampaniaController> logger, ILicenciaService service, IUsuarioService usuarioService)
+            : base(logger, service)
         {
             _usuarioService = usuarioService;
         }

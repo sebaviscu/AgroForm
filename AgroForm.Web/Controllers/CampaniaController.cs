@@ -3,7 +3,7 @@ using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,8 +17,8 @@ namespace AgroForm.Web.Controllers
         private readonly ILoteService _loteService;
         private readonly ICierreCampaniaService _cierreCampaniaService;
 
-        public CampaniaController(ILogger<CampaniaController> logger, IMapper mapper, ICampaniaService service, ILoteService loteService, ICierreCampaniaService cierreCampaniaService)
-            : base(logger, mapper, service)
+        public CampaniaController(ILogger<CampaniaController> logger, ICampaniaService service, ILoteService loteService, ICierreCampaniaService cierreCampaniaService)
+            : base(logger, service)
         {
             _loteService = loteService;
             _cierreCampaniaService = cierreCampaniaService;

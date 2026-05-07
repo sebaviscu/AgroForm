@@ -5,7 +5,7 @@ using AgroForm.Model.Actividades;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,16 +19,14 @@ namespace AgroForm.Web.Controllers
     {
         private readonly ICampoService _campoService;
         protected readonly ILogger<ActividadController> _logger;
-        protected readonly IMapper _mapper;
         protected readonly IActividadService _service;
         private readonly IMonedaService _monedaService;
         private readonly ICampaniaService _campaniaService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IMapper mapper, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService)
+        public ActividadController(ILogger<ActividadController> logger, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService)
         {
             _logger = logger;
-            _mapper = mapper;
             _service = service;
             _campoService = campoService;
             _monedaService = monedaService;

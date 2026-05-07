@@ -2,7 +2,7 @@
 using AgroForm.Business.Externos.DolarApi;
 using AgroForm.Model;
 using AgroForm.Web.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,8 +13,8 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IDolarApiService _dolarApiService;
 
-        public MonedaController(ILogger<MonedaController> logger, IMapper mapper, IMonedaService service, IDolarApiService dolarApiService)
-            : base(logger, mapper, service)
+        public MonedaController(ILogger<MonedaController> logger, IMonedaService service, IDolarApiService dolarApiService)
+            : base(logger, service)
         {
             _dolarApiService = dolarApiService;
         }

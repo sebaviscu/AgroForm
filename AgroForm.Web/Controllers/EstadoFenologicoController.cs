@@ -2,7 +2,7 @@
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,8 +11,8 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class EstadoFenologicoController : BaseController<EstadoFenologico, EstadoFenologicoVM, IEstadoFenologicoService>
     {
-        public EstadoFenologicoController(ILogger<EstadoFenologicoController> logger, IMapper mapper, IEstadoFenologicoService service)
-            : base(logger, mapper, service)
+        public EstadoFenologicoController(ILogger<EstadoFenologicoController> logger, IEstadoFenologicoService service)
+            : base(logger, service)
         {
         }
 

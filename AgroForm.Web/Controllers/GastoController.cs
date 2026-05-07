@@ -3,7 +3,7 @@ using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
 
@@ -14,8 +14,8 @@ namespace AgroForm.Web.Controllers
         private readonly IMonedaService _monedaService;
         private readonly IActividadService _actividadService;
 
-        public GastoController(ILogger<GastoController> logger, IMapper mapper, IGastoService service, IMonedaService monedaService, IActividadService actividadService)
-            : base(logger, mapper, service)
+        public GastoController(ILogger<GastoController> logger, IGastoService service, IMonedaService monedaService, IActividadService actividadService)
+            : base(logger, service)
         {
             _monedaService = monedaService;
             _actividadService = actividadService;
@@ -72,7 +72,7 @@ namespace AgroForm.Web.Controllers
                     return BadRequest(gResponse);
                 }
 
-                var gastoDto = _mapper.Map<List<GastoDto>>(acividadesResult.Data);
+                var gastoDto = acividadesResult.Data.Adapt<List<GastoDto>>();
 
                 var gastosResult = await _service.GetAllByCamapniaAsync();
                 if (!gastosResult.Success)
@@ -82,7 +82,7 @@ namespace AgroForm.Web.Controllers
                     return BadRequest(gResponse);
                 }
 
-                var gastos = _mapper.Map<List<GastoDto>>(gastosResult.Data);
+                var gastos = gastosResult.Data.Adapt<List<GastoDto>>();
 
                 gastoDto.AddRange(gastos);
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Authorize(AuthenticationSchemes = "AgroFormAuth")]
+[Route("[controller]")]
 public class ReporteController : Controller
 {
     private readonly ICierreCampaniaService _cierreCampaniaService;
@@ -23,14 +24,14 @@ public class ReporteController : Controller
         return View();
     }
 
-    [HttpGet("CierreCampania/{idCamapnia}")]
-    public async Task<IActionResult> CierreCampania(int idCamapnia)
+    [HttpGet("CierreCampania/{idCampania}")]
+    public async Task<IActionResult> CierreCampania(int idCampania)
     {
         var gResponse = new GenericResponse<byte[]>();
 
         try
         {
-            var resultReporteCierreCampania = await _cierreCampaniaService.GetByIdCampania(idCamapnia);
+            var resultReporteCierreCampania = await _cierreCampaniaService.GetByIdCampania(idCampania);
 
             if(!resultReporteCierreCampania.Success)
             {

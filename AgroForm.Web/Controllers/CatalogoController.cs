@@ -1,7 +1,7 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
@@ -11,8 +11,8 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class CatalogoController : BaseController<Catalogo, CatalogoVM, ICatalogoService>
     {
-        public CatalogoController(ILogger<CatalogoController> logger, IMapper mapper, ICatalogoService service)
-        : base(logger, mapper, service)
+        public CatalogoController(ILogger<CatalogoController> logger, ICatalogoService service)
+        : base(logger, service)
         {
         }
 

@@ -2,7 +2,7 @@
 using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,8 +11,8 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class LoteController : BaseController<Lote, LoteVM, ILoteService>
     {
-        public LoteController(ILogger<LoteController> logger, IMapper mapper, ILoteService service)
-            : base(logger, mapper, service)
+        public LoteController(ILogger<LoteController> logger, ILoteService service)
+            : base(logger, service)
         {
         }
         public IActionResult Index()

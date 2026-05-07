@@ -3,7 +3,7 @@ using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
-using AutoMapper;
+using Mapster;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,8 +17,8 @@ namespace AgroForm.Web.Controllers
     {
         private readonly ILoteService _loteService;
         private readonly ICampoService _campoService;
-        public RegistroClimaController(ILogger<RegistroClimaController> logger, IMapper mapper, IRegistroClimaService service, ILoteService loteService, ICampoService campoService)
-            : base(logger, mapper, service)
+        public RegistroClimaController(ILogger<RegistroClimaController> logger, IRegistroClimaService service, ILoteService loteService, ICampoService campoService)
+            : base(logger, service)
         {
             _loteService = loteService;
             _campoService = campoService;

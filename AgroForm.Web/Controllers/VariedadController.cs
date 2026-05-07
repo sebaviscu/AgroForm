@@ -2,7 +2,7 @@
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static AgroForm.Model.EnumClass;
@@ -12,8 +12,8 @@ namespace AgroForm.Web.Controllers
     [Authorize(AuthenticationSchemes = "AgroFormAuth")]
     public class VariedadController : BaseController<Variedad, VariedadVM, IVariedadService>
     {
-        public VariedadController(ILogger<VariedadController> logger, IMapper mapper, IVariedadService service)
-        : base(logger, mapper, service)
+        public VariedadController(ILogger<VariedadController> logger, IVariedadService service)
+        : base(logger, service)
         {
         }
 

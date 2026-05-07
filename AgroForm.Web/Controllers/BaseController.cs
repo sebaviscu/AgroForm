@@ -3,7 +3,7 @@ using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using AgroForm.Web.Utilities;
-using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -20,21 +20,19 @@ namespace AgroForm.Web.Controllers
     where TService : IServiceBase<TEntity>
     {
         protected readonly ILogger _logger;
-        protected readonly IMapper _mapper;
         protected readonly TService _service;
         protected readonly GenericResponse<TDto> gResponse = new GenericResponse<TDto>();
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public BaseController(ILogger logger, IMapper mapper, TService service)
+        public BaseController(ILogger logger, TService service)
         {
             _logger = logger;
-            _mapper = mapper;
             _service = service;
         }
 
         protected TDest Map<TSource, TDest>(TSource source)
         {
-            return _mapper.Map<TDest>(source);
+            return source.Adapt<TDest>();
         }
 
         [HttpGet]
