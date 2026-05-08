@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Business.Services;
@@ -15,25 +15,23 @@ namespace AgroForm.Business.Services
 {
     public class LoteService : ServiceBase<Lote>, ILoteService
     {
-        public LoteService(IDbContextFactory<AppDbContext> contextFactory, ILogger<LoteService> logger, IHttpContextAccessor httpContextAccessor)
-           : base(contextFactory, logger, httpContextAccessor)
+        public LoteService(IUnitOfWork unitOfWork, ILogger<LoteService> logger, IUserContext userContext)
+           : base(unitOfWork, logger, userContext)
         {
         }
 
-        public async override Task<OperationResult<List<Lote>>> GetAllWithDetailsAsync()
+        public override async Task<OperationResult<List<Lote>>> GetAllWithDetailsAsync()
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                IQueryable<Lote> query = context.Lotes.AsNoTracking();
-
-                query = query.Where(e => e.IdLicencia == _userAuth.IdLicencia && e.IdCampania == _userAuth.IdCampaña);
-                var list = await query.Include(_ => _.Campo)
-                                        .Include(_ => _.Cosechas)
-                                        .Include(_ => _.Siembras)
-                                            .ThenInclude(_=>_.Cultivo)
-                                        .ToListAsync();
+                var list = await GetQuery()
+                    .Where(e => e.IdCampania == _userContext.IdCampaña)
+                    .Include(_ => _.Campo)
+                    .Include(_ => _.Cosechas)
+                    .Include(_ => _.Siembras)
+                        .ThenInclude(_ => _.Cultivo)
+                    .AsNoTracking()
+                    .ToListAsync();
 
                 return OperationResult<List<Lote>>.SuccessResult(list);
             }
@@ -46,14 +44,20 @@ namespace AgroForm.Business.Services
 
         public async Task<OperationResult<List<Lote>>> GetByIdCampoAsync(int idCampo)
         {
-            var query = GetQuery().Include(_=>_.Campo).AsQueryable().Where(_=>_.IdCampo == idCampo && _.IdCampania == _userAuth.IdCampaña);
+            var query = GetQuery()
+                .Include(_ => _.Campo)
+                .Where(_ => _.IdCampo == idCampo && _.IdCampania == _userContext.IdCampaña);
+            
             var list = await query.ToListAsync();
             return OperationResult<List<Lote>>.SuccessResult(list);
         }
 
         public async Task<OperationResult<List<Lote>>> GetByIds(List<int> idsLotes)
         {
-            var query = GetQuery().Include(_=>_.Campo).AsQueryable().Where(_=> idsLotes.Contains(_.Id) && _.IdCampania == _userAuth.IdCampaña);
+            var query = GetQuery()
+                .Include(_ => _.Campo)
+                .Where(_ => idsLotes.Contains(_.Id) && _.IdCampania == _userContext.IdCampaña);
+
             var list = await query.ToListAsync();
             return OperationResult<List<Lote>>.SuccessResult(list);
         }

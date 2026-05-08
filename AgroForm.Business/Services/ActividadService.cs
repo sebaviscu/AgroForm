@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Model;
@@ -13,18 +13,19 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
-    public class ActividadService : EntityBase, IActividadService
+    public class ActividadService : IActividadService
     {
-        private readonly IDbContextFactory<AppDbContext> _contextFactory;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ActividadService> _logger;
-        private UserAuth _userAuth;
+        private readonly IUserContext _userContext;
         private readonly IDictionary<TipoActividadEnum, object> _reposPorTipo;
         private readonly IDictionary<Type, object> _reposPorTipoClr;
 
-        public ActividadService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ActividadService> logger, IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork)
+        public ActividadService(ILogger<ActividadService> logger, IUserContext userContext, IUnitOfWork unitOfWork)
         {
-            _contextFactory = contextFactory;
+            _unitOfWork = unitOfWork;
             _logger = logger;
+            _userContext = userContext;
 
             var repoAnalisis = unitOfWork.Repository<AnalisisSuelo>();
             var repoCosecha = unitOfWork.Repository<Cosecha>();
@@ -58,20 +59,6 @@ namespace AgroForm.Business.Services
                 { typeof(Riego), repoRiego },
                 { typeof(Siembra), repoSiembra }
             };
-
-            var httpContext = httpContextAccessor.HttpContext;
-            if (httpContext != null && httpContext.User.Identity != null && httpContext.User.Identity.IsAuthenticated)
-            {
-                var claimUser = httpContext.User;
-                _userAuth = new UserAuth
-                {
-                    UserName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name),
-                    IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
-                    IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
-                    IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                    IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
-                };
-            }
         }
 
         public async Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? idCampania = null, int? idLote = null, List<int> idsLotes = null)
@@ -511,29 +498,17 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                switch (actividad)
+                var tipoClr = actividad.GetType();
+                if (!_reposPorTipoClr.TryGetValue(tipoClr, out var repoObj))
                 {
-                    case Siembra siembra:
-                        return await UpdateEntityAsync(context, siembra);
-                    case Riego riego:
-                        return await UpdateEntityAsync(context, riego);
-                    case Fertilizacion fertilizacion:
-                        return await UpdateEntityAsync(context, fertilizacion);
-                    case Pulverizacion pulverizacion:
-                        return await UpdateEntityAsync(context, pulverizacion);
-                    case Monitoreo monitoreo:
-                        return await UpdateEntityAsync(context, monitoreo);
-                    case Cosecha cosecha:
-                        return await UpdateEntityAsync(context, cosecha);
-                    case AnalisisSuelo analisisSuelo:
-                        return await UpdateEntityAsync(context, analisisSuelo);
-                    case OtraLabor otraLabor:
-                        return await UpdateEntityAsync(context, otraLabor);
-                    default:
-                        return OperationResult<ILabor>.Failure($"Tipo de actividad no soportado: {actividad.GetType().Name}", "UNSUPPORTED_TYPE");
+                    return OperationResult<ILabor>.Failure($"Tipo de actividad no soportado: {tipoClr.Name}", "UNSUPPORTED_TYPE");
                 }
+
+                dynamic repo = repoObj;
+                await repo.UpdateAsync((dynamic)actividad);
+                await _unitOfWork.SaveAsync();
+
+                return OperationResult<ILabor>.SuccessResult(actividad);
             }
             catch (Exception ex)
             {
@@ -542,53 +517,15 @@ namespace AgroForm.Business.Services
             }
         }
 
-        // Método genérico auxiliar
-        private async Task<OperationResult<ILabor>> UpdateEntityAsync<T>(AppDbContext context, T entity) where T : class, ILabor
-        {
-            var original = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == entity.Id);
-            if (original == null)
-                return OperationResult<ILabor>.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
-
-            if (entity is EntityBase entityBase)
-            {
-                entityBase.ModificationDate = TimeHelper.GetArgentinaTime();
-                entityBase.ModificationUser = _userAuth.UserName;
-            }
-
-            var registrationDate = original.RegistrationDate;
-            var registrationUser = original.RegistrationUser;
-
-            context.Entry(original).CurrentValues.SetValues(entity);
-
-            original.RegistrationUser = registrationUser;
-            original.RegistrationDate = registrationDate;
-
-            if (entity is ILabor labor)
-            {
-                if (original.Costo == labor.Costo)
-                {
-                    var entry = context.Entry(original);
-                    entry.Property(nameof(ILabor.CostoARS)).IsModified = false;
-                    entry.Property(nameof(ILabor.CostoUSD)).IsModified = false;
-                }
-            }
-
-            int result = await context.SaveChangesAsync();
-
-            if (result > 0)
-                return OperationResult<ILabor>.SuccessResult(entity);
-
-            return OperationResult<ILabor>.Failure("No se pudo actualizar el registro en la base de datos.", "SAVE_FAILED");
-        }
+        // El método UpdateEntityAsync ya no es necesario ya que UpdateActividadAsync usa los repositorios directamente.
 
         public async Task<OperationResult<List<Siembra>>> GetSiembrasAsync()
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var list = await context.Set<Siembra>()
-                    .Where(_ => _.IdLicencia == _userAuth.IdLicencia && _.IdCampania == _userAuth.IdCampaña)
+                var repo = _reposPorTipoClr[typeof(Siembra)] as IGenericRepository<Siembra>;
+                var list = await repo.Query()
+                    .Where(_ => _.IdCampania == _userContext.IdCampaña)
                     .Include(_ => _.Cultivo)
                     .ToListAsync();
 
@@ -596,10 +533,8 @@ namespace AgroForm.Business.Services
             }
             catch (Exception e)
             {
-                return OperationResult<List<Siembra>>.Failure(e.Message, "SAVE_FAILED");
+                return OperationResult<List<Siembra>>.Failure(e.Message, "DATABASE_ERROR");
             }
-
-
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Business.Services;
@@ -10,10 +10,9 @@ namespace AgroForm.Business.Services
 {
     public class EstadoFenologicoService : ServiceBase<EstadoFenologico>, IEstadoFenologicoService
     {
-        public EstadoFenologicoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<EstadoFenologicoService> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public EstadoFenologicoService(IUnitOfWork unitOfWork, ILogger<EstadoFenologicoService> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
-
         }
 
         public async Task<OperationResult<List<EstadoFenologico>>> GetFenologicosByCultivoAsync(int idCultivo)

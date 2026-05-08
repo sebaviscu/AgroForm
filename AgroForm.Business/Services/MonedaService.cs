@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Business.Externos.DolarApi;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
@@ -10,14 +10,14 @@ namespace AgroForm.Business.Services
 {
     public class MonedaService : ServiceBase<Moneda>, IMonedaService
     {
-        public MonedaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Moneda>> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public MonedaService(IUnitOfWork unitOfWork, ILogger<ServiceBase<Moneda>> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
         }
 
         public async Task<Moneda> ObtenerTipoCambioActualAsync()
         {
-            return await GetQuery().FirstAsync(m => m.Id == (int)_userAuth.Moneda);
+            return await GetQuery().FirstAsync(m => m.Id == (int)_userContext.User.Moneda);
         }
 
         public async Task<bool> ActualizarMonedasCotizacionAsync(List<DolarInfo> dolarInfos)

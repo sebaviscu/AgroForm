@@ -32,6 +32,19 @@ namespace AgroForm.Web.Utilities
                 .Map(dest => dest.Costo, src => src.Costo)
                 .Map(dest => dest.CostoARS, src => src.CostoARS)
                 .Map(dest => dest.CostoUSD, src => src.CostoUSD);
+
+            // Mapeo para Variedad incluyendo el cultivo relacionado
+            TypeAdapterConfig<Variedad, VariedadVM>.NewConfig()
+                .Map(dest => dest.Cultivo, src => src.Cultivo);
+
+            // Mapeo para Cultivo
+            TypeAdapterConfig<Cultivo, CultivoVM>.NewConfig()
+                .Map(dest => dest.Variedades, src => src.Variedades)
+                .Map(dest => dest.EstadosFenologicos, src => src.EstadosFenologicos);
+
+            // Mapeo para Licencia incluyendo PagoLicencias
+            TypeAdapterConfig<Licencia, LicenciaVM>.NewConfig()
+                .Map(dest => dest.PagoLicencias, src => src.PagoLicencias);
         }
 
         // Métodos de extensión para facilitar el uso

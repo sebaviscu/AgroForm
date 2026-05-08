@@ -1,22 +1,26 @@
-﻿using AgroForm.Model;
+using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace AgroForm.Data.DBContext
 {
     public partial class AppDbContext : DbContext
     {
         public readonly ILogger<AppDbContext> _logger;
+        private readonly IUserContext _userContext;
 
-        public AppDbContext(DbContextOptions<AppDbContext> options, ILogger<AppDbContext> logger)
+        public AppDbContext(DbContextOptions<AppDbContext> options, ILogger<AppDbContext> logger, IUserContext userContext)
             : base(options)
         {
             _logger = logger;
+            _userContext = userContext;
         }
 
         public DbSet<Licencia> Licencias { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<PagoLicencia> PagoLicencias { get; set; }
         public DbSet<Campo> Campos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
         public DbSet<Campania> Campanias { get; set; }
@@ -47,7 +51,26 @@ namespace AgroForm.Data.DBContext
             // ===============================
             // Configuraciones generales
             // ===============================
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            // Nota: Las configuraciones están definidas directamente en OnModelCreating
+            // ya que no se utilizan clases IEntityTypeConfiguration separadas
+
+            // ===============================
+            // Filtros Globales (Multi-tenancy)
+            // ===============================
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                // Filtro por licencia
+                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(entityType.ClrType))
+                {
+                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(CreateFilterExpression(entityType.ClrType));
+                }
+                
+                // Filtro por campaña (adicional al de licencia)
+                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(entityType.ClrType))
+                {
+                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(CreateCampaniaFilterExpression(entityType.ClrType));
+                }
+            }
 
 
             modelBuilder.Entity<Campo>(entity =>
@@ -572,6 +595,29 @@ namespace AgroForm.Data.DBContext
 
             });
 
+            modelBuilder.Entity<Moneda>(entity =>
+            {
+                entity.ToTable("Monedas");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Codigo).IsRequired().HasMaxLength(10);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.TipoCambioReferencia).HasColumnType("decimal(18,6)");
+            });
+
+            modelBuilder.Entity<PagoLicencia>(entity =>
+            {
+                entity.ToTable("PagoLicencias");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Precio).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Fecha).HasColumnType("datetime2");
+                entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne(p => p.Licencia)
+                    .WithMany(l => l.PagoLicencias)
+                    .HasForeignKey(p => p.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<ReporteCierreCampania>(entity =>
             {
                 entity.ToTable("ReporteCierreCampania");
@@ -599,6 +645,10 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.RendimientoPromedioHa).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.SuperficieTotalHa).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.ToneladasProducidas).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.CostoPorHaUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoPorToneladaUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.GastosTotalesArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.GastosTotalesUsd).HasColumnType("decimal(18,4)");
 
                 entity.HasOne(rc => rc.Campania)
                     .WithOne(c => c.ReporteCierreCampania)
@@ -635,6 +685,80 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Cascade);
 
             });
+        }
+
+        private LambdaExpression CreateFilterExpression(Type type)
+        {
+            var parameter = Expression.Parameter(type, "e");
+            var property = Expression.Property(parameter, "IdLicencia");
+            
+            // e.IdLicencia == _userContext.IdLicencia
+            var userIdLicencia = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IdLicencia));
+            var equalExpression = Expression.Equal(property, userIdLicencia);
+
+            // _userContext.IsSuperAdmin || e.IdLicencia == _userContext.IdLicencia
+            var isSuperAdmin = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IsSuperAdmin));
+            var combinedExpression = Expression.OrElse(isSuperAdmin, equalExpression);
+
+            return Expression.Lambda(combinedExpression, parameter);
+        }
+
+        private LambdaExpression CreateCampaniaFilterExpression(Type type)
+        {
+            var parameter = Expression.Parameter(type, "e");
+            var property = Expression.Property(parameter, "IdCampania");
+            
+            // Obtener el valor de IdCampaña del usuario
+            var userIdCampaniaProperty = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IdCampaña));
+
+            // _userContext.IdCampaña.HasValue
+            var hasValueExpression = Expression.Property(userIdCampaniaProperty, "HasValue");
+
+            // _userContext.IdCampaña.Value
+            var userIdCampaniaValue = Expression.Property(userIdCampaniaProperty, "Value");
+
+            // e.IdCampania == _userContext.IdCampaña.Value (soportando int/int?)
+            Expression equalExpression;
+            if (property.Type == typeof(int?))
+            {
+                // e.IdCampania == (int?)_userContext.IdCampaña.Value
+                var userValueAsNullable = Expression.Convert(userIdCampaniaValue, typeof(int?));
+                equalExpression = Expression.Equal(property, userValueAsNullable);
+            }
+            else
+            {
+                // e.IdCampania == _userContext.IdCampaña.Value
+                equalExpression = Expression.Equal(property, userIdCampaniaValue);
+            }
+
+            // _userContext.IdCampaña.HasValue && e.IdCampania == _userContext.IdCampaña.Value
+            var filteredExpression = Expression.AndAlso(hasValueExpression, equalExpression);
+
+            // _userContext.IsSuperAdmin || e.IdCampania == _userContext.IdCampaña
+            var isSuperAdmin = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IsSuperAdmin));
+            var combinedExpression = Expression.OrElse(isSuperAdmin, filteredExpression);
+
+            return Expression.Lambda(combinedExpression, parameter);
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (var entry in ChangeTracker.Entries<EntityBase>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.RegistrationDate = TimeHelper.GetArgentinaTime();
+                        entry.Entity.RegistrationUser = _userContext.UserName;
+                        break;
+                    case EntityState.Modified:
+                        entry.Entity.ModificationDate = TimeHelper.GetArgentinaTime();
+                        entry.Entity.ModificationUser = _userContext.UserName;
+                        break;
+                }
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

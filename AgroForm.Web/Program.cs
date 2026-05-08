@@ -1,11 +1,14 @@
-﻿using AgroForm.Data.DBContext;
+using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Web.Utilities;
+using AgroForm.Model;
+using AgroForm.Business.Contracts;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using System.Globalization;
 using System.Text.Json.Serialization;
@@ -77,6 +80,16 @@ public class Program
             builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
+            // Session (usada para simulación de licencia y otros estados)
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.Name = ".AgroForm.Session";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.IdleTimeout = TimeSpan.FromHours(3);
+            });
+
             builder.Services.AddCors(_ =>
             {
                 _.AddPolicy("NuevaPolitica", app =>
@@ -87,7 +100,7 @@ public class Program
                 });
             });
 
-            builder.Services.AddDbContextFactory<AppDbContext>(options =>
+            builder.Services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SQL"), sqlOptions =>
                 {
@@ -102,11 +115,16 @@ public class Program
             builder.Services.AddMapster();
             MapsterConfig.Configure();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IUserContext, UserContext>();
             builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddApplicationServices();
 
             // Configuración cultural
-            var cultureInfo = new CultureInfo("es-ES");
+            var cultureInfo = new CultureInfo("es-AR");
+            cultureInfo.NumberFormat.NumberDecimalSeparator = ",";
+            cultureInfo.NumberFormat.NumberGroupSeparator = ".";
+            cultureInfo.NumberFormat.CurrencyDecimalSeparator = ",";
+            cultureInfo.NumberFormat.CurrencyGroupSeparator = ".";
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
@@ -236,6 +254,7 @@ public class Program
 
             // 4. Middlewares de seguridad y autenticación
             app.UseRouting();
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -258,14 +277,6 @@ public class Program
             // Endpoint de health check básico
             app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
-            // ✅ ELIMINAR UseHttpsRedirection duplicado (ya está al inicio)
-
-            Log.Information("Aplicación AgroForm iniciándose...");
-
-            // Log de URLs disponibles
-            Console.WriteLine($"Application starting on:");
-            Console.WriteLine($"- HTTPS: https://localhost:5001");
-            Console.WriteLine($"- HTTP: http://localhost:5000");
 
             app.Run();
         }

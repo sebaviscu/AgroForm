@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Business.Services;
@@ -15,8 +15,8 @@ namespace AgroForm.Business.Services
 {
     public class CultivoService : ServiceBase<Cultivo>, ICultivoService
     {
-        public CultivoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Cultivo>> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public CultivoService(IUnitOfWork unitOfWork, ILogger<ServiceBase<Cultivo>> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
         }
     }

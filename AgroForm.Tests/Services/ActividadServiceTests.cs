@@ -1,4 +1,5 @@
 using AgroForm.Business.Services;
+using AgroForm.Business.Contracts;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Model.Configuracion;
@@ -17,15 +18,7 @@ namespace AgroForm.Tests.Services
 
         public ActividadServiceTests()
         {
-            var unitOfWork = GetService<IUnitOfWork>();
-            var logger = GetService<ILogger<ActividadService>>();
-            var httpContextAccessor = HttpContextAccessorMock.Object; // Usar el mock configurado en ServiceTestBase
-            
-            _actividadService = new ActividadService(
-                GetService<Microsoft.EntityFrameworkCore.IDbContextFactory<AppDbContext>>(),
-                logger,
-                httpContextAccessor,
-                unitOfWork);
+            _actividadService = (ActividadService)GetService<IActividadService>();
         }
 
         [Fact]

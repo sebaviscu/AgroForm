@@ -1,4 +1,4 @@
-﻿using AgroForm.Model;
+using AgroForm.Model;
 using AgroForm.Business.Services;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace AgroForm.Business.Contracts
 {
     public interface IRegistroClimaService : IServiceBase<RegistroClima>
     {
-        Task<OperationResult<List<RegistroClima>>> GetByCampaniaAsync(int idCampania);
+        Task<OperationResult<List<RegistroClima>>> GetByCampaniaAsync(int? idCampania);
         Task<OperationResult<List<RegistroClima>>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0);
     }
 }

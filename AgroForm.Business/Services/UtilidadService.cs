@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -17,16 +17,22 @@ namespace AgroForm.Business.Services
 
             try
             {
-                if (typeof(T).IsEnum)
+                var targetType = typeof(T);
+                if (Nullable.GetUnderlyingType(targetType) != null)
                 {
-                    if (Enum.TryParse(typeof(T), claim.Value, out var result))
+                    targetType = Nullable.GetUnderlyingType(targetType);
+                }
+
+                if (targetType.IsEnum)
+                {
+                    if (Enum.TryParse(targetType, claim.Value, out var result))
                     {
                         return (T)result;
                     }
                     return default;
                 }
 
-                return (T)Convert.ChangeType(claim.Value, typeof(T));
+                return (T)Convert.ChangeType(claim.Value, targetType);
             }
             catch
             {

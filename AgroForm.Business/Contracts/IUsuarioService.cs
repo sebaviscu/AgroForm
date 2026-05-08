@@ -1,4 +1,5 @@
-﻿using AgroForm.Model;
+using AgroForm.Model;
+using AgroForm.Business.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,6 @@ namespace AgroForm.Business.Contracts
     {
         Task<bool> ValidateUserAsync(string email, string password);
         Task<Usuario?> GetUserByEmailAsync(string email);
+        Task<OperationResult<Usuario>> UpdateUserProfileAsync(int id, string nombre, string email, string phoneNumber);
     }
 }

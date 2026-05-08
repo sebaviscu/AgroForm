@@ -1,4 +1,4 @@
-﻿using AgroForm.Model.Configuracion;
+using AgroForm.Model.Configuracion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +35,6 @@ namespace AgroForm.Model.Actividades
         public int IdCampania { get; set; }
 
         public int? IdUsuario { get; set; }
-        public int IdLicencia { get; set; }
+        public int? IdLicencia { get; set; }
     }
 }

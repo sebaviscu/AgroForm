@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
@@ -89,6 +89,8 @@ namespace AgroForm.Web.Controllers
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetById(int id)
         {
+            ValidarAutorizacion();
+            
             var result = await _service.GetByIdAsync(id);
             if (!result.Success)
             {
@@ -183,15 +185,17 @@ namespace AgroForm.Web.Controllers
             var userAuth = new UserAuth
             {
                 UserName = userName,
-                IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
-                IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
+                IdLicencia = UtilidadService.GetClaimValue<int?>(claimUser, "Licencia"),
+                IdCampaña = UtilidadService.GetClaimValue<int?>(claimUser, "Campania"),
                 IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role)
+                IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
+                Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
             };
 
             if (rolesPermitidos != null)
             {
-                userAuth.Result = rolesPermitidos.Contains((Roles)userAuth.IdRol);
+                // SuperAdmin siempre tiene acceso (incluso cuando "simula" una licencia)
+                userAuth.Result = userAuth.IdRol == Roles.SuperAdmin || rolesPermitidos.Contains((Roles)userAuth.IdRol);
 
                 if (!userAuth.Result)
                 {

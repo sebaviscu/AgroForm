@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
@@ -20,21 +20,17 @@ namespace AgroForm.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userAuth = ValidarAutorizacion(new[] { Roles.Administrador });
-            var userLogin = await _usuarioService.GetByIdAsync(userAuth.IdUsuario);
-
-            if (!userLogin.Success || !userLogin.Data.SuperAdmin)
-                return NotFound();
-
+            ValidarAutorizacion(new[] { Roles.SuperAdmin });
             return View();
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetLicenciaById(int id)
         {
             var gResponse = new GenericResponse<LicenciaVM>();
             try
             {
+                ValidarAutorizacion(new[] { Roles.SuperAdmin });
                 var licencia = await _service.GetByIdAsync(id);
                 gResponse.Success = true;
                 gResponse.Object = Map<Licencia, LicenciaVM>(licencia.Data);
@@ -44,9 +40,9 @@ namespace AgroForm.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear Licencia rápida");
+                _logger.LogError(ex, "Error al obtener Licencia con ID {Id}", id);
                 gResponse.Success = false;
-                gResponse.Message = "Ah ocurrido un error";
+                gResponse.Message = "Ha ocurrido un error";
                 return BadRequest(gResponse);
             }
         }
@@ -54,32 +50,38 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public override async Task<IActionResult> Create([FromBody] LicenciaVM dto)
         {
-            var entity = Map<LicenciaVM, Licencia>(dto);
-            var user = Map<UsuarioVM, Usuario>(dto.Usuario);
-
-            var result = await _service.CreateAsync(entity);
-
-            if (!result.Success)
+            try
             {
+                ValidarAutorizacion(new[] { Roles.SuperAdmin });
+                
+                var entity = Map<LicenciaVM, Licencia>(dto);
+                
+                // Usamos el nuevo método atómico que crea Licencia + Usuario
+                var result = await _service.CreateLicenseWithAdminAsync(
+                    entity, 
+                    dto.Usuario.Nombre, 
+                    dto.Usuario.Email, 
+                    dto.Usuario.Password);
+
+                if (!result.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                gResponse.Success = true;
+                gResponse.Object = Map<Licencia, LicenciaVM>(result.Data);
+                gResponse.Message = "Licencia y usuario administrador creados correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear licencia");
                 gResponse.Success = false;
-                gResponse.Message = result.ErrorMessage;
+                gResponse.Message = "Ha ocurrido un error inesperado";
                 return BadRequest(gResponse);
             }
-
-            user.IdLicencia = result.Data.Id;
-            var resultUser = await _usuarioService.CreateAsync(user);
-
-            if (!resultUser.Success)
-            {
-                gResponse.Success = false;
-                gResponse.Message = resultUser.ErrorMessage;
-                return BadRequest(gResponse);
-            }
-
-            gResponse.Success = true;
-            gResponse.Object = Map<Licencia, LicenciaVM>(result.Data);
-            gResponse.Message = "Registro creado correctamente";
-            return Ok(gResponse);
         }
 
         [HttpPost]
@@ -89,8 +91,8 @@ namespace AgroForm.Web.Controllers
             {
                 ValidarAutorizacion(new[] { Roles.Administrador });
 
-                var result = _service.CreatePagarLicencia(Map<PagoLicenciaVM, PagoLicencia>(pagoLicencia));
-                return Json(new { success = result, message = "Pago agregado correctamente" });
+                var result = await _service.CreatePagarLicencia(Map<PagoLicenciaVM, PagoLicencia>(pagoLicencia));
+                return Json(new { success = result.Success, message = result.Success ? "Pago agregado correctamente" : result.ErrorMessage });
             }
             catch (Exception ex)
             {
@@ -103,9 +105,8 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                var result = _service.DeletePagoLicencia(id);
-
-                return Json(new { success = result, message = "Pago eliminado correctamente" });
+                var result = await _service.DeletePagoLicencia(id);
+                return Json(new { success = result.Success, message = result.Success ? "Pago eliminado correctamente" : result.ErrorMessage });
             }
             catch (Exception ex)
             {

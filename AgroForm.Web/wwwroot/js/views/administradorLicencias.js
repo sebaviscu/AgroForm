@@ -1,4 +1,4 @@
-﻿let table;
+let table;
 let tablePagos;
 let tableCatalogos;
 
@@ -123,7 +123,11 @@ function inicializarDataTable() {
                                     title="Ver pagos" data-id="${data}">
                                 <i class="ph ph-currency-dollar"></i>
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-delete" 
+                            <button type="button" class="btn btn-outline-success btn-simular" 
+                                    title="Simular esta licencia" data-id="${data}" data-nombre="${row.razonSocial}">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-delete ms-3" 
                                     title="Eliminar licencia" data-id="${data}">
                                 <i class="ph ph-trash"></i>
                             </button>
@@ -207,7 +211,7 @@ function abrirModalLicencia(id, accion) {
 
 function cargarDatosLicencia(id) {
     $.ajax({
-        url: '/Administrador/GetLicenciaById/' + id,
+        url: '/Licencia/GetById/' + id,
         type: 'GET',
         success: function (response) {
             if (response.success) {
@@ -289,7 +293,7 @@ function guardarLicencia() {
     var originalText = submitBtn.html();
     submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (datos.Id ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
 
-    var url = datos.Id ? '/Administrador/Update/' + datos.Id : '/Administrador/Create';
+    var url = datos.Id ? '/Licencia/Update/' + datos.Id : '/Licencia/CreateWithAdmin';
     var metodo = datos.Id ? 'PUT' : 'POST';
 
     $.ajax({
@@ -314,6 +318,8 @@ function guardarLicencia() {
         },
         complete: function () {
             submitBtn.html(originalText).prop('disabled', false);
+            // Resetear la bandera de submit
+            isSubmittingPago = false;
         }
     });
 }
@@ -323,33 +329,33 @@ function eliminarLicencia(id) {
     mostrarConfirmacion(
         '¿Está seguro de que desea eliminar esta licencia?',
         'Eliminar Licencia')
-    .then((result) => {
-        if (result.isConfirmed) {
+        .then((result) => {
+            if (result.isConfirmed) {
 
-            $.ajax({
-                url: '/Administrador/Delete/' + id,
-                type: 'DELETE',
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function (response) {
-                    cerrarAlertas();
+                $.ajax({
+                    url: '/Licencia/Delete/' + id,
+                    type: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        cerrarAlertas();
 
-                    if (response.success) {
-                        mostrarExito(response.message || 'Licencia eliminada correctamente');
-                        table.ajax.reload();
-                    } else {
-                        mostrarError(response.message || 'Error al eliminar la licencia');
+                        if (response.success) {
+                            mostrarExito(response.message || 'Licencia eliminada correctamente');
+                            table.ajax.reload();
+                        } else {
+                            mostrarError(response.message || 'Error al eliminar la licencia');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        cerrarAlertas();
+                        console.error('Error:', error);
+                        mostrarError('Error al conectar con el servidor: ' + (xhr.responseJSON?.message || error));
                     }
-                },
-                error: function (xhr, status, error) {
-                    cerrarAlertas();
-                    console.error('Error:', error);
-                    mostrarError('Error al conectar con el servidor: ' + (xhr.responseJSON?.message || error));
-                }
-            });
-        }
-    });
+                });
+            }
+        });
 }
 
 
@@ -359,11 +365,11 @@ function verPagosLicencia(id) {
 
 function cargarDatosLicenciaParaPagos(id) {
     $.ajax({
-        url: '/Administrador/GetLicenciaById/' + id,
+        url: '/Licencia/GetByIdWithPagos?id=' + id,
         type: 'GET',
         success: function (response) {
             if (response.success) {
-                var licencia = response.data || response.object;
+                var licencia = response.object;
                 mostrarModalPagos(licencia);
             } else {
                 mostrarError(response.message || 'Error al cargar los datos de la licencia');
@@ -498,7 +504,15 @@ function configurarEventosPagos() {
     });
 }
 
+// Variable global para prevenir doble submit
+var isSubmittingPago = false;
+
 function agregarPago() {
+    // Prevenir doble submit
+    if (isSubmittingPago) {
+        return;
+    }
+    
     var form = $('#formPagoLicencia')[0];
 
     // Validación del formulario
@@ -506,6 +520,9 @@ function agregarPago() {
         form.classList.add('was-validated');
         return;
     }
+
+    // Marcar como enviando
+    isSubmittingPago = true;
 
     var datos = {
         TipoPagoLicencia: parseInt($('#tipoPago').val()),
@@ -520,7 +537,7 @@ function agregarPago() {
     submitBtn.html('<i class="ph ph-hourglass me-1"></i>Agregando...').prop('disabled', true);
 
     $.ajax({
-        url: '/Administrador/CreatePagoLicencia',
+        url: '/Licencia/CreatePagoLicencia',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(datos),
@@ -546,6 +563,8 @@ function agregarPago() {
         },
         complete: function () {
             submitBtn.html(originalText).prop('disabled', false);
+            // Resetear la bandera de submit
+            isSubmittingPago = false;
         }
     });
 }
@@ -559,7 +578,7 @@ function eliminarPago(idPago) {
             mostrarLoading('Eliminando pago...');
 
             $.ajax({
-                url: '/Administrador/DeletePagoLicencia/' + idPago,
+                url: '/Licencia/DeletePagoLicencia/' + idPago,
                 type: 'DELETE',
                 headers: {
                     'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
@@ -883,6 +902,8 @@ function guardarCatalogo() {
         },
         complete: function () {
             submitBtn.html(originalText).prop('disabled', false);
+            // Resetear la bandera de submit
+            isSubmittingPago = false;
         }
     });
 }
@@ -992,3 +1013,127 @@ function mostrarLoading(mensaje = 'Procesando...') {
 function cerrarAlertas() {
     Swal.close();
 }
+
+// Funciones de Simulación de Licencia
+function simularLicencia(id, nombre) {
+    mostrarConfirmacion(
+        `¿Está seguro de que desea simular la licencia "${nombre}"? Verá el sistema como si fuera un usuario de esa licencia.`,
+        'Simular Licencia'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/Simulacion/SimularLicencia',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(id),
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        mostrarExito(response.message);
+                        actualizarEstadoSimulacion();
+                        // Ir a Home para ver el sistema como usuario
+                        setTimeout(() => {
+                            window.location.href = response.redirectUrl || '/Home/Index';
+                        }, 1200);
+                    } else {
+                        mostrarError(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    mostrarError('Error al simular licencia: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+    });
+}
+
+function detenerSimulacion() {
+    mostrarConfirmacion(
+        '¿Está seguro de que desea detener la simulación? Volverá a tener vista de Super Admin.',
+        'Detener Simulación'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/Simulacion/DetenerSimulacion',
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        mostrarExito(response.message);
+                        actualizarEstadoSimulacion();
+                        // Al detener, volver a la vista de Administrador
+                        setTimeout(() => {
+                            window.location.href = '/Administrador/Index';
+                        }, 1200);
+                    } else {
+                        mostrarError(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    mostrarError('Error al detener simulación: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+    });
+}
+
+function actualizarEstadoSimulacion() {
+    $.ajax({
+        url: '/Simulacion/GetEstadoSimulacion',
+        type: 'GET',
+        success: function (response) {
+            if (response.isSimulating) {
+                // Mostrar banner de simulación
+                mostrarBannerSimulacion(response.licenciaActual);
+            } else {
+                // Ocultar banner de simulación
+                ocultarBannerSimulacion();
+            }
+        },
+        error: function () {
+            console.error('Error al obtener estado de simulación');
+        }
+    });
+}
+
+function mostrarBannerSimulacion(licenciaId) {
+    // Eliminar banner existente si hay
+    ocultarBannerSimulacion();
+    
+    const banner = $(`
+        <div id="bannerSimulacion" class="alert alert-warning alert-dismissible fade show position-fixed" 
+             style="top: 70px; right: 20px; z-index: 1050; min-width: 300px;">
+            <div class="d-flex align-items-center">
+                <i class="ph ph-eye me-2"></i>
+                <div>
+                    <strong>Modo Simulación</strong><br>
+                    <small>Viendo licencia ${licenciaId}</small>
+                </div>
+                <button type="button" class="btn-close ms-auto" onclick="detenerSimulacion()"></button>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(banner);
+}
+
+function ocultarBannerSimulacion() {
+    $('#bannerSimulacion').remove();
+}
+
+// Event delegation para el botón de simulación (evita problemas con duplicados)
+$(document).ready(function() {
+    // Verificar estado de simulación al cargar
+    actualizarEstadoSimulacion();
+    
+    // Delegar evento para botón de simulación
+    $(document).on('click', '.btn-simular', function() {
+        var id = $(this).data('id');
+        var nombre = $(this).data('nombre');
+        simularLicencia(id, nombre);
+    });
+});

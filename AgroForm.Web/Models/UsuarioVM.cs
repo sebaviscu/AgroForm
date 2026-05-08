@@ -1,4 +1,4 @@
-﻿using static AgroForm.Model.EnumClass;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Web.Models
 {
@@ -10,6 +10,7 @@ namespace AgroForm.Web.Models
         public Roles Rol { get; set; }
         public bool Activo { get; set; } = true;
         public bool EmailConfirmed { get; set; } = true;
+        public string? Password { get; set; }
 
         public string PasswordHash { get; set; } = string.Empty;
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();

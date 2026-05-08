@@ -1,4 +1,4 @@
-﻿using AgroForm.Model.Actividades;
+using AgroForm.Model.Actividades;
 using System;
 using System.Collections.Generic;
 using System.Linq;

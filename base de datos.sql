@@ -38,7 +38,7 @@ CREATE TABLE PagoLicencias (
 
 CREATE TABLE Usuarios (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    IdLicencia INT NOT NULL,
+    IdLicencia INT NULL,
     Nombre NVARCHAR(150) NOT NULL,
     Email NVARCHAR(256) NOT NULL,
     Rol INT NOT NULL,
@@ -535,10 +535,21 @@ CREATE TABLE Gastos (
         REFERENCES Campanias(Id) ON DELETE CASCADE
 );
 
-
-
-
-
+CREATE TABLE PagoLicencias (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    IdLicencia INT NOT NULL,
+    TipoPagoLicencia INT NOT NULL DEFAULT 0,
+    Precio DECIMAL(18,2) NOT NULL,
+    Fecha DATETIME NOT NULL,
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL,
+        
+    CONSTRAINT FK_PagoLicencias_Licencias FOREIGN KEY (IdLicencia) 
+        REFERENCES Licencias(Id) ON DELETE CASCADE
+);
+    
 
 
 

@@ -22,12 +22,6 @@
                 <button class="nav-link" id="campos-tab" data-bs-toggle="pill" data-bs-target="#campos" type="button" role="tab">
                     <i class="ph ph-building me-2"></i>Campos
                 </button>
-                <button class="nav-link" id="proveedores-tab" data-bs-toggle="pill" data-bs-target="#proveedores" type="button" role="tab">
-                    <i class="ph ph-truck me-2"></i>Proveedores
-                </button>
-                <button class="nav-link" id="marcas-tab" data-bs-toggle="pill" data-bs-target="#marcas" type="button" role="tab">
-                    <i class="ph ph-tags me-2"></i>Marcas
-                </button>
             </div>
         </div>
 
@@ -54,12 +48,15 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <i class="ph ph-truck display-4 text-success mb-3"></i>
-                                            <h4 id="totalProveedores">0</h4>
-                                            <p class="text-muted mb-0">Proveedores Activos</p>
+                                <div class="col-12">
+                                    <h6 class="fw-semibold">Resumen de Actividad Reciente</h6>
+                                    <div class="list-group">
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <small>Último campo modificado</small>
+                                                <small id="ultimoCampoFecha">-</small>
+                                            </div>
+                                            <small id="ultimoCampoUsuario" class="text-muted">-</small>
                                         </div>
                                     </div>
                                 </div>
@@ -74,13 +71,6 @@
                                                 <small id="ultimoCampoFecha">-</small>
                                             </div>
                                             <small id="ultimoCampoUsuario" class="text-muted">-</small>
-                                        </div>
-                                        <div class="list-group-item">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <small>Último proveedor modificado</small>
-                                                <small id="ultimoProveedorFecha">-</small>
-                                            </div>
-                                            <small id="ultimoProveedorUsuario" class="text-muted">-</small>
                                         </div>
                                     </div>
                                 </div>
@@ -122,72 +112,6 @@
                     </div>
                 </div>
 
-                <!-- Tab Proveedores -->
-                <div class="tab-pane fade" id="proveedores" role="tabpanel" aria-labelledby="proveedores-tab">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">
-                                <i class="ph ph-truck me-2"></i>Gestión de Proveedores
-                            </h5>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalProveedor()">
-                                <i class="ph ph-plus-circle me-1"></i>Nuevo Proveedor
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="tblProveedores" class="table table-hover table-striped w-100">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Razón Social</th>
-                                            <th>Nombre Fantasía</th>
-                                            <th>CUIT</th>
-                                            <th>Teléfono</th>
-                                            <th>Estado</th>
-                                            <th>Última Modificación</th>
-                                            <th class="text-center">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Los datos se cargan via AJAX -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab Marcas -->
-                <div class="tab-pane fade" id="marcas" role="tabpanel" aria-labelledby="marcas-tab">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">
-                                <i class="ph ph-tags me-2"></i>Gestión de Marcas
-                            </h5>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalMarca()">
-                                <i class="ph ph-plus-circle me-1"></i>Nueva Marca
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="tblMarcas" class="table table-hover table-striped w-100">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Descripción</th>
-                                            <th>Estado</th>
-                                            <th>Fecha Registro</th>
-                                            <th>Última Modificación</th>
-                                            <th class="text-center">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Los datos se cargan via AJAX -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -228,122 +152,13 @@
     </div>
 </div>
 
-<!-- Modal para Proveedores -->
-<div class="modal fade" id="modalProveedor" tabindex="-1" aria-labelledby="modalProveedorLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalProveedorLabel">
-                    <i class="ph ph-truck me-2"></i>Nuevo Proveedor
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formProveedor">
-                <div class="modal-body">
-                    <input type="hidden" id="idProveedor" name="Id" value="0">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="proveedorRazonSocial" class="form-label">Razón Social *</label>
-                                <input type="text" class="form-control" id="proveedorRazonSocial" name="RazonSocial" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="proveedorNombreFantasia" class="form-label">Nombre Fantasía</label>
-                                <input type="text" class="form-control" id="proveedorNombreFantasia" name="NombreFantasia">
-                            </div>
-                            <div class="mb-3">
-                                <label for="proveedorCUIT" class="form-label">CUIT</label>
-                                <input type="text" class="form-control" id="proveedorCUIT" name="CUIT">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="proveedorTelefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="proveedorTelefono" name="Telefono">
-                            </div>
-                            <div class="mb-3">
-                                <label for="proveedorEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="proveedorEmail" name="Email">
-                            </div>
-                            <div class="mb-3">
-                                <label for="proveedorNombreContacto" class="form-label">Nombre de Contacto</label>
-                                <input type="text" class="form-control" id="proveedorNombreContacto" name="NombreContacto">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="proveedorDireccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control" id="proveedorDireccion" name="Direccion">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="proveedorLocalidad" class="form-label">Localidad</label>
-                                <input type="text" class="form-control" id="proveedorLocalidad" name="Localidad">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="proveedorObservaciones" class="form-label">Observaciones</label>
-                        <textarea class="form-control" id="proveedorObservaciones" name="Observaciones" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="proveedorActivo" name="Activo" checked>
-                        <label class="form-check-label" for="proveedorActivo">Activo</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Marcas -->
-<div class="modal fade" id="modalMarca" tabindex="-1" aria-labelledby="modalMarcaLavel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalMarcaLavel">
-                    <i class="ph ph-tags me-2"></i>Nueva Marca
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formMarca">
-                <div class="modal-body">
-                    <input type="hidden" id="idMarca" name="Id" value="0">
-                    <div class="mb-3">
-                        <label for="marcaCodigo" class="form-label">Código *</label>
-                        <input type="text" class="form-control" id="marcaCodigo" name="Codigo" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="marcaDescripcion" class="form-label">Descripción *</label>
-                        <input type="text" class="form-control" id="marcaDescripcion" name="Descripcion" required>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="marcaActivo" name="Activo" checked>
-                        <label class="form-check-label" for="marcaActivo">Activo</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         // Variables globales para DataTables
-        var tableCampos, tableProveedores, tableMarcas;
+        var tableCampos;
 
         $(document).ready(function () {
             // Inicializar DataTables cuando se active cada tab
@@ -356,12 +171,6 @@
                         break;
                     case '#campos':
                         inicializarTablaCampos();
-                        break;
-                    case '#proveedores':
-                        inicializarTablaProveedores();
-                        break;
-                    case '#marcas':
-                        inicializarTablaMarcas();
                         break;
                 }
             });
@@ -376,31 +185,19 @@
         // ===== FUNCIONES GENERALES =====
         function cargarResumenGeneral() {
             $.when(
-                $.get('@Url.Action("GetAll", "Campo")'),
-                $.get('@Url.Action("GetAll", "Proveedor")'),
-                $.get('@Url.Action("GetAll", "Marca")')
-            ).done(function(camposResponse, proveedoresResponse, marcasResponse) {
+                $.get('@Url.Action("GetAll", "Campo")')
+            ).done(function(camposResponse) {
                 // Actualizar contadores
                 $('#totalCampos').text(camposResponse[0].data ? camposResponse[0].data.length : 0);
-                $('#totalProveedores').text(proveedoresResponse[0].data ?
-                    proveedoresResponse[0].data.filter(p => p.activo).length : 0);
 
-                // Encontrar últimas modificaciones
+                // Encontrar última modificación
                 var ultimoCampo = camposResponse[0].data ?
                     camposResponse[0].data.sort((a, b) => new Date(b.modificationDate || b.registrationDate) - new Date(a.modificationDate || a.registrationDate))[0] : null;
-
-                var ultimoProveedor = proveedoresResponse[0].data ?
-                    proveedoresResponse[0].data.sort((a, b) => new Date(b.modificationDate || b.registrationDate) - new Date(a.modificationDate || a.registrationDate))[0] : null;
 
                 // Actualizar información de actividad
                 if (ultimoCampo) {
                     $('#ultimoCampoFecha').text(formatearFecha(ultimoCampo.modificationDate || ultimoCampo.registrationDate));
                     $('#ultimoCampoUsuario').text('Por: ' + (ultimoCampo.modificationUser || ultimoCampo.registrationUser || 'Sistema'));
-                }
-
-                if (ultimoProveedor) {
-                    $('#ultimoProveedorFecha').text(formatearFecha(ultimoProveedor.modificationDate || ultimoProveedor.registrationDate));
-                    $('#ultimoProveedorUsuario').text('Por: ' + (ultimoProveedor.modificationUser || ultimoProveedor.registrationUser || 'Sistema'));
                 }
             });
         }
@@ -534,248 +331,6 @@
             });
         }
 
-        // ===== FUNCIONES PARA PROVEEDORES =====
-        function inicializarTablaProveedores() {
-            if ($.fn.DataTable.isDataTable('#tblProveedores')) {
-                tableProveedores.destroy();
-            }
-
-            tableProveedores = $('#tblProveedores').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                },
-                ajax: {
-                    url: '@Url.Action("GetAll", "Proveedor")',
-                    dataSrc: 'data'
-                },
-                columns: [
-                    { data: 'razonSocial' },
-                    { data: 'nombreFantasia', defaultContent: '-' },
-                    { data: 'cuit', defaultContent: '-' },
-                    { data: 'telefono', defaultContent: '-' },
-                    {
-                        data: 'activo',
-                        render: function(data) {
-                            return data ?
-                                '<span class="badge bg-success">Activo</span>' :
-                                '<span class="badge bg-danger">Inactivo</span>';
-                        }
-                    },
-                    {
-                        data: 'modificationDate',
-                        render: function(data, type, row) {
-                            if (data) {
-                                return formatearFecha(data) + '<br><small class="text-muted">' + (row.modificationUser || 'Sistema') + '</small>';
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'id',
-                        render: function(data, type, row) {
-                            return `
-                                <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-outline-primary btn-editar-proveedor" data-id="${data}" title="Editar">
-                                        <i class="ph ph-pencil"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-eliminar-proveedor" data-id="${data}" title="Eliminar">
-                                        <i class="ph ph-trash"></i>
-                                    </button>
-                                </div>
-                            `;
-                        },
-                        className: 'text-center'
-                    }
-                ],
-                order: [[0, 'asc']],
-                pageLength: 10,
-                responsive: true
-            });
-
-            // Eventos para botones de proveedores
-            $('#tblProveedores tbody').on('click', '.btn-editar-proveedor', function () {
-                var id = $(this).data('id');
-                editarProveedor(id);
-            });
-
-            $('#tblProveedores tbody').on('click', '.btn-eliminar-proveedor', function () {
-                var id = $(this).data('id');
-                eliminarProveedor(id);
-            });
-        }
-
-        function abrirModalProveedor(id = 0) {
-            $('#idProveedor').val(id);
-            $('#modalProveedorLabel').html(id === 0 ?
-                '<i class="ph ph-truck me-2"></i>Nuevo Proveedor' :
-                '<i class="ph ph-truck me-2"></i>Editar Proveedor');
-
-            if (id === 0) {
-                $('#formProveedor')[0].reset();
-                $('#proveedorActivo').prop('checked', true);
-            } else {
-                // Cargar datos del proveedor
-                $.get('@Url.Action("Get", "Proveedor")/' + id, function(response) {
-                    if (response.success) {
-                        var proveedor = response.data;
-                        $('#proveedorRazonSocial').val(proveedor.razonSocial);
-                        $('#proveedorNombreFantasia').val(proveedor.nombreFantasia || '');
-                        $('#proveedorCUIT').val(proveedor.cuit || '');
-                        $('#proveedorDireccion').val(proveedor.direccion || '');
-                        $('#proveedorLocalidad').val(proveedor.localidad || '');
-                        $('#proveedorTelefono').val(proveedor.telefono || '');
-                        $('#proveedorEmail').val(proveedor.email || '');
-                        $('#proveedorNombreContacto').val(proveedor.nombreContacto || '');
-                        $('#proveedorObservaciones').val(proveedor.observaciones || '');
-                        $('#proveedorActivo').prop('checked', proveedor.activo);
-                    }
-                });
-            }
-
-            $('#modalProveedor').modal('show');
-        }
-
-        function editarProveedor(id) {
-            abrirModalProveedor(id);
-        }
-
-        function eliminarProveedor(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este proveedor?')) return;
-
-            $.ajax({
-                url: '@Url.Action("Delete", "Proveedor")/' + id,
-                type: 'DELETE',
-                success: function(response) {
-                    if (response.success) {
-                        tableProveedores.ajax.reload();
-                        cargarResumenGeneral();
-                        mostrarMensaje('Proveedor eliminado correctamente', 'success');
-                    } else {
-                        mostrarMensaje(response.message || 'Error al eliminar proveedor', 'error');
-                    }
-                }
-            });
-        }
-
-        // ===== FUNCIONES PARA MARCAS =====
-        function inicializarTablaMarcas() {
-            if ($.fn.DataTable.isDataTable('#tblMarcas')) {
-                tableMarcas.destroy();
-            }
-
-            tableMarcas = $('#tblMarcas').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                },
-                ajax: {
-                    url: '@Url.Action("GetAll", "Marca")',
-                    dataSrc: 'data'
-                },
-                columns: [
-                    { data: 'codigo' },
-                    { data: 'descripcion' },
-                    {
-                        data: 'activo',
-                        render: function(data) {
-                            return data ?
-                                '<span class="badge bg-success">Activa</span>' :
-                                '<span class="badge bg-danger">Inactiva</span>';
-                        }
-                    },
-                    {
-                        data: 'registrationDate',
-                        render: function(data) {
-                            return formatearFechaCorta(data);
-                        }
-                    },
-                    {
-                        data: 'modificationDate',
-                        render: function(data, type, row) {
-                            if (data) {
-                                return formatearFecha(data) + '<br><small class="text-muted">' + (row.modificationUser || 'Sistema') + '</small>';
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'id',
-                        render: function(data, type, row) {
-                            return `
-                                <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-outline-primary btn-editar-marca" data-id="${data}" title="Editar">
-                                        <i class="ph ph-pencil"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-eliminar-marca" data-id="${data}" title="Eliminar">
-                                        <i class="ph ph-trash"></i>
-                                    </button>
-                                </div>
-                            `;
-                        },
-                        className: 'text-center'
-                    }
-                ],
-                order: [[0, 'asc']],
-                pageLength: 10,
-                responsive: true
-            });
-
-            // Eventos para botones de marcas
-            $('#tblMarcas tbody').on('click', '.btn-editar-marca', function () {
-                var id = $(this).data('id');
-                editarMarca(id);
-            });
-
-            $('#tblMarcas tbody').on('click', '.btn-eliminar-marca', function () {
-                var id = $(this).data('id');
-                eliminarMarca(id);
-            });
-        }
-
-        function abrirModalMarca(id = 0) {
-            $('#idMarca').val(id);
-            $('#modalMarcaLavel').html(id === 0 ?
-                '<i class="ph ph-tags me-2"></i>Nueva Marca' :
-                '<i class="ph ph-tags me-2"></i>Editar Marca');
-
-            if (id === 0) {
-                $('#formMarca')[0].reset();
-                $('#marcaActivo').prop('checked', true);
-            } else {
-                // Cargar datos de la marca
-                $.get('@Url.Action("Get", "Marca")/' + id, function(response) {
-                    if (response.success) {
-                        var marca = response.data;
-                        $('#marcaCodigo').val(marca.codigo);
-                        $('#marcaDescripcion').val(marca.descripcion);
-                        $('#marcaActivo').prop('checked', marca.activo);
-                    }
-                });
-            }
-
-            $('#modalMarca').modal('show');
-        }
-
-        function editarMarca(id) {
-            abrirModalMarca(id);
-        }
-
-        function eliminarMarca(id) {
-            if (!confirm('¿Está seguro de que desea eliminar esta marca?')) return;
-
-            $.ajax({
-                url: '@Url.Action("Delete", "Marca")/' + id,
-                type: 'DELETE',
-                success: function(response) {
-                    if (response.success) {
-                        tableMarcas.ajax.reload();
-                        cargarResumenGeneral();
-                        mostrarMensaje('Marca eliminada correctamente', 'success');
-                    } else {
-                        mostrarMensaje(response.message || 'Error al eliminar marca', 'error');
-                    }
-                }
-            });
-        }
 
         // ===== CONFIGURACIÓN DE FORMULARIOS =====
         function configurarFormularios() {
@@ -783,18 +338,6 @@
             $('#formCampo').on('submit', function(e) {
                 e.preventDefault();
                 guardarCampo();
-            });
-
-            // Formulario de Proveedores
-            $('#formProveedor').on('submit', function(e) {
-                e.preventDefault();
-                guardarProveedor();
-            });
-
-            // Formulario de Marcas
-            $('#formMarca').on('submit', function(e) {
-                e.preventDefault();
-                guardarMarca();
             });
         }
 
@@ -826,68 +369,6 @@
             });
         }
 
-        function guardarProveedor() {
-            var formData = {
-                Id: $('#idProveedor').val(),
-                RazonSocial: $('#proveedorRazonSocial').val(),
-                NombreFantasia: $('#proveedorNombreFantasia').val(),
-                CUIT: $('#proveedorCUIT').val(),
-                Direccion: $('#proveedorDireccion').val(),
-                Localidad: $('#proveedorLocalidad').val(),
-                Telefono: $('#proveedorTelefono').val(),
-                Email: $('#proveedorEmail').val(),
-                NombreContacto: $('#proveedorNombreContacto').val(),
-                Observaciones: $('#proveedorObservaciones').val(),
-                Activo: $('#proveedorActivo').is(':checked')
-            };
-
-            var url = formData.Id == 0 ? '@Url.Action("Create", "Proveedor")' : '@Url.Action("Update", "Proveedor")';
-            var method = formData.Id == 0 ? 'POST' : 'PUT';
-
-            $.ajax({
-                url: url,
-                type: method,
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        $('#modalProveedor').modal('hide');
-                        tableProveedores.ajax.reload();
-                        cargarResumenGeneral();
-                        mostrarMensaje('Proveedor guardado correctamente', 'success');
-                    } else {
-                        mostrarMensaje(response.message || 'Error al guardar proveedor', 'error');
-                    }
-                }
-            });
-        }
-
-        function guardarMarca() {
-            var formData = {
-                Id: $('#idMarca').val(),
-                Codigo: $('#marcaCodigo').val(),
-                Descripcion: $('#marcaDescripcion').val(),
-                Activo: $('#marcaActivo').is(':checked')
-            };
-
-            var url = formData.Id == 0 ? '@Url.Action("Create", "Marca")' : '@Url.Action("Update", "Marca")';
-            var method = formData.Id == 0 ? 'POST' : 'PUT';
-
-            $.ajax({
-                url: url,
-                type: method,
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        $('#modalMarca').modal('hide');
-                        tableMarcas.ajax.reload();
-                        cargarResumenGeneral();
-                        mostrarMensaje('Marca guardada correctamente', 'success');
-                    } else {
-                        mostrarMensaje(response.message || 'Error al guardar marca', 'error');
-                    }
-                }
-            });
-        }
 
         // ===== FUNCIÓN PARA MOSTRAR MENSAJES =====
 

@@ -1,5 +1,11 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
+using AgroForm.Model;
+using AgroForm.Web.Models;
+using AgroForm.Web.Utilities;
+using AgroForm.Model.Configuracion;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -9,15 +15,94 @@ namespace AgroForm.Web.Controllers
 {
     public class AccessController : Controller
     {
+        private readonly ILogger<AccessController> _logger;
         private readonly IUsuarioService _userService;
         private readonly ICampaniaService _campaniaService;
         private readonly IWebHostEnvironment _env;
 
-        public AccessController(IUsuarioService userService, ICampaniaService campaniaService, IWebHostEnvironment env)
+        public AccessController(ILogger<AccessController> logger, IUsuarioService userService, ICampaniaService campaniaService, IWebHostEnvironment env)
         {
+            _logger = logger;
             _userService = userService;
             _campaniaService = campaniaService;
             _env = env;
+        }
+
+        protected UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
+        {
+            if (!HttpContext.User.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("El usuario no esta autenticado");
+
+            var claimUser = HttpContext.User;
+
+            var userName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name) ?? string.Empty;
+
+            var userAuth = new UserAuth
+            {
+                UserName = userName,
+                IdLicencia = UtilidadService.GetClaimValue<int?>(claimUser, "Licencia"),
+                IdCampaña = UtilidadService.GetClaimValue<int?>(claimUser, "Campania"),
+                IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
+                IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
+                Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
+            };
+
+            if (rolesPermitidos != null)
+            {
+                // SuperAdmin siempre tiene acceso (incluso cuando "simula" una licencia)
+                userAuth.Result = userAuth.IdRol == Roles.SuperAdmin || rolesPermitidos.Contains((Roles)userAuth.IdRol);
+
+                if (!userAuth.Result)
+                {
+                    var controller = ControllerContext.ActionDescriptor.ControllerName;
+                    var action = ControllerContext.ActionDescriptor.ActionName;
+                    var fullUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+
+                    _logger.LogError($"Acceso denegado: Usuario {userName} intento acceder a {controller}/{action} ({fullUrl})");
+
+                    throw new AccessViolationException($" * * * * {userName} USUARIO CON PERMISOS INSUFICIENTES * * * * ");
+                }
+            }
+
+            return userAuth;
+        }
+
+        protected IActionResult HandleException(
+            Exception? ex,
+            string errorMessage,
+            string endpint = "",
+            object model = null,
+            params (string Key, object Value)[] additionalData)
+        {
+            if (ex is UnauthorizedAccessException)
+            {
+                return RedirectToAction("Login", "Access");
+            }
+
+            var gResponse = new GenericResponse<object>
+            {
+                Success = false,
+                Message = ex == null ? errorMessage : $"{errorMessage}\n {ex.InnerException?.Message ?? ex.Message}"
+            };
+
+            var logParams = new Dictionary<string, object>
+            {
+                { "ErrorMessage", errorMessage },
+                { "ExceptionMessage", ex?.Message ?? "null" },
+                { "ExceptionType", ex?.GetType().FullName ?? "null" },
+                { "StackTrace", ex?.StackTrace ?? "null" },
+                { "Source", ex?.Source ?? "null" },
+                { "HResult", ex?.HResult.ToString() ?? "null" },
+                { "TargetSite", ex?.TargetSite?.ToString() ?? "null" },
+                { "RequestPath", HttpContext?.Request?.Path.ToString() ?? "null" }
+            };
+
+            var controllerName = GetType().Name;
+            var logTemplate = $" - - - - - - ❌ - - - - - - Usuario: {HttpContext.User?.Identity?.Name}. [Controller: {controllerName}]  Endpint: {endpint}";
+
+            _logger.LogError(ex, logTemplate, logParams);
+
+            return StatusCode(StatusCodes.Status500InternalServerError, gResponse);
         }
 
         [HttpGet]
@@ -43,77 +128,50 @@ namespace AgroForm.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe)
         {
-            //if (_env.IsDevelopment())
-            //{
-            //    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
-            //    {
-            //        var isValid = await _userService.ValidateUserAsync(email, password);
-            //        if (isValid)
-            //        {
-            //            var user = await _userService.GetUserByEmailAsync(email);
-            //            var campania = await _campaniaService.GetCurrent();
-            //            var idCampania = campania.Data != null ? campania.Data.Id.ToString() : null;
-
-            //            var claims = new List<Claim>
-            //            {
-            //                new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
-            //                new Claim(ClaimTypes.Name, user.Nombre),
-            //                new Claim("Licencia", user.IdLicencia.ToString()),
-            //                new Claim("Campania", idCampania),
-            //                new Claim(ClaimTypes.Role, user.Rol.ToString())
-            //            };
-        
-            //            await CreateAuthenticationCookie(claims, rememberMe);
-            //            return RedirectToAction("Index", "Home");
-            //        }
-            //    }
-
-                var campaniaDev = await _campaniaService.GetCurrentByLicencia(1);
-
-                var devClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, "1"),
-                    new Claim(ClaimTypes.Name, "Desarrollador"),
-                    new Claim("Licencia", "1"),
-                    new Claim("Campania", campaniaDev.Data?.Id.ToString() ?? "1"),
-                    new Claim(ClaimTypes.Role, "0"),
-                    new Claim("Moneda", ((int)Monedas.DolarOficial).ToString()),
-                };
-        
-                await CreateAuthenticationCookie(devClaims, true);
-                
-                return RedirectToAction("Index", "Home");
-            //}
-        
-            //// Código de producción
             //if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             //{
             //    ViewBag.Error = "Email y contraseña son requeridos";
             //    return View();
             //}
-        
-            //var isValidProd = await _userService.ValidateUserAsync(email, password);
-        
-            //if (!isValidProd)
+
+            //var isValid = await _userService.ValidateUserAsync(email, password);
+
+            //if (!isValid)
             //{
             //    ViewBag.Error = "Credenciales inválidas";
             //    return View();
             //}
-        
-            //var userProd = await _userService.GetUserByEmailAsync(email);
-            //var campaniaProd = await _campaniaService.GetCurrent();
-        
-            //var prodClaims = new List<Claim>
-            //{
-            //    new Claim(ClaimTypes.NameIdentifier, userProd!.Id.ToString()),
-            //    new Claim(ClaimTypes.Name, userProd.Nombre),
-            //    new Claim("Licencia", userProd.IdLicencia.ToString()),
-            //    new Claim("Campania", campaniaProd.Data?.Id.ToString() ?? "1"),
-            //    new Claim(ClaimTypes.Role, userProd.Rol.ToString())
-            //};
-        
-            //await CreateAuthenticationCookie(prodClaims, rememberMe);
-            //return RedirectToAction("Index", "Home");
+
+            var user = await _userService.GetUserByEmailAsync(email);
+            
+            // Buscar campaña actual
+            var campaniaResult = await _campaniaService.GetCurrentByLicencia(user.IdLicencia);
+            var idCampania = campaniaResult.Data?.Id.ToString() ?? "0";
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user!.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Nombre),
+                new Claim("Licencia", user.IdLicencia.ToString()),
+                new Claim("Campania", idCampania),
+                new Claim("Moneda", ((int)Monedas.Peso).ToString()),
+                new Claim(ClaimTypes.Role, ((int)user.Rol).ToString())
+            };
+
+            await CreateAuthenticationCookie(claims, rememberMe);
+
+            if (user.SuperAdmin)
+            {
+                var simulacionActiva = HttpContext.Session.GetString("SimulacionLicenciaId");
+                if (!string.IsNullOrEmpty(simulacionActiva))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                
+                return RedirectToAction("Index", "Administrador");
+            }
+
+            return RedirectToAction("Index", "Home");
         }
         
         private async Task CreateAuthenticationCookie(List<Claim> claims, bool rememberMe)
@@ -139,12 +197,77 @@ namespace AgroForm.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("AgroFormAuth");
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Login", "Access");
         }
 
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetUserProfile(int id)
+        {
+            try
+            {
+                ValidarAutorizacion();
+                
+                var result = await _userService.GetByIdAsync(id);
+                
+                if (result.Success)
+                {
+                    var usuario = result.Data;
+                    var userProfile = new UserProfileVM
+                    {
+                        Id = usuario.Id,
+                        Nombre = usuario.Nombre,
+                        Email = usuario.Email,
+                        PhoneNumber = usuario.PhoneNumber
+                    };
+                    
+                    return Json(new { success = true, data = userProfile });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.ErrorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al obtener el perfil del usuario");
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] dynamic perfilData)
+        {
+            try
+            {
+                ValidarAutorizacion();
+                
+                int id = perfilData.id;
+                string nombre = perfilData.nombre;
+                string email = perfilData.email;
+                string phoneNumber = perfilData.phoneNumber;
+
+                var result = await _userService.UpdateUserProfileAsync(id, nombre, email, phoneNumber);
+                
+                if (result.Success)
+                {
+                    return Json(new { success = true, message = "Perfil actualizado correctamente" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.ErrorMessage });
+                }
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al actualizar el perfil del usuario");
+            }
         }
     }
 }

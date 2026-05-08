@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Business.Services;
@@ -15,8 +15,8 @@ namespace AgroForm.Business.Services
 {
     public class GastoService : ServiceBase<Gasto>, IGastoService
     {
-        public GastoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<GastoService> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public GastoService(IUnitOfWork unitOfWork, ILogger<GastoService> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
         }
 

@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
@@ -16,8 +16,8 @@ namespace AgroForm.Business.Services
 {
     public class UsuarioService : ServiceBase<Usuario>, IUsuarioService
     {
-        public UsuarioService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Usuario>> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public UsuarioService(IUnitOfWork unitOfWork, ILogger<ServiceBase<Usuario>> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
         }
 
@@ -35,7 +35,7 @@ namespace AgroForm.Business.Services
 
         public async Task<Usuario?> GetUserByEmailAsync(string email)
         {
-            return await base.GetQuery().SingleOrDefaultAsync(x => x.Email == email);
+            return await base.GetQuery().IgnoreQueryFilters().SingleOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task<bool> ValidateUserAsync(string email, string password)
@@ -61,6 +61,49 @@ namespace AgroForm.Business.Services
             passwordSalt = hmac.Key;
             var hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             passwordHash = Convert.ToBase64String(hash);
+        }
+
+        public async Task<OperationResult<Usuario>> UpdateUserProfileAsync(int id, string nombre, string email, string phoneNumber)
+        {
+            try
+            {
+                // Obtener el usuario actual
+                var getResult = await GetByIdAsync(id);
+                if (!getResult.Success)
+                {
+                    return OperationResult<Usuario>.Failure("Usuario no encontrado", "NOT_FOUND");
+                }
+
+                var usuario = getResult.Data;
+                
+                // Verificar si el email ya está siendo usado por otro usuario
+                var existingUser = await GetUserByEmailAsync(email);
+                if (existingUser != null && existingUser.Id != id)
+                {
+                    return OperationResult<Usuario>.Failure("El email ya está siendo utilizado por otro usuario", "EMAIL_EXISTS");
+                }
+
+                // Actualizar los datos
+                usuario.Nombre = nombre;
+                usuario.Email = email;
+                usuario.PhoneNumber = phoneNumber;
+
+                var updateResult = await UpdateAsync(usuario);
+                
+                if (updateResult.Success)
+                {
+                    return OperationResult<Usuario>.SuccessResult(usuario);
+                }
+                else
+                {
+                    return OperationResult<Usuario>.Failure(updateResult.ErrorMessage, updateResult.ErrorCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar el perfil del usuario con ID {Id}", id);
+                return OperationResult<Usuario>.Failure($"Ocurrió un problema al actualizar el perfil: {ex.Message}", "DATABASE_ERROR");
+            }
         }
     }
 }

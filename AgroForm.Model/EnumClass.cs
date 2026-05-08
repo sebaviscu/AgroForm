@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace AgroForm.Model
         {
             Administrador,
             Operador,
-            Tecnico
+            SuperAdmin
         }
 
         public enum Monedas

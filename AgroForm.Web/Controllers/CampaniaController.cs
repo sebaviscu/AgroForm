@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Model;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;

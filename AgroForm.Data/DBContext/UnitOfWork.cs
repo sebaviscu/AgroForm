@@ -1,4 +1,4 @@
-﻿using AgroForm.Data.Repository;
+using AgroForm.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,14 +10,12 @@ namespace AgroForm.Data.DBContext
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly IDbContextFactory<AppDbContext> _contextFactory;
         private readonly AppDbContext _context;
         private readonly Dictionary<Type, object> _repositories = new();
 
-        public UnitOfWork(IDbContextFactory<AppDbContext> contextFactory)
+        public UnitOfWork(AppDbContext context)
         {
-            _contextFactory = contextFactory;
-            _context = _contextFactory.CreateDbContext();
+            _context = context;
         }
 
         public async Task<int> SaveAsync()
@@ -31,13 +29,11 @@ namespace AgroForm.Data.DBContext
 
             if (!_repositories.ContainsKey(type))
             {
-                var repositoryInstance = new GenericRepository<T>(_contextFactory);
+                var repositoryInstance = new GenericRepository<T>(_context);
                 _repositories[type] = repositoryInstance;
             }
 
             return (IGenericRepository<T>)_repositories[type];
         }
     }
-
-
 }

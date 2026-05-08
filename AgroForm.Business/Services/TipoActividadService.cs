@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Business.Services;
@@ -15,10 +15,9 @@ namespace AgroForm.Business.Services
 {
     public class TipoActividadService : ServiceBase<TipoActividad>, ITipoActividadService
     {
-        public TipoActividadService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<TipoActividad>> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public TipoActividadService(IUnitOfWork unitOfWork, ILogger<ServiceBase<TipoActividad>> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
-
         }
     }
 }

@@ -1,4 +1,5 @@
 using AgroForm.Business.Services;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +11,7 @@ namespace AgroForm.Tests.Services
 
         public ActividadServiceTestsSimple()
         {
-            var unitOfWork = GetService<IUnitOfWork>();
-            var logger = GetService<ILogger<ActividadService>>();
-            
-            _actividadService = new ActividadService(
-                GetService<Microsoft.EntityFrameworkCore.IDbContextFactory<AppDbContext>>(),
-                logger,
-                HttpContextAccessorMock.Object,
-                unitOfWork);
+            _actividadService = (ActividadService)GetService<IActividadService>();
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using Microsoft.AspNetCore.Http;
@@ -9,8 +9,8 @@ namespace AgroForm.Business.Services
 {
     public class CampaniaService : ServiceBase<Campania>, ICampaniaService
     {
-        public CampaniaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<Campania>> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public CampaniaService(IUnitOfWork unitOfWork, ILogger<ServiceBase<Campania>> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
         }
 
@@ -18,33 +18,17 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
                 var validationResult = await ValidateAsync(entity);
                 if (!validationResult.Success)
                     return OperationResult<Campania>.Failure(validationResult.ErrorMessage);
 
-                //var hasCampaniaEnCurso = await GetCurrent();
-
-                //if(hasCampaniaEnCurso.Success && hasCampaniaEnCurso.Data != null)
-                //{
-                //    return OperationResult<Campania>.Failure("Existe una campaña en curso.", "SAVE_FAILED");
-                //}
-
                 foreach (var item in entity.Lotes)
                 {
-                    item.IdLicencia = _userAuth.IdLicencia;
-                    entity.RegistrationUser = _userAuth.UserName;
-                    entity.RegistrationDate = TimeHelper.GetArgentinaTime();
+                    item.IdLicencia = _userContext.IdLicencia;
                 }
 
-                entity.IdLicencia = _userAuth.IdLicencia;
-                entity.RegistrationDate = TimeHelper.GetArgentinaTime();
-                entity.ModificationDate = null;
-                entity.RegistrationUser = _userAuth.UserName;
-
-                context.Campanias.Add(entity);
-                int result = await context.SaveChangesAsync();
+                await _repository.AddAsync(entity);
+                int result = await _unitOfWork.SaveAsync();
 
                 if (result > 0)
                     return OperationResult<Campania>.SuccessResult(entity);
@@ -53,7 +37,7 @@ namespace AgroForm.Business.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al insertar el registro Campania");
+                _logger.LogError(ex, "Error al insertar el registro Campania");
                 return OperationResult<Campania>.Failure($"Ocurrió un problema al insertar el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
@@ -62,40 +46,44 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.Id == _userAuth.IdCampaña);
+                var campania = await GetQuery().SingleOrDefaultAsync(_ => _.Id == _userContext.IdCampaña);
 
                 if (campania == null)
                 {
-                    return OperationResult<Campania>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                    return OperationResult<Campania>.Failure("No existe una Campaña en curso", "NOT_FOUND");
                 }
 
                 return OperationResult<Campania>.SuccessResult(campania);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al reuperar campaña en cusro Campania");
-                return OperationResult<Campania>.Failure($"Ocurrió un problema al  reuperar campaña en cusro Campania: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al recuperar campaña en curso");
+                return OperationResult<Campania>.Failure($"Ocurrió un problema al recuperar campaña en curso: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
-        public async Task<OperationResult<Campania>> GetCurrentByLicencia(int idLicencia)
+        public async Task<OperationResult<Campania>> GetCurrentByLicencia(int? idLicencia)
         {
             try
             {
-                var campania = await GetQuery().Where(_=>_.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Iniciada)
+                if (idLicencia == null)
+                    return OperationResult<Campania>.Failure("ID de licencia no proporcionado", "BAD_REQUEST");
+
+                var campania = await GetQuery()
+                    .Where(_ => _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Iniciada)
                     .FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
                 if (campania == null)
                 {
-                    return OperationResult<Campania>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                    return OperationResult<Campania>.Failure("No existe una Campaña en curso para esta licencia", "NOT_FOUND");
                 }
 
                 return OperationResult<Campania>.SuccessResult(campania);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al reuperar campaña en cusro Campania");
-                return OperationResult<Campania>.Failure($"Ocurrió un problema al  reuperar campaña en cusro Campania: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al recuperar campaña en curso por licencia {IdLicencia}", idLicencia);
+                return OperationResult<Campania>.Failure($"Ocurrió un problema al recuperar campaña en curso: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
@@ -103,11 +91,11 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var campania = await GetQuery().Include(_=>_.Lotes).ThenInclude(_=>_.Campo).SingleAsync(_ => _.Id == id);
+                var campania = await GetQuery().Include(_ => _.Lotes).ThenInclude(_ => _.Campo).SingleOrDefaultAsync(_ => _.Id == id);
 
                 if (campania == null)
                 {
-                    return OperationResult<Campania>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                    return OperationResult<Campania>.Failure("No se encontró la campaña", "NOT_FOUND");
                 }
 
                 return OperationResult<Campania>.SuccessResult(campania);
@@ -125,24 +113,23 @@ namespace AgroForm.Business.Services
             {
                 var response = await GetByIdAsync(id);
 
-
-                if (response == null)
+                if (!response.Success || response.Data == null)
                 {
-                    return OperationResult<bool>.Failure($"No existe una Campaña en curso", "NOT_FOUND");
+                    return OperationResult<bool>.Failure("No se encontró la campaña", "NOT_FOUND");
                 }
-                var campania = response.Data;
 
+                var campania = response.Data;
                 campania.EstadosCampania = EnumClass.EstadosCamapaña.Finalizada;
                 campania.FechaFin = TimeHelper.GetArgentinaTime();
 
-                var updateResult = await UpdateAsync(campania);
+                await UpdateAsync(campania);
 
                 return OperationResult<bool>.SuccessResult(true);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al leer el registro con ID {Id}", id);
-                return OperationResult<bool>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
+                _logger.LogError(ex, "Error al finalizar la campaña con ID {Id}", id);
+                return OperationResult<bool>.Failure($"Ocurrió un problema al finalizar la campaña: {ex.Message}", "DATABASE_ERROR");
             }
         }
     }

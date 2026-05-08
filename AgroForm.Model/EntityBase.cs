@@ -1,4 +1,4 @@
-﻿using AgroForm.Model.Configuracion;
+using AgroForm.Model.Configuracion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace AgroForm.Model
 
     public abstract class EntityBaseWithLicencia : EntityBase
     {
-        public int IdLicencia { get; set; }
+        public int? IdLicencia { get; set; }
     }
 
     public interface IEntityBaseWithCampania

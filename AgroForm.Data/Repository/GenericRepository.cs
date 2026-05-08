@@ -1,4 +1,4 @@
-﻿namespace AgroForm.Data.Repository
+namespace AgroForm.Data.Repository
 {
     using AgroForm.Data.DBContext;
     using Microsoft.EntityFrameworkCore;
@@ -7,23 +7,21 @@
 
     public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
     {
-        private readonly IDbContextFactory<AppDbContext> _contextFactory;
+        private readonly AppDbContext _context;
 
-        public GenericRepository(IDbContextFactory<AppDbContext> contextFactory)
+        public GenericRepository(AppDbContext context)
         {
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> filtro)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            return await context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(filtro);
+            return await _context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(filtro);
         }
 
         public async Task<List<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filtro = null)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            IQueryable<TEntity> query = context.Set<TEntity>();
+            IQueryable<TEntity> query = _context.Set<TEntity>();
             if (filtro != null)
                 query = query.Where(filtro);
             return await query.AsNoTracking().ToListAsync();
@@ -31,74 +29,57 @@
 
         public async Task<TEntity> AddAsync(TEntity entidad)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            await context.Set<TEntity>().AddAsync(entidad);
-            await context.SaveChangesAsync();
+            await _context.Set<TEntity>().AddAsync(entidad);
             return entidad;
         }
 
         public async Task AddRangeAsync(IEnumerable<TEntity> entidades)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            await context.Set<TEntity>().AddRangeAsync(entidades);
-            await context.SaveChangesAsync();
+            await _context.Set<TEntity>().AddRangeAsync(entidades);
         }
 
         public async Task<bool> UpdateRangeAsync(IEnumerable<TEntity> entidades)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            context.UpdateRange(entidades);
-            await context.SaveChangesAsync();
-            return true;
+            _context.UpdateRange(entidades);
+            return await Task.FromResult(true);
         }
 
         public async Task<bool> DeleteRangeAsync(IEnumerable<TEntity> entidades)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            context.RemoveRange(entidades);
-            await context.SaveChangesAsync();
-            return true;
+            _context.RemoveRange(entidades);
+            return await Task.FromResult(true);
         }
 
         public async Task<bool> UpdateAsync(TEntity entidad)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            context.Update(entidad);
-            await context.SaveChangesAsync();
-            return true;
+            _context.Update(entidad);
+            return await Task.FromResult(true);
         }
 
         public async Task<bool> DeleteAsync(TEntity entidad)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            context.Remove(entidad);
-            await context.SaveChangesAsync();
-            return true;
+            _context.Remove(entidad);
+            return await Task.FromResult(true);
         }
         public async Task<TEntity?> GetByIdAsync(object id)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            return await context.Set<TEntity>().FindAsync(id);
+            return await _context.Set<TEntity>().FindAsync(id);
         }
 
         public async Task<bool> DeleteByIdAsync(object id)
         {
-            await using var context = _contextFactory.CreateDbContext();
-            var entidad = await context.Set<TEntity>().FindAsync(id);
+            var entidad = await _context.Set<TEntity>().FindAsync(id);
             if (entidad == null)
                 return false;
 
-            context.Remove(entidad);
-            await context.SaveChangesAsync();
+            _context.Remove(entidad);
             return true;
         }
 
         public IQueryable<TEntity> Query()
         {
-            var context = _contextFactory.CreateDbContext();
-            return context.Set<TEntity>().AsQueryable();
+            return _context.Set<TEntity>().AsQueryable();
         }
 
     }
-
 }

@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
@@ -12,33 +12,26 @@ namespace AgroForm.Business.Services
 {
     public class CatalogoService : ServiceBase<Catalogo>, ICatalogoService
     {
-        public CatalogoService(IDbContextFactory<AppDbContext> contextFactory, ILogger<CatalogoService> logger, IHttpContextAccessor httpContextAccessor)
-            : base(contextFactory, logger, httpContextAccessor)
+        public CatalogoService(IUnitOfWork unitOfWork, ILogger<CatalogoService> logger, IUserContext userContext)
+            : base(unitOfWork, logger, userContext)
         {
-
         }
 
         public async Task<OperationResult<List<Catalogo>>> GetByType(TipoCatalogoEnum tipo)
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync();
-                var entities = await context.Set<Catalogo>()
-                    .AsNoTracking()
-                    .Where(_=>_.Tipo == tipo)
-                    .Where(_ => _.Activo)
-                    .OrderBy(_=>_.Nombre)
-                    .ToListAsync();
+                var entities = await _repository.GetAllAsync(e => e.Tipo == tipo && e.Activo);
 
                 if (!entities.Any())
-                    return OperationResult<List<Catalogo>>.Failure("Catalogo por tipo no encontrados");
+                    return OperationResult<List<Catalogo>>.Failure("Catálogo por tipo no encontrado");
 
-                return OperationResult<List<Catalogo>>.SuccessResult((List<Catalogo>)(object)entities);
+                return OperationResult<List<Catalogo>>.SuccessResult(entities.OrderBy(e => e.Nombre).ToList());
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener Catalogos por tipo {tipo}",tipo);
-                return OperationResult<List<Catalogo>>.Failure("Error al obtener Catalogos por tipo");
+                _logger.LogError(ex, "Error al obtener Catálogos por tipo {tipo}", tipo);
+                return OperationResult<List<Catalogo>>.Failure("Error al obtener Catálogos por tipo");
             }
         }
 
@@ -46,22 +39,18 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var entities = await base.GetQuery()
-                    .AsNoTracking()
-                    .Where(_ => _.Activo)
-                    .ToListAsync();
+                var entities = await _repository.GetAllAsync(e => e.Activo);
 
                 if (!entities.Any())
-                    return OperationResult<List<Catalogo>>.Failure("Catalogo por tipo no encontrados");
+                    return OperationResult<List<Catalogo>>.Failure("Catálogos activos no encontrados");
 
-                return OperationResult<List<Catalogo>>.SuccessResult((List<Catalogo>)(object)entities);
+                return OperationResult<List<Catalogo>>.SuccessResult(entities);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener todos los Catalogos activos");
-                return OperationResult<List<Catalogo>>.Failure("Error al obtener todos los Catalogos activos");
+                _logger.LogError(ex, "Error al obtener todos los Catálogos activos");
+                return OperationResult<List<Catalogo>>.Failure("Error al obtener todos los Catálogos activos");
             }
         }
-        
     }
 }

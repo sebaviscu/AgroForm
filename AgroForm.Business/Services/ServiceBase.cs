@@ -1,5 +1,6 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
+using AgroForm.Data.Repository;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using Microsoft.AspNetCore.Http;
@@ -12,54 +13,24 @@ namespace AgroForm.Business.Services
 {
     public class ServiceBase<T> : IServiceBase<T> where T : EntityBase
     {
-        protected readonly IDbContextFactory<AppDbContext> _contextFactory;
+        protected readonly IUnitOfWork _unitOfWork;
         protected readonly ILogger<ServiceBase<T>> _logger;
-        protected UserAuth _userAuth;
+        protected readonly IUserContext _userContext;
+        protected readonly IGenericRepository<T> _repository;
 
-        public ServiceBase(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<T>> logger, IHttpContextAccessor _httpContextAccessor)
+        public ServiceBase(IUnitOfWork unitOfWork, ILogger<ServiceBase<T>> logger, IUserContext userContext)
         {
-            _contextFactory = contextFactory;
+            _unitOfWork = unitOfWork;
             _logger = logger;
-
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext != null && httpContext.User.Identity != null && httpContext.User.Identity.IsAuthenticated)
-            {
-                var claimUser = httpContext.User;
-
-                _userAuth = new UserAuth
-                {
-                    UserName = UtilidadService.GetClaimValue<string>(claimUser, ClaimTypes.Name),
-                    IdLicencia = UtilidadService.GetClaimValue<int>(claimUser, "Licencia"),
-                    IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
-                    IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
-                    IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
-                    Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
-                };
-            }
+            _userContext = userContext;
+            _repository = _unitOfWork.Repository<T>();
         }
-
 
         public virtual async Task<OperationResult<List<T>>> GetAllAsync()
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                IQueryable<T> query = context.Set<T>().AsNoTracking();
-
-                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
-                {
-                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
-                }
-
-
-                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
-                {
-                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
-                }
-
-                var list = await query.ToListAsync();
-
+                var list = await _repository.GetAllAsync();
                 return OperationResult<List<T>>.SuccessResult(list);
             }
             catch (Exception ex)
@@ -71,77 +42,37 @@ namespace AgroForm.Business.Services
 
         public virtual async Task<OperationResult<List<T>>> GetAllByCamapniaAsync()
         {
+            // Nota: El filtro de IdLicencia ya es global en el DbContext.
+            // Si se requiere filtrar por campaña específicamente (y no es global), se hace aquí.
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                IQueryable<T> query = context.Set<T>().AsNoTracking();
-
-                // Filtro por IdLicencia si la entidad hereda de EntityBaseWithLicencia
-                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
-                {
-                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
-                }
+                IQueryable<T> query = _repository.Query().AsNoTracking();
 
                 if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
                 {
-                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
+                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userContext.IdCampaña);
                 }
 
-                //var companiaProp = typeof(T).GetProperty("IdCampania");
-                //if (companiaProp != null && companiaProp.PropertyType == typeof(int))
-                //{
-                //    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
-                //}
-
                 var list = await query.ToListAsync();
-
                 return OperationResult<List<T>>.SuccessResult(list);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al leer todos los registros de {TypeName}", typeof(T).Name);
+                _logger.LogError(ex, "Error al leer los registros de {TypeName} por campaña", typeof(T).Name);
                 return OperationResult<List<T>>.Failure($"Ocurrió un problema al leer los registros: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
-
         public virtual async Task<OperationResult<List<T>>> GetAllWithDetailsAsync()
         {
-            try
-            {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                IQueryable<T> query = context.Set<T>().AsNoTracking();
-
-                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
-                {
-                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userAuth.IdLicencia);
-                }
-
-                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
-                {
-                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userAuth.IdCampaña);
-                }
-
-                var list = await query.ToListAsync();
-
-                return OperationResult<List<T>>.SuccessResult(list);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al leer todos los registros con detalles de {TypeName}", typeof(T).Name);
-                return OperationResult<List<T>>.Failure($"Ocurrió un problema al leer los registros: {ex.Message}", "DATABASE_ERROR");
-            }
+            return await GetAllAsync();
         }
 
         public virtual async Task<OperationResult<T>> GetByIdAsync(int id)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = context.Set<T>().AsNoTracking().FirstOrDefault(_=>_.Id == id);
+                var entity = await _repository.GetAsync(e => e.Id == id);
 
                 if (entity == null)
                     return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
@@ -157,47 +88,30 @@ namespace AgroForm.Business.Services
 
         public virtual async Task<OperationResult<T>> GetByIdWithDetailsAsync(int id)
         {
-            try
-            {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                var entity = await context.Set<T>()
-                                          .AsNoTracking()
-                                          .FirstOrDefaultAsync(x => x.Id == id);
-
-                return OperationResult<T>.SuccessResult(entity);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al leer el registro con detalles con ID {Id}", id);
-                return OperationResult<T>.Failure($"Ocurrió un problema al leer el registro: {ex.Message}", "DATABASE_ERROR");
-            }
+            return await GetByIdAsync(id);
         }
 
         public virtual async Task<OperationResult<T>> CreateAsync(T entity)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
                 var validationResult = await ValidateAsync(entity);
                 if (!validationResult.Success)
                     return OperationResult<T>.Failure(validationResult.ErrorMessage);
 
+                // Multi-tenancy automático para IdLicencia vía Global Filter y SaveChanges
+                // Asignamos explícitamente los campos que NO son automáticos o que dependen de la lógica
                 if (entity is EntityBaseWithLicencia entidadConLicencia)
-                    entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
+                    entidadConLicencia.IdLicencia = _userContext.IdLicencia;
 
-                if (entity is IEntityBaseWithCampania entidadConCampania)
-                    entidadConCampania.IdCampania = _userAuth.IdCampaña;
+                if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
+                    entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
 
                 if (entity is IEntityBaseWithMoneda entidadConMoneda)
-                    entidadConMoneda.IdMoneda= (int)_userAuth.Moneda;
+                    entidadConMoneda.IdMoneda = (int)_userContext.User.Moneda;
 
-                entity.RegistrationDate = TimeHelper.GetArgentinaTime();
-                entity.ModificationDate = null;
-                entity.RegistrationUser = _userAuth.UserName;
-
-                context.Set<T>().Add(entity);
-                int result = await context.SaveChangesAsync();
+                await _repository.AddAsync(entity);
+                int result = await _unitOfWork.SaveAsync();
 
                 if (result > 0)
                     return OperationResult<T>.SuccessResult(entity);
@@ -206,7 +120,7 @@ namespace AgroForm.Business.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al insertar el registro {typeof(T)}");
+                _logger.LogError(ex, "Error al insertar el registro {TypeName}", typeof(T).Name);
                 return OperationResult<T>.Failure($"Ocurrió un problema al insertar el registro: {ex.Message}", "DATABASE_ERROR");
             }
         }
@@ -215,8 +129,6 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
                 foreach (var entity in entityList)
                 {
                     var validationResult = await ValidateAsync(entity);
@@ -224,26 +136,19 @@ namespace AgroForm.Business.Services
                         return OperationResult<List<T>>.Failure($"Error de validacion en el registro: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
 
                     if (entity is EntityBaseWithLicencia entidadConLicencia)
-                        entidadConLicencia.IdLicencia = _userAuth.IdLicencia;
+                        entidadConLicencia.IdLicencia = _userContext.IdLicencia;
 
-                    if (entity is IEntityBaseWithCampania entidadConCampania)
-                        entidadConCampania.IdCampania = _userAuth.IdCampaña;
-
-                    if (entity is IEntityBaseWithMoneda entidadConMoneda)
-                        entidadConMoneda.IdMoneda = (int)_userAuth.Moneda;
-
-                    entity.RegistrationDate = TimeHelper.GetArgentinaTime();
-                    entity.ModificationDate = null;
-                    entity.RegistrationUser = _userAuth.UserName;
+                    if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
+                        entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
                 }
 
-                context.Set<T>().AddRange(entityList);
-                int result = await context.SaveChangesAsync();
+                await _repository.AddRangeAsync(entityList);
+                int result = await _unitOfWork.SaveAsync();
 
-                if (result == entityList.Count)
+                if (result > 0)
                     return OperationResult<List<T>>.SuccessResult(entityList);
 
-                return OperationResult<List<T>>.Failure($"Solo se insertaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
+                return OperationResult<List<T>>.Failure("No se pudieron insertar los registros.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {
@@ -252,14 +157,11 @@ namespace AgroForm.Business.Services
             }
         }
 
-
         public virtual async Task<OperationResult<T>> UpdateAsync(T entity)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var original = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == entity.Id);
+                var original = await _repository.GetAsync(x => x.Id == entity.Id);
                 if (original == null)
                     return OperationResult<T>.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
 
@@ -267,33 +169,12 @@ namespace AgroForm.Business.Services
                 if (!validationResult.Success)
                     return OperationResult<T>.Failure(validationResult.ErrorMessage, "VALIDATION_ERROR");
 
-                if (entity is EntityBaseWithLicencia entidadConLicencia && original is EntityBaseWithLicencia originalConLicencia)
-                    entidadConLicencia.IdLicencia = originalConLicencia.IdLicencia;
-
-                if (entity is IEntityBaseWithCampania entidadConCampania && original is IEntityBaseWithCampania originalConCampania)
-                {
-                    entidadConCampania.IdCampania = originalConCampania.IdCampania;
-                }
-
-                if (entity is IEntityBaseWithMoneda entidadConMoneda && original is IEntityBaseWithMoneda originalConMoneda)
-                {
-                    entidadConMoneda.IdMoneda = originalConMoneda.IdMoneda;
-                }
-
-                var registrationDate = original.RegistrationDate;
-                var registrationUser = original.RegistrationUser;
-
-                context.Entry(original).CurrentValues.SetValues(entity);
-
-                original.ModificationDate = TimeHelper.GetArgentinaTime();
-                original.ModificationUser = _userAuth.UserName;
-                original.RegistrationUser = registrationUser;
-                original.RegistrationDate = registrationDate;
-
-                int result = await context.SaveChangesAsync();
+                // El context tracker se encarga de los cambios. Usamos el repositorio para marcarlo como modificado.
+                await _repository.UpdateAsync(entity);
+                int result = await _unitOfWork.SaveAsync();
 
                 if (result > 0)
-                    return OperationResult<T>.SuccessResult(original);
+                    return OperationResult<T>.SuccessResult(entity);
 
                 return OperationResult<T>.Failure("No se pudo actualizar el registro en la base de datos.", "SAVE_FAILED");
             }
@@ -308,33 +189,13 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                await _repository.UpdateRangeAsync(entityList);
+                int result = await _unitOfWork.SaveAsync();
 
-                foreach (var entity in entityList)
-                {
-                    var original = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == entity.Id);
-                    if (original == null)
-                        return OperationResult<List<T>>.Failure($"El registro con ID {entity.Id} que intenta actualizar no existe.", "NOT_FOUND");
-
-                    var validationResult = await ValidateAsync(entity);
-                    if (!validationResult.Success)
-                        return OperationResult<List<T>>.Failure($"Error de validacion en el registro con ID {entity.Id}: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
-
-                    if (entity is EntityBaseWithLicencia entidadConLicencia && original is EntityBaseWithLicencia originalConLicencia)
-                        entidadConLicencia.IdLicencia = originalConLicencia.IdLicencia;
-
-                    context.Entry(original).CurrentValues.SetValues(entity);
-
-                    original.ModificationDate = TimeHelper.GetArgentinaTime();
-                    original.ModificationUser = _userAuth.UserName;
-                }
-
-                int result = await context.SaveChangesAsync();
-
-                if (result == entityList.Count)
+                if (result > 0)
                     return OperationResult<List<T>>.SuccessResult(entityList);
 
-                return OperationResult<List<T>>.Failure($"Solo se actualizaron {result} de {entityList.Count} registros.", "PARTIAL_SAVE");
+                return OperationResult<List<T>>.Failure("No se pudieron actualizar los registros.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {
@@ -343,19 +204,17 @@ namespace AgroForm.Business.Services
             }
         }
 
-
         public virtual async Task<OperationResult> DeleteAsync(int id)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                var entity = await context.Set<T>().FirstOrDefaultAsync(x => x.Id == id);
+                var entity = await _repository.GetAsync(x => x.Id == id);
 
                 if (entity == null)
                     return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
 
-                context.Set<T>().Remove(entity);
-                int result = await context.SaveChangesAsync();
+                await _repository.DeleteAsync(entity);
+                int result = await _unitOfWork.SaveAsync();
 
                 return result > 0 ? OperationResult.SuccessResult() : OperationResult.Failure("No se pudo eliminar el registro de la base de datos.", "SAVE_FAILED");
             }
@@ -370,37 +229,33 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                var idList = ids.ToList();
+                var entities = await _repository.GetAllAsync(x => ids.Contains(x.Id));
+                await _repository.DeleteRangeAsync(entities);
+                int result = await _unitOfWork.SaveAsync();
 
-                var entities = await context.Set<T>().Where(x => idList.Contains(x.Id)).ToListAsync();
-                context.Set<T>().RemoveRange(entities);
-                int result = await context.SaveChangesAsync();
-
-                return result == idList.Count ? OperationResult.SuccessResult() : OperationResult.Failure($"Solo se eliminaron {result} de {idList.Count} registros.", "PARTIAL_DELETE");
+                return result > 0 ? OperationResult.SuccessResult() : OperationResult.Failure("No se pudieron eliminar los registros.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar {Count} registros", ids.Count());
+                _logger.LogError(ex, "Error al eliminar los registros");
                 return OperationResult.Failure($"Ocurrió un problema al eliminar los registros: {ex.Message}", "DATABASE_ERROR");
             }
         }
 
         public virtual async Task<bool> ExistsAsync(int id)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.Set<T>().AnyAsync(x => x.Id == id);
+            var entity = await _repository.GetAsync(x => x.Id == id);
+            return entity != null;
         }
 
         public virtual async Task<OperationResult> ValidateAsync(T entity)
         {
-            return OperationResult.SuccessResult();
+            return await Task.FromResult(OperationResult.SuccessResult());
         }
 
         public virtual IQueryable<T> GetQuery()
         {
-            var context = _contextFactory.CreateDbContext();
-            return context.Set<T>().AsQueryable();
+            return _repository.Query();
         }
     }
 

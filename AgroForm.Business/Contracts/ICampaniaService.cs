@@ -1,4 +1,4 @@
-﻿using AgroForm.Model;
+using AgroForm.Model;
 using AgroForm.Business.Services;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,6 @@ namespace AgroForm.Business.Contracts
     public interface ICampaniaService : IServiceBase<Campania>
     {
         Task<OperationResult<Campania>> GetCurrent();
-        Task<OperationResult<Campania>> GetCurrentByLicencia(int idLicencia);
+        Task<OperationResult<Campania>> GetCurrentByLicencia(int? idLicencia);
     }
 }

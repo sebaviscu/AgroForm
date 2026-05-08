@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -40,7 +40,7 @@
         <div id="content" class="content">
 
             <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom py-2">
+            <nav id="topNavbar" class="navbar navbar-expand-lg navbar-light bg-white border-bottom py-2">
                 <div class="container-fluid" style="padding: 0px">
                     <!-- Mobile toggle button -->
                     <button type="button" id="sidebarCollapseMobile" class="btn btn-outline-secondary btn-sm d-lg-none me-2">
@@ -142,9 +142,261 @@
         }
     </script>
 
+    <script>
+        // Función para abrir el modal de perfil
+        function abrirModalPerfil(event) {
+            event.preventDefault();
+            
+            // Obtener el ID del usuario desde los claims
+            const userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+            
+            if (userId) {
+                // Cargar datos del usuario
+                fetch(`/Access/GetUserProfile/${userId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('usuarioId').value = data.data.id;
+                            document.getElementById('nombre').value = data.data.nombre;
+                            document.getElementById('email').value = data.data.email;
+                            document.getElementById('phoneNumber').value = data.data.phoneNumber || '';
+                            
+                            // Mostrar el modal
+                            const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
+                            modal.show();
+                        } else {
+                            toastr.error('Error al cargar el perfil del usuario');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        toastr.error('Error al cargar el perfil del usuario');
+                    });
+            }
+        }
+
+        // Función para guardar el perfil
+        function guardarPerfil() {
+            const form = document.getElementById('perfilForm');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const userId = document.getElementById('usuarioId').value;
+            const perfilData = {
+                id: parseInt(userId),
+                nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('phoneNumber').value
+            };
+
+            fetch('/Access/UpdateUserProfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(perfilData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success('Perfil actualizado correctamente');
+                    
+                    // Cerrar el modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('perfilModal'));
+                    modal.hide();
+                    
+                    // Actualizar el nombre mostrado en el sidebar si cambió
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    toastr.error(data.message || 'Error al actualizar el perfil');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('Error al actualizar el perfil');
+            });
+        }
+
+        // Función para mostrar mensaje de configuración
+        function mostrarMensajeConfiguracion(event) {
+            event.preventDefault();
+            toastr.info('La funcionalidad de configuración estará disponible próximamente');
+        }
+
+        function abrirModalConfiguracion(event) {
+            event.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('configModal'));
+            modal.show();
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+            } else {
+                document.body.removeAttribute('data-theme');
+            }
+        }
+
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            applyTheme(theme);
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 
     @await Component.InvokeAsync("ActividadRapida")
+
+<!-- Modal Perfil de Usuario -->
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="perfilModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="perfilModalLabel">
+                    <i class="ph ph-user me-2"></i>Mi Perfil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="perfilForm">
+                    <input type="hidden" id="usuarioId" />
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="phoneNumber">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarPerfil()">
+                    <i class="ph ph-check-circle me-1"></i>Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Configuración -->
+<div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="configModalLabel">
+                    <i class="ph ph-gear me-2"></i>Configuración
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-semibold">Tema</div>
+                        <div class="text-muted small">Elegí modo claro u oscuro</div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="themeSwitchUser">
+                        <label class="form-check-label" for="themeSwitchUser">Oscuro</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicialización del tema para la vista de usuario
+    $(document).ready(function () {
+        const themeSwitch = document.getElementById('themeSwitchUser');
+        if (!themeSwitch) return;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        themeSwitch.checked = savedTheme === 'dark';
+
+        themeSwitch.addEventListener('change', function () {
+            setTheme(this.checked ? 'dark' : 'light');
+        });
+    });
+</script>
+
+<!-- Script para manejar la simulación -->
+    <script>
+        // Funciones globales de simulación
+        function detenerSimulacion() {
+            mostrarConfirmacion(
+                '¿Está seguro de que desea detener la simulación? Volverá a tener vista de Super Admin.',
+                'Detener Simulación'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Simulacion/DetenerSimulacion',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                toastr.success(response.message);
+                                actualizarEstadoSimulacion();
+                                // Volver a la vista de administrador
+                                setTimeout(() => {
+                                    window.location.href = response.redirectUrl || '/Administrador/Index';
+                                }, 800);
+                            } else {
+                                toastr.error(response.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            toastr.error('Error al detener simulación: ' + (xhr.responseJSON?.message || error));
+                        }
+                    });
+                }
+            });
+        }
+
+        function actualizarEstadoSimulacion() {
+            $.ajax({
+                url: '/Simulacion/GetEstadoSimulacion',
+                type: 'GET',
+                success: function (response) {
+                    if (response.isSimulating) {
+                        // Mostrar banner de simulación
+                        $('#bannerSimulacionContainer').removeClass('d-none');
+                        $('#licenciaSimulada').text(response.licenciaActual);
+                        $('#sidebar').addClass('simulating');
+                    } else {
+                        // Ocultar banner de simulación
+                        $('#bannerSimulacionContainer').addClass('d-none');
+                        $('#sidebar').removeClass('simulating');
+                    }
+                },
+                error: function () {
+                    console.error('Error al obtener estado de simulación');
+                }
+            });
+        }
+
+        // Verificar estado de simulación al cargar la página
+        $(document).ready(function() {
+            actualizarEstadoSimulacion();
+        });
+    </script>
 
 </body>
 </html>

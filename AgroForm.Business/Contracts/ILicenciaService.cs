@@ -1,4 +1,4 @@
-﻿using AgroForm.Model;
+using AgroForm.Model;
 using AgroForm.Business.Services;
 using System;
 using System.Collections.Generic;
@@ -12,5 +12,6 @@ namespace AgroForm.Business.Contracts
     {
         Task<OperationResult> CreatePagarLicencia(PagoLicencia pagoLicencia);
         Task<OperationResult> DeletePagoLicencia(int idPagoLicencia);
+        Task<OperationResult<Licencia>> CreateLicenseWithAdminAsync(Licencia licencia, string adminName, string adminEmail, string adminPassword);
     }
 }

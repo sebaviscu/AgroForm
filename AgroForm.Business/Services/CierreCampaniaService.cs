@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Model;
@@ -19,12 +19,11 @@ namespace AgroForm.Business.Services
 {
     public class CierreCampaniaService : ServiceBase<ReporteCierreCampania>, ICierreCampaniaService
     {
-
         private readonly IGenericRepository<Campania> _campaniaRepo;
         private readonly IPdfService _pdfService;
 
-        public CierreCampaniaService(IDbContextFactory<AppDbContext> contextFactory, ILogger<ServiceBase<ReporteCierreCampania>> logger, IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, IPdfService pdfService)
-            : base(contextFactory, logger, httpContextAccessor)
+        public CierreCampaniaService(IUnitOfWork unitOfWork, ILogger<ServiceBase<ReporteCierreCampania>> logger, IUserContext userContext, IPdfService pdfService)
+            : base(unitOfWork, logger, userContext)
         {
             _campaniaRepo = unitOfWork.Repository<Campania>();
             _pdfService = pdfService;
@@ -92,19 +91,17 @@ namespace AgroForm.Business.Services
             CalcularDatosClimaticosAsync(campania, reporte);
             CalcularDatosGastosAsync(campania, reporte);
 
+            // cambiar estado campania
+            campania.EstadosCampania = EstadosCamapaña.Finalizada;
+            campania.FechaFin = hoy;
+            await _campaniaRepo.UpdateAsync(campania);
+
             var result = await base.CreateAsync(reporte);
 
             if (!result.Success)
             {
                 return OperationResult<ReporteCierreCampania>.Failure(result.ErrorMessage, result.ErrorCode);
             }
-
-            // cambiar estado campania
-            campania.EstadosCampania = EstadosCamapaña.Finalizada;
-            campania.FechaFin = hoy;
-            await _campaniaRepo.UpdateAsync(campania);
-
-            // cambair estado de las labores
 
             return OperationResult<ReporteCierreCampania>.SuccessResult(result.Data);
         }

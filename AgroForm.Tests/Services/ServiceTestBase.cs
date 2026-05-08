@@ -10,6 +10,7 @@ using AgroForm.Business.Services;
 using AgroForm.Business.Contracts;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using AgroForm.Model;
 using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Tests.Services
@@ -69,6 +70,9 @@ namespace AgroForm.Tests.Services
             httpContext.User = new ClaimsPrincipal(identity);
             
             services.AddSingleton<IHttpContextAccessor>(new HttpContextAccessor { HttpContext = httpContext });
+
+            // Registrar IUserContext (usando la implementación real que usa IHttpContextAccessor)
+            services.AddScoped<IUserContext, AgroForm.Web.Utilities.UserContext>();
 
             // Configurar UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();

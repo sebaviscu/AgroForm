@@ -42,6 +42,22 @@
     </div>
 
     <div class="sidebar-content">
+        <!-- Banner de Simulación (solo visible cuando está simulando) -->
+        <div id="bannerSimulacionContainer" class="d-none px-3 pt-3">
+            <div class="simulation-banner d-flex align-items-start justify-content-between gap-2 p-2 rounded">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="ph ph-eye" style="margin-top: 2px;"></i>
+                    <div style="line-height: 1.1;">
+                        <div class="fw-semibold">Modo simulación</div>
+                        <div class="small">Licencia <span id="licenciaSimulada">-</span></div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-light" onclick="detenerSimulacion()" title="Salir de simulación">
+                    <i class="ph ph-sign-out"></i>
+                </button>
+            </div>
+        </div>
+
         <ul class="list-unstyled components pt-3">
             <li class="active">
                 <a href="/Home/Index" class="sidebar-link">
@@ -90,11 +106,11 @@
                             Campañas
                         </a>
                     </li>
-                    <li>
+                    <!-- <li>
                         <a href="/Usuario/Index" class="sidebar-subitem">
                             Usuarios
                         </a>
-                    </li>
+                    </li> -->
                 </ul>
             </li>
             <li>
@@ -131,17 +147,9 @@
     </div>
 
     <div class="sidebar-footer border-top">
-        <form method="post" asp-controller="Access" asp-action="Logout" id="logoutForm">
-            <button type="submit" class="dropdown-item d-flex align-items-center sidebar-link no-hover-style">
+        <div class="dropdown w-100">
 
-                    <i class="ph ph-sign-out text-white" style="font-size: 16px;"></i>
-
-                <span>Cerrar Sesion</span>
-            </button>
-        </form>
-        @* <div class="dropdown w-100">
-
-            <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0 w-100 sidebar-link dropdown-toggle"
+            <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0 w-100 sidebar-link"
                     type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
 
                 <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
@@ -157,13 +165,13 @@
 
             <ul class="dropdown-menu shadow border-0 w-100" aria-labelledby="userDropdown">
                 <li>
-                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                    <a class="dropdown-item d-flex align-items-center py-2" href="#" onclick="abrirModalPerfil(event)">
                         <i class="ph ph-user me-2"></i>
                         <span>Mi Perfil</span>
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item d-flex align-items-center py-2" href="#">
+                    <a class="dropdown-item d-flex align-items-center py-2" href="#" onclick="abrirModalConfiguracion(event)">
                         <i class="ph ph-gear me-2"></i>
                         <span>Configuracion</span>
                     </a>
@@ -179,6 +187,6 @@
                 </li>
             </ul>
 
-        </div> *@
+        </div>
     </div>
 </nav>

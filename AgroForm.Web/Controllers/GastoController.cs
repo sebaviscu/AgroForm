@@ -1,4 +1,4 @@
-﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
@@ -36,7 +36,7 @@ namespace AgroForm.Web.Controllers
             dto.CostoARS = UtilidadService.CalcularCostoARS(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.CostoUSD = UtilidadService.CalcularCostoUSD(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.IdMoneda = dto.EsDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
-            dto.IdCampania = user.IdCampaña;
+            dto.IdCampania = user.IdCampaña.GetValueOrDefault();
 
             return await base.Create(dto);
         }
@@ -50,7 +50,7 @@ namespace AgroForm.Web.Controllers
             dto.CostoARS = UtilidadService.CalcularCostoARS(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.CostoUSD = UtilidadService.CalcularCostoUSD(dto.Costo, dto.EsDolar, tipoCambioUSD.TipoCambioReferencia);
             dto.IdMoneda = dto.EsDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
-            dto.IdCampania = user.IdCampaña;
+            dto.IdCampania = user.IdCampaña.GetValueOrDefault();
 
             return await base.Update(dto);
         }
