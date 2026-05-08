@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36603.0
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11723.189 insiders
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgroForm.Data", "AgroForm.Data\AgroForm.Data.csproj", "{C0D08186-9E04-400F-B0C5-F4F64B769940}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgroForm.Model", "AgroForm.Model\AgroForm.Model.csproj", "{2117DB29-5BEF-4790-A7C6-F9CCF156C31D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgroForm.Web", "AgroForm.Web\AgroForm.Web.csproj", "{0F22B766-BF98-9640-738C-CFE463C9FAEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgroForm.Tests", "AgroForm.Tests\AgroForm.Tests.csproj", "{4DA7082D-D325-B371-99B9-05371780176F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{0F22B766-BF98-9640-738C-CFE463C9FAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F22B766-BF98-9640-738C-CFE463C9FAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F22B766-BF98-9640-738C-CFE463C9FAEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DA7082D-D325-B371-99B9-05371780176F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DA7082D-D325-B371-99B9-05371780176F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DA7082D-D325-B371-99B9-05371780176F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DA7082D-D325-B371-99B9-05371780176F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

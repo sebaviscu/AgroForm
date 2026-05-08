@@ -1,19 +1,14 @@
 ﻿using AgroForm.Business.Contracts;
-using AgroForm.Business.Services;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Configuracion;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using static AgroForm.Model.EnumClass;
-using static iText.IO.Util.IntHashtable;
 
-namespace AlbaServicios.Services
+namespace AgroForm.Business.Services
 {
     public class ServiceBase<T> : IServiceBase<T> where T : EntityBase
     {

@@ -2,20 +2,13 @@
 using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Model;
-using AgroForm.Model.Actividades;
-using AlbaServicios.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AgroForm.Business.Services
 {
-    internal class LicenciaService : ServiceBase<Licencia>, ILicenciaService
+    public class LicenciaService : ServiceBase<Licencia>, ILicenciaService
     {
 
         public readonly IGenericRepository<PagoLicencia> _pagoLicenciaRepository;
