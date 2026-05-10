@@ -56,6 +56,7 @@ namespace AgroForm.Web.Models
             get
             {
                 if (SiembraACosechar == null) return string.Empty;
+                if (SiembraACosechar.Cultivo == null) return SiembraACosechar.CultivoNombre?.ToUpper() ?? string.Empty;
 
                 return $"{SiembraACosechar.Cultivo.Nombre.ToUpper()}";
             }

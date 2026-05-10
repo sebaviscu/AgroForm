@@ -658,6 +658,19 @@ function cargarDatosParaVisualizacion(id) {
             if (response.success) {
                 currentFieldData = response.object;
 
+                // Verificar si hay coordenadas válidas
+                if (!currentFieldData.latitud || !currentFieldData.longitud) {
+                    console.warn('El campo no tiene coordenadas válidas:', {
+                        latitud: currentFieldData.latitud,
+                        longitud: currentFieldData.longitud
+                    });
+                } else {
+                    console.log('Coordenadas del campo:', {
+                        latitud: currentFieldData.latitud,
+                        longitud: currentFieldData.longitud
+                    });
+                }
+
                 // Actualizar información del campo
                 $('#view-nombre').text(currentFieldData.nombre);
                 $('#view-ubicacion').text(currentFieldData.ubicacion || 'No especificada');
@@ -681,7 +694,13 @@ function cargarDatosParaVisualizacion(id) {
                         cargarPoligonoVisualizacion(currentFieldData.coordenadasPoligono, currentFieldData.latitud, currentFieldData.longitud);
                         // Cargar datos y análisis
                         cargarDatosYAnalisis();
-                    }, 500);
+                    }, 800); // Aumentado el timeout para dar más tiempo al mapa
+                } else {
+                    console.warn('El campo no tiene coordenadas de polígono');
+                    // Cargar datos y análisis aunque no haya polígono
+                    setTimeout(() => {
+                        cargarDatosYAnalisis();
+                    }, 800);
                 }
 
             } else {
@@ -752,34 +771,60 @@ function inicializarMapaVisualizacion() {
         viewMap.remove();
     }
 
-    viewMap = L.map('view-map').setView([-34.6037, -58.3816], 13);
+    // Esperar a que el modal sea completamente visible
+    setTimeout(() => {
+        try {
+            // Usar coordenadas del campo si existen
+            let defaultCenter = [-34.6037, -58.3816];
+            let defaultZoom = 13;
 
-    // Capas base
-    baseLayers = {
-        "Google Satélite": L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            attribution: '© Google Maps',
-            maxZoom: 20
-        }),
-        "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-            maxZoom: 19
-        })
-    };
+            if (currentFieldData && currentFieldData.latitud && currentFieldData.longitud) {
+                defaultCenter = [currentFieldData.latitud, currentFieldData.longitud];
+                defaultZoom = 15;
+                console.log('Usando coordenadas del campo:', defaultCenter);
+            } else {
+                console.warn('El campo no tiene coordenadas válidas, usando coordenadas por defecto');
+            }
 
-    // Agregar capa base por defecto
-    baseLayers["Google Satélite"].addTo(viewMap);
+            viewMap = L.map('view-map').setView(defaultCenter, defaultZoom);
 
-    // Configurar capas overlay
-    configurarCapasOverlay();
+            // Capas base con fallback
+            baseLayers = {
+                "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap',
+                    maxZoom: 19
+                }),
+                "Google Satélite": L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                    attribution: '© Google Maps',
+                    maxZoom: 20
+                })
+            };
 
-    // Agregar control de capas
-    L.control.layers(baseLayers, overlayLayers, {
-        collapsed: true,
-        position: 'topright'
-    }).addTo(viewMap);
+            // Agregar capa base por defecto (OpenStreetMap como fallback más confiable)
+            baseLayers["OpenStreetMap"].addTo(viewMap);
 
-    // Agregar control de escala
-    L.control.scale({ imperial: false }).addTo(viewMap);
+            // Configurar capas overlay
+            configurarCapasOverlay();
+
+            // Agregar controles
+            L.control.layers(baseLayers, overlayLayers, {
+                collapsed: true,
+                position: 'topright'
+            }).addTo(viewMap);
+
+            L.control.scale({ imperial: false }).addTo(viewMap);
+
+            // Forzar redimensionamiento después de la inicialización
+            setTimeout(() => {
+                viewMap.invalidateSize();
+                console.log('Mapa inicializado correctamente');
+            }, 200);
+
+        } catch (error) {
+            console.error('Error al inicializar el mapa:', error);
+            mostrarError('Error al inicializar el mapa de visualización');
+        }
+    }, 300);
 }
 
 // Función para configurar capas overlay
@@ -1335,13 +1380,24 @@ $('#layer-date').on('change', function () {
 
 // Evento para el modal
 $('#modalVisualizacion').on('shown.bs.modal', function () {
-    if (viewMap) {
-        setTimeout(() => {
+    // Dar más tiempo para que el modal se renderice completamente
+    setTimeout(() => {
+        if (viewMap) {
             viewMap.invalidateSize();
             // Aplicar visualización por defecto
             cambiarVisualizacion('normal');
-        }, 300);
-    }
+            console.log('Modal mostrado, mapa redimensionado');
+        } else {
+            // Reintentar inicialización si el mapa no existe
+            console.warn('El mapa no existe, reintentando inicialización');
+            inicializarMapaVisualizacion();
+            setTimeout(() => {
+                if (viewMap) {
+                    cambiarVisualizacion('normal');
+                }
+            }, 500);
+        }
+    }, 500);
 });
 
 // Evento para exportar análisis

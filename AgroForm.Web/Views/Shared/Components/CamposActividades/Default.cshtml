@@ -107,27 +107,17 @@
 
     // Función para crear elemento de campo
     function crearCampoElement(campo) {
-        // var superficieText = campo.superficieHectareas ?
-        //     '<small class="text-muted">(' + campo.superficieHectareas + ' ha)</small>' : '';
-
         var $campoDiv = $('<div>', {
-            class: 'card mb-3 campo-item',
+            class: 'campo-section mb-3',
             'data-campo-id': campo.id
         });
 
-        var $cardHeader = $('<div>', {
-            class: 'card-header bg-light d-flex justify-content-between align-items-center'
+        var $header = $('<div>', {
+            class: 'campo-header d-flex align-items-center pb-1 mb-2'
         }).html(
-            '<h6 class="mb-0">' +
-            '<i class="ph ph-map-pin text-primary me-2"></i>' +
-            campo.nombre +
-            (campo.ubicacion ? '<small class="text-muted fw-normal fs-7 ms-2">' + campo.ubicacion + '</small>' : '') +
-            '</h6>'
+            '<h5 class="mb-0 fw-semibold">' + campo.nombre + '</h5>' +
+            (campo.ubicacion ? '<small class="text-muted ms-2">' + campo.ubicacion + '</small>' : '')
         );
-
-        var $cardBody = $('<div>', {
-            class: 'card-body p-2'
-        });
 
         var $lotesList = $('<div>', {
             class: 'lotes-list'
@@ -141,15 +131,13 @@
         } else {
             $lotesList.append(
                 $('<p>', {
-                    class: 'text-muted text-center',
+                    class: 'text-muted text-center mb-0',
                     text: 'No hay lotes en este campo'
                 })
             );
         }
 
-        $cardBody.append($lotesList);
-        $campoDiv.append($cardHeader, $cardBody);
-
+        $campoDiv.append($header, $lotesList);
         return $campoDiv;
     }
 
@@ -166,7 +154,6 @@
             class: 'd-flex justify-content-between align-items-center mb-2'
         }).html(
             '<h6 class="mb-0">' +
-            // '<i class="ph ph-square text-success me-2"></i>' +
             lote.nombre +
             ' ' + superficieText +
             '</h6>' +
@@ -176,27 +163,56 @@
         $loteDiv.append($loteHeader);
 
         if (lote.actividades && lote.actividades.length > 0) {
-            // var $actividadesTitle = $('<h6>', {
-            //     class: 'text-muted mb-2',
-            //     text: 'Actividades:'
-            // });
-
-            var $actividadesList = $('<div>', {
-                class: 'actividades-list'
+            // Agrupar actividades por ciclo de cultivo
+            var ciclosMap = {};
+            $.each(lote.actividades, function (index, actividad) {
+                var cicloId = actividad.idCicloCultivo || 0;
+                if (!ciclosMap[cicloId]) {
+                    ciclosMap[cicloId] = {
+                        id: cicloId,
+                        nombre: actividad.cicloCultivoNombre || 'Sin ciclo',
+                        actividades: []
+                    };
+                }
+                ciclosMap[cicloId].actividades.push(actividad);
             });
 
-            // Ordenar actividades por fecha (más reciente primero)
-            var actividadesOrdenadas = lote.actividades.sort(function(a, b) {
-                return new Date(b.fecha) - new Date(a.fecha);
+            // Ordenar ciclos alfabéticamente
+            var ciclosOrdenados = Object.values(ciclosMap).sort(function (a, b) {
+                return a.nombre.localeCompare(b.nombre) || a.id - b.id;
             });
 
-            $.each(actividadesOrdenadas, function(index, actividad) {
-                var $actividadElement = crearActividadElement(actividad);
-                $actividadesList.append($actividadElement);
-            });
+            $.each(ciclosOrdenados, function (index, ciclo) {
+                var isCerrado = ciclo.nombre.indexOf('(Cerrado)') > -1;
+                var displayNombre = isCerrado ? ciclo.nombre.replace(' (Cerrado)', '') : ciclo.nombre;
 
-            // $loteDiv.append($actividadesTitle, $actividadesList);
-            $loteDiv.append($actividadesList);
+                var $cicloDiv = $('<div>', {
+                    class: 'ciclo-group mb-2'
+                });
+
+                var $cicloHeader = $('<div>', {
+                    class: 'ciclo-header d-flex align-items-center py-1 px-2 mb-1 rounded'
+                }).html(
+                    '<small class="fw-semibold me-2">' + displayNombre + '</small>' +
+                    (isCerrado
+                        ? '<span class="badge bg-secondary" style="font-size:0.65rem;">Cerrado</span>'
+                        : '<span class="badge bg-success" style="font-size:0.65rem;">Activo</span>')
+                );
+
+                $cicloDiv.append($cicloHeader);
+
+                // Ordenar actividades del ciclo por fecha (más reciente primero)
+                var actividadesOrdenadas = ciclo.actividades.sort(function (a, b) {
+                    return new Date(b.fecha) - new Date(a.fecha);
+                });
+
+                $.each(actividadesOrdenadas, function (index, actividad) {
+                    var $actividadElement = crearActividadElement(actividad);
+                    $cicloDiv.append($actividadElement);
+                });
+
+                $loteDiv.append($cicloDiv);
+            });
         } else {
             $loteDiv.append(
                 $('<p>', {
@@ -290,7 +306,7 @@
 
     // Función para filtrar por campo
     function filtrarPorCampo(campoId) {
-        $('.campo-item').each(function() {
+        $('.campo-section').each(function() {
             var $campo = $(this);
             if (!campoId || $campo.data('campo-id') == campoId) {
                 $campo.show();
@@ -302,8 +318,18 @@
 </script>
 
 <style>
-    .campo-item {
-        transition: all 0.3s ease;
+    /* Campo section - no longer a card to avoid nested boxes */
+    .campo-section {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+
+    .campo-section:last-child {
+        border-bottom: none;
+    }
+
+    .campo-header {
+        border-bottom: 2px solid #0d6efd;
     }
 
     .lote-item {
@@ -314,6 +340,16 @@
         .lote-item:hover {
             background-color: #e9ecef;
         }
+
+    /* Ciclo group - groups labores by cycle */
+    .ciclo-header {
+        background-color: #e8f5e9;
+        border-left: 3px solid #28a745;
+    }
+
+    .ciclo-group:last-child {
+        margin-bottom: 0 !important;
+    }
 
     .actividad-item {
         background-color: white;
@@ -329,6 +365,14 @@
     }
 
     /* Dark mode */
+    [data-theme="dark"] .campo-header {
+        border-bottom-color: #0d6efd !important;
+    }
+
+    [data-theme="dark"] .campo-section {
+        border-bottom-color: var(--border) !important;
+    }
+
     [data-theme="dark"] .lote-item {
         background-color: var(--surface-2) !important;
         border-color: var(--border) !important;
@@ -337,6 +381,11 @@
 
     [data-theme="dark"] .lote-item:hover {
         background-color: rgba(255,255,255,0.06) !important;
+    }
+
+    [data-theme="dark"] .ciclo-header {
+        background-color: rgba(40, 167, 69, 0.12) !important;
+        border-left-color: #28a745 !important;
     }
 
     [data-theme="dark"] .actividad-item {

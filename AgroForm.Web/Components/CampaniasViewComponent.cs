@@ -29,7 +29,7 @@ public class CampaniasViewComponent : ViewComponent
                 vm.IdCampaniaSeleccionada = UtilidadService.GetClaimValue<int>(claimUser, "Campania");
                 vm.Campanias = campañasResponse.Data.Where(_ =>
                                     _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso
-                                    || _.EstadosCampania == EnumClass.EstadosCamapaña.Iniciada).ToList();
+                                    || _.EstadosCampania == EnumClass.EstadosCamapaña.Planificada).ToList();
                 return View(vm);
             }
 

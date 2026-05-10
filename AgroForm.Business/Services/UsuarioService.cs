@@ -85,7 +85,7 @@ namespace AgroForm.Business.Services
 
                 // Actualizar los datos
                 usuario.Nombre = nombre;
-                usuario.Email = email;
+                //usuario.Email = email;
                 usuario.PhoneNumber = phoneNumber;
 
                 var updateResult = await UpdateAsync(usuario);

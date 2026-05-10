@@ -65,7 +65,7 @@ namespace AgroForm.Business.Services
                     return OperationResult<Campania>.Failure("ID de licencia no proporcionado", "BAD_REQUEST");
 
                 var campania = await GetQuery()
-                    .Where(_ => _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Iniciada)
+                    .Where(_ => _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Planificada)
                     .FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
                 if (campania == null)

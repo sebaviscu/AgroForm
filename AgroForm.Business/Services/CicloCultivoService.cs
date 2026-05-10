@@ -164,6 +164,14 @@ namespace AgroForm.Business.Services
                     .Include(c => c.Variedad)
                     .Include(c => c.Lote)
                         .ThenInclude(l => l.Campo)
+                    .Include(c => c.Siembras)
+                    .Include(c => c.Riegos)
+                    .Include(c => c.Fertilizaciones)
+                    .Include(c => c.Pulverizaciones)
+                    .Include(c => c.Monitoreos)
+                    .Include(c => c.AnalisisSuelos)
+                    .Include(c => c.Cosechas)
+                    .Include(c => c.OtrasLabores)
                     .OrderByDescending(c => c.FechaInicio)
                     .ToListAsync();
 
@@ -192,6 +200,7 @@ namespace AgroForm.Business.Services
                         .ThenInclude(l => l.Campo)
                     .Include(c => c.Campania)
                     .Include(c => c.Siembras)
+                        .ThenInclude(s => s.Cultivo)
                     .Include(c => c.Riegos)
                     .Include(c => c.Fertilizaciones)
                     .Include(c => c.Pulverizaciones)

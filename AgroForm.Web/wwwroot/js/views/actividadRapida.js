@@ -1,5 +1,6 @@
 ﻿let loteChoicesInstance = null;
-
+let idCultivoSembrado = null;
+let cicloSeleccionadoCultivoId = null;
 
 $(document).ready(function () {
     var form = $('#formActividadRapida');
@@ -8,7 +9,6 @@ $(document).ready(function () {
     var loteSelect = $('#IdLote');
     var tipoActividadSelect = $('#tipoidActividad');
     var camposEspecificosContainer = $('#camposEspecificos');
-    var idCultivoSembrado = null;
 
     // Mapeo de tipos de actividad a sus templates
     var tipoActividadTemplates = {
@@ -22,7 +22,6 @@ $(document).ready(function () {
         'Cosecha': '#templateCosecha'
     };
 
-
     // FUNCIÓN: Cargar campos específicos según tipo de actividad
     function cargarCamposEspecificos(tipoActividadNombre) {
         camposEspecificosContainer.empty();
@@ -32,14 +31,14 @@ $(document).ready(function () {
             var template = $(templateId).html();
             camposEspecificosContainer.html(template);
 
-
             $('.form-select', camposEspecificosContainer).each(function () {
                 const element = this;
-
+                // Los selects de cultivo y variedad se manejan manualmente con cargarCultivos()/cargarVariedades(),
+                // no deben tener Choices.js porque interfiere con la recarga de opciones
+                if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha' || element.id === 'idVariedad') return;
                 if (element._choicesInstance) {
                     element._choicesInstance.destroy();
                 }
-
                 const instance = new Choices(element, {
                     searchEnabled: false,
                     placeholder: true,
@@ -48,10 +47,11 @@ $(document).ready(function () {
                     itemSelectText: '',
                     removeItemButton: true
                 });
-
                 element._choicesInstance = instance;
             });
 
+            // Si hay un ciclo seleccionado con cultivo, auto-completar en Siembra o Cosecha
+            autoCompletarCultivoDesdeCiclo(tipoActividadNombre);
         }
     }
 
@@ -63,16 +63,42 @@ $(document).ready(function () {
         });
     }
 
+    // Auto-completar cultivo desde ciclo seleccionado
+    function autoCompletarCultivoDesdeCiclo(tipoActividadNombre) {
+        if (!cicloSeleccionadoCultivoId) return;
+
+        setTimeout(function () {
+            if (tipoActividadNombre === 'Siembra') {
+                var $cultivoSelect = $('#idCultivo');
+                if ($cultivoSelect.length && $cultivoSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
+                    $cultivoSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                    $cultivoSelect.prop('disabled', true);
+                    // Mostrar hint de que el cultivo viene del ciclo
+                    if ($('#hintCultivoCiclo').length === 0) {
+                        $('<small id="hintCultivoCiclo" class="text-success d-block mt-1">' +
+                            '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
+                            .insertAfter($cultivoSelect.closest('.mb-3'));
+                    }
+                }
+            } else if (tipoActividadNombre === 'Cosecha') {
+                var $cultivoCosechaSelect = $('#idCultivoCosecha');
+                if ($cultivoCosechaSelect.length && $cultivoCosechaSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
+                    $cultivoCosechaSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                }
+            }
+        }, 300);
+    }
+
     // FUNCIÓN: Cargar datos para selects específicos
     async function cargarDatosParaSelects(tipoActividadNombre) {
         switch (tipoActividadNombre) {
             case 'Siembra':
-                //cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoSiembra", "labelMonedaCostoSiembra");
+                cargarCultivos('Siembra');
+                break;
             case 'Cosecha':
-                //cargarCultivos();
                 cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
-                if (idCultivoSembrado != null) await setSelectWhenReady('idCultivoCosecha', idCultivoSembrado);
+                cargarCultivos('Cosecha');
                 break;
             case 'Riego':
                 cargarSwitchMoneda("switchMonedaCostoRiego", "labelMonedaCostoRiego");
@@ -96,34 +122,31 @@ $(document).ready(function () {
         }
     }
 
-    // FUNCIÓN: Cargar cultivos
-    function cargarCultivos() {
+    // FUNCIÓN: Cargar cultivos en todos los selectores de cultivo
+    function cargarCultivos(tipoActividadOrigen) {
         $.ajax({
             url: '/Cultivo/GetAll',
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {
-                    var selectCultivo = $('#idCultivo, #idCultivoCosecha');
-
-                    // PRIMERO limpiar los selects
+                    var selectCultivo = $('#idCultivo, #idCultivoCosecha, #nuevoCicloIdCultivo');
                     selectCultivo.empty();
-
-                    // Agregar opción vacía al principio
                     selectCultivo.append($('<option>', {
                         value: '',
                         text: 'Seleccione un cultivo'
                     }));
-
-                    // Luego agregar los cultivos
                     $.each(result.listObject, function (index, cultivo) {
                         selectCultivo.append($('<option>', {
                             value: cultivo.id,
                             text: cultivo.nombre
                         }));
                     });
-
-                    // Forzar que quede en blanco
                     selectCultivo.val('').trigger('change');
+
+                    // Si se cargó por cambio de actividad, auto-completar desde ciclo
+                    if (tipoActividadOrigen) {
+                        autoCompletarCultivoDesdeCiclo(tipoActividadOrigen);
+                    }
                 }
             },
             error: function (error) {
@@ -148,82 +171,49 @@ $(document).ready(function () {
     }
 
     async function cargarDatosSelect2(todosCatalogos) {
-        if (!todosCatalogos) {
-            return;
-        }
-        //siembra
+        if (!todosCatalogos) return;
         cargarCultivos();
         llenarSelectConCatalogo(30, 'MetodoSiembra', todosCatalogos);
-
-        //cosecha
         cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
-
-        // riego
         llenarSelectConCatalogo(31, 'MetodoRiego', todosCatalogos);
         llenarSelectConCatalogo(41, 'FuenteAgua', todosCatalogos);
-
-        //fertilizante
         llenarSelectConCatalogo(21, 'Nutriente', todosCatalogos);
         llenarSelectConCatalogo(20, 'TipoFertilizante', todosCatalogos);
         llenarSelectConCatalogo(32, 'MetodoAplicacion', todosCatalogos);
-
-        //pulverizacion
         llenarSelectConCatalogo(22, 'ProductoAgroquimico', todosCatalogos);
-
-        //monitoreo
         cargarEstadosFenologicos();
-
-        //analisis suelo
         llenarSelectConCatalogo(50, 'Laboratorio', todosCatalogos);
-
-        //otros lavores
-
     }
 
     function llenarSelectConCatalogo(tipoCatalogo, idSelect2, todosCatalogos) {
-        if (!todosCatalogos) {
-            return;
-        }
-
+        if (!todosCatalogos) return;
         const catalogosFiltrados = todosCatalogos.filter(catalogo => catalogo.tipo === tipoCatalogo);
-
         var selectId = 'id' + idSelect2;
         var $select = $('#' + selectId);
-
         $select.empty();
-
-        $select.append($('<option>', {
-            value: '',
-            text: 'Seleccione una opción'
-        }));
-
+        $select.append($('<option>', { value: '', text: 'Seleccione una opción' }));
         $.each(catalogosFiltrados, function (index, catalogo) {
             $select.append($('<option>', {
                 value: catalogo.id,
                 text: catalogo.nombre
             }));
         });
-
         $select.val('').trigger('change');
     }
 
-    // FUNCIÓN: Cargar estados fenológicos
+    // FUNCIÓN: Cargar estados fenológicos basados en el cultivo del ciclo activo
     function cargarEstadosFenologicos() {
-        if (idCultivoSembrado === null)
-            return;
+        var cultivoId = cicloSeleccionadoCultivoId;
+        if (cultivoId === null) return;
 
         $.ajax({
-            url: '/EstadoFenologico/GetByCultivo/' + idCultivoSembrado,
+            url: '/EstadoFenologico/GetByCultivo/' + cultivoId,
             type: 'GET',
             success: function (result) {
-
-
                 var selectElement = document.getElementById("idEstadoFenologico");
-
                 if (selectElement && selectElement._choicesInstance) {
                     selectElement._choicesInstance.clearChoices();
                     selectElement._choicesInstance.removeActiveItems();
-
                     var choicesArray = result.listObject.map(function (catalogo) {
                         return {
                             value: catalogo.id.toString(),
@@ -232,21 +222,13 @@ $(document).ready(function () {
                             disabled: false
                         };
                     });
-
                     try {
-                        selectElement._choicesInstance.setChoices(
-                            choicesArray,
-                            'value',
-                            'label',
-                            false
-                        );
-
+                        selectElement._choicesInstance.setChoices(choicesArray, 'value', 'label', false);
                         selectElement._choicesInstance.removeActiveItems();
                     } catch (error) {
                         console.error('Error actualizando Choices:', error);
                     }
                 }
-
             },
             error: function (error) {
                 console.error('Error cargando estados fenológicos:', error);
@@ -259,8 +241,6 @@ $(document).ready(function () {
         var cultivoId = $(this).val();
         if (cultivoId) {
             cargarVariedades(cultivoId);
-        } else {
-            //$('#idVariedad').empty().val(null).trigger('change');
         }
     });
 
@@ -281,11 +261,9 @@ $(document).ready(function () {
             success: function (result) {
                 if (result.success && result.listObject) {
                     var selectElement = document.getElementById(idSelect);
-
                     if (selectElement && selectElement._choicesInstance) {
                         selectElement._choicesInstance.clearChoices();
                         selectElement._choicesInstance.removeActiveItems();
-
                         var choicesArray = result.listObject.map(function (catalogo) {
                             return {
                                 value: catalogo.id.toString(),
@@ -294,21 +272,13 @@ $(document).ready(function () {
                                 disabled: false
                             };
                         });
-
                         try {
-                            selectElement._choicesInstance.setChoices(
-                                choicesArray,
-                                'value',
-                                'label',
-                                false
-                            );
-
+                            selectElement._choicesInstance.setChoices(choicesArray, 'value', 'label', false);
                             selectElement._choicesInstance.removeActiveItems();
                         } catch (error) {
                             console.error('Error actualizando Choices:', error);
                         }
                     }
-
                 }
             },
             error: function (error) {
@@ -317,12 +287,9 @@ $(document).ready(function () {
         });
     }
 
-
-    // MODIFICADA: Inicializar Select2 para tipo de actividad
+    // Inicializar Select2 para tipo de actividad
     function inicializarSelectConIconos() {
         var tipoActividadSelect = $('#tipoidActividad');
-
-        // Solo inicializar si no existe
         if (!tipoActividadSelect.hasClass('select2-hidden-accessible')) {
             tipoActividadSelect.select2({
                 minimumResultsForSearch: Infinity,
@@ -331,13 +298,9 @@ $(document).ready(function () {
                     if (!option.id) return option.text;
                     var icono = $(option.element).data('icono');
                     var iconoColor = $(option.element).data('icono-color') || '#000';
-
                     if (icono) {
                         var $span = $('<span></span>');
-                        $span.append($('<i></i>', {
-                            class: 'ph ' + icono + ' me-2',
-                            style: 'color: ' + iconoColor
-                        }));
+                        $span.append($('<i></i>', { class: 'ph ' + icono + ' me-2', style: 'color: ' + iconoColor }));
                         $span.append(option.text);
                         return $span;
                     }
@@ -346,13 +309,9 @@ $(document).ready(function () {
                 templateSelection: function (option) {
                     var icono = $(option.element).data('icono');
                     var iconoColor = $(option.element).data('icono-color') || '#000';
-
                     if (icono && option.id) {
                         var $span = $('<span></span>');
-                        $span.append($('<i></i>', {
-                            class: 'ph ' + icono + ' me-2',
-                            style: 'color: ' + iconoColor
-                        }));
+                        $span.append($('<i></i>', { class: 'ph ' + icono + ' me-2', style: 'color: ' + iconoColor }));
                         $span.append(option.text);
                         return $span;
                     }
@@ -364,33 +323,27 @@ $(document).ready(function () {
                 allowClear: false
             });
 
-            // El evento change solo se asigna una vez
             tipoActividadSelect.off('change.selectActividad').on('change.selectActividad', function () {
                 var selectedOption = $(this).find('option:selected');
                 var tipoActividadNombre = selectedOption.data('tipo-actividad');
-
                 if (tipoActividadNombre) {
                     cargarCamposEspecificos(tipoActividadNombre);
                     cargarDatosParaSelects(tipoActividadNombre);
+                    $('#observacionesContainer').removeClass('d-none');
                 } else {
                     camposEspecificosContainer.empty();
+                    $('#observacionesContainer').addClass('d-none');
                 }
             });
         }
-
-        // Asegurarse de que esté visible
         tipoActividadSelect.show();
     }
 
     function inicializarSelectLotes() {
-        // Destruir instancia anterior si existe
         if (loteChoicesInstance) {
             loteChoicesInstance.destroy();
         }
-
-        // Obtener el elemento DOM
         const loteSelectElement = document.getElementById('IdLote');
-
         loteChoicesInstance = new Choices(loteSelectElement, {
             searchEnabled: false,
             placeholder: true,
@@ -402,128 +355,68 @@ $(document).ready(function () {
             allowHTML: false,
             position: 'auto',
             renderSelectedChoices: 'always',
-
-            // Eventos similares a los que tenías en Select2
             callbackOnInit: function () {
-                // Limpiar selección inicial
                 this.removeActiveItems();
                 this.setChoiceByValue('');
-
-                // Limpiar contenedor de campos específicos
                 camposEspecificosContainer.empty();
             }
         });
 
-        // Manejar el evento change
-        loteSelectElement.addEventListener('change', function () {
-            handleLoteChange();
-        }, false);
+        loteSelectElement.addEventListener('change', function () { handleLoteChange(); }, false);
+        loteSelectElement.addEventListener('choice', function () { handleLoteChange(); }, false);
+        loteChoicesInstance.enable();
 
-        // También manejar eventos específicos de Choices
-        loteSelectElement.addEventListener('choice', function (event) {
-            // Este evento se dispara cuando se selecciona una opción
-            handleLoteChange();
-        }, false);
-
-        loteChoicesInstance.enable()
-
-        // Función para manejar el cambio
         function handleLoteChange() {
             camposEspecificosContainer.empty();
+            cicloSeleccionadoCultivoId = null;
 
-            // Obtener la opción seleccionada
             const selectedValue = loteChoicesInstance.getValue(true);
             const selectElement = document.getElementById('IdLote');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
 
-            // Cargar ciclos para el lote seleccionado
             if (selectedValue) {
                 cargarCiclosPorLote(parseInt(selectedValue));
             } else {
                 var cicloSelect = $('#idCicloCultivo');
                 cicloSelect.empty().append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
+                actualizarBotonesCiclo(false);
             }
 
-            // Si no hay selección, salir
-            if (!selectedOption) return;
+            if (!selectedOption) {
+                $('#tipoidActividad').prop('disabled', true);
+                $('#idCicloCultivo').prop('disabled', true);
+                $('#btnNuevoCiclo').prop('disabled', true);
+                $('#btnCerrarCiclo').prop('disabled', true);
+                return;
+            }
 
-            // Obtener datos de la opción seleccionada
-            const permiteCosechasString = selectedOption.getAttribute('data-permite-cosechas');
-            const permiteSiembraString = selectedOption.getAttribute('data-permite-siembra');
-
-            const permiteCosechas = permiteCosechasString === "True";
-            const permiteSiembra = permiteSiembraString === "True";
-
+            // Obtener superficie disponible para sembrar
+            const superficieParaSembrar = parseFloat(selectedOption.getAttribute('data-superficie-para-sembrar'));
             const siembraACosechar = selectedOption.getAttribute('data-siembra-a-cosechar');
-            const superficieMaxima = parseFloat(selectedOption.getAttribute('data-superficie-sembrada'));
+            const superficieSembrada = parseFloat(selectedOption.getAttribute('data-superficie-sembrada'));
 
-            // Actualizar info de cosecha
-            if (permiteCosechas) {
-                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieMaxima} Ha.`);
+            // Mostrar info de superficie sembrada (si aplica)
+            if (siembraACosechar && superficieSembrada > 0) {
+                $('#info-cosecha').text(`Sembrado: ${siembraACosechar} ${superficieSembrada} Ha.`);
             } else {
                 $('#info-cosecha').text("");
             }
 
-            // Configurar superficie según tipo
-            if (permiteCosechas) {
-                const inputSuperficie = $('#superficieCosechadaHa');
-
-                inputSuperficie.attr('max', superficieMaxima);
-                inputSuperficie.attr('placeholder', `Máximo: ${superficieMaxima} ha`);
-                inputSuperficie.attr('title', `Superficie máxima permitida: ${superficieMaxima} ha`);
-
-                idCultivoSembrado = parseInt(selectedOption.getAttribute('data-id-cultivo'));
-
-            } else if (permiteSiembra) {
-                const superficieMaximaSembrar = parseFloat(selectedOption.getAttribute('data-superficie-para-sembrar'));
+            // Configurar límite de superficie para siembra
+            if (superficieParaSembrar > 0) {
                 const inputSuperficieMaxima = $('#superficieHa');
-
-                inputSuperficieMaxima.attr('max', superficieMaximaSembrar);
-                inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieMaximaSembrar} ha`);
-                inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieMaximaSembrar} ha`);
+                inputSuperficieMaxima.attr('max', superficieParaSembrar);
+                inputSuperficieMaxima.attr('placeholder', `Máximo: ${superficieParaSembrar} ha`);
+                inputSuperficieMaxima.attr('title', `Superficie máxima permitida: ${superficieParaSembrar} ha`);
             }
 
-            // HABILITAR/DESHABILITAR OPCIONES DEL SELECT DE ACTIVIDAD
-            const selectActividad = document.getElementById('tipoidActividad');
-
-            // Primero habilitar todas las opciones
-            Array.from(selectActividad.options).forEach(option => {
-                option.disabled = false;
-            });
-
-            // Deshabilitar siembra (id 2) si no permite siembra
-            if (!permiteSiembra) {
-                const siembraOption = selectActividad.querySelector('option[data-id-tipo-actividad="2"]');
-                if (siembraOption) siembraOption.disabled = true;
-            }
-
-            // Deshabilitar cosecha (id 7) si no permite cosecha
-            if (!permiteCosechas) {
-                const cosechaOption = selectActividad.querySelector('option[data-id-tipo-actividad="7"]');
-                if (cosechaOption) cosechaOption.disabled = true;
-            }
-
-            // Si después de deshabilitar, la opción seleccionada está deshabilitada, limpiar selección
-            const selectedValueActividad = selectActividad.value;
-            if (selectedValueActividad) {
-                const selectedOptionActividad = selectActividad.options[selectActividad.selectedIndex];
-                if (selectedOptionActividad && selectedOptionActividad.disabled) {
-                    selectActividad.value = '';
-                    // Si estás usando Choices para este select también, actualizarlo
-                    if (selectActividad.choices) {
-                        selectActividad.choices.setChoiceByValue('');
-                    }
-                }
-            }
-
-            // Disparar evento change para el select de actividad
-            $(selectActividad).trigger('change');
-
-            // Habilitar el select de actividad
+            // Habilitar selects de actividad y ciclo
             $('#tipoidActividad').prop('disabled', false);
-
+            $('#idCicloCultivo').prop('disabled', false);
+            $('#btnNuevoCiclo').prop('disabled', false);
+            $('#btnCerrarCiclo').prop('disabled', false);
+            $(selectElement).trigger('change');
         }
-
     }
 
     // Evento para abrir el modal
@@ -531,26 +424,26 @@ $(document).ready(function () {
         $('#modalActividadRapida').modal('show');
     });
 
-    // Inicializar Select2 cuando el modal se muestra
+    // Inicializar cuando el modal se muestra
     $('#modalActividadRapida').on('shown.bs.modal', function () {
         $('#modalActividadRapidaLabel').html('<i class="ph ph-tractor me-2"></i>Crear Labor');
         $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar Labor');
         inicializarSelectConIconos();
         inicializarSelectLotes();
-
         cargarTodosCatalogos();
-
         $('#tipoidActividad').prop('disabled', true);
+        $('#idCicloCultivo').prop('disabled', true);
+        $('#btnNuevoCiclo').prop('disabled', true);
+        $('#btnCerrarCiclo').prop('disabled', true);
         $('#IdLote').prop('disabled', false);
-
+        $('#observacionesContainer').addClass('d-none');
         $('#tipoidActividad').trigger('change.select2');
     });
 
-    // MODIFICADA: Validación del formulario
+    // Validación del formulario
     form.on('submit', function (e) {
         e.preventDefault();
 
-        // Validar campos requeridos base
         var fechaVal = $('#fecha').val();
         var lotesVal = loteSelect.val();
 
@@ -571,7 +464,6 @@ $(document).ready(function () {
             loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
         }
 
-        // Validar campos específicos según tipo de actividad
         var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
         if (!validarCamposEspecificos(tipoActividadNombre)) {
             return;
@@ -580,7 +472,7 @@ $(document).ready(function () {
         guardarActividad();
     });
 
-    // FUNCIÓN: Validar campos específicos
+    // Validar campos específicos
     function validarCamposEspecificos(tipoActividadNombre) {
         var isValid = true;
         var errorMessage = '';
@@ -595,25 +487,19 @@ $(document).ready(function () {
                     errorMessage = 'Debe seleccionar una variedad de cultivo';
                     isValid = false;
                 }
-
                 var superficieMaxString = $('#superficieHa').attr('max');
                 var superficieValString = $('#superficieHa').val();
-
                 if (superficieMaxString && superficieValString) {
-
                     var superficieMax = parseFloat(superficieMaxString);
                     var superficieVal = parseFloat(superficieValString);
-
                     if (superficieVal > superficieMax) {
                         $('#superficieHa').addClass('is-invalid');
                         mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
-                        e.stopPropagation();
                         return;
                     } else {
                         $('#superficieHa').removeClass('is-invalid');
                     }
                 }
-
                 break;
 
             case 'Cosecha':
@@ -621,25 +507,19 @@ $(document).ready(function () {
                     errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
-
                 var superficieMaxString = $('#superficieCosechadaHa').attr('max');
                 var superficieValString = $('#superficieCosechadaHa').val();
-
                 if (superficieMaxString && superficieValString) {
-
                     var superficieMax = parseFloat(superficieMaxString);
                     var superficieVal = parseFloat(superficieValString);
-
                     if (superficieVal > superficieMax) {
                         $('#superficieCosechadaHa').addClass('is-invalid');
                         mostrarMensaje(`La superficie no puede superar ${superficieMax}`, 'error');
-                        e.stopPropagation();
                         return;
                     } else {
                         $('#superficieCosechadaHa').removeClass('is-invalid');
                     }
                 }
-
                 break;
 
             case 'Monitoreo':
@@ -651,56 +531,48 @@ $(document).ready(function () {
         }
         if (!isValid)
             mostrarMensaje(errorMessage);
-
         return isValid;
     }
 
     $('#modalActividadRapida').on('show.bs.modal', function () {
         $('#tipoidActividad').val('').trigger('change');
         camposEspecificosContainer.empty();
-
+        $('#nuevoCicloInline').addClass('d-none');
+        $('#observacionesContainer').addClass('d-none');
     });
-    // Resetear formulario cuando se cierra el modal
-    $('#modalActividadRapida').on('hidden.bs.modal', function () {
-        $('#actividadId').val(null)
 
+    $('#modalActividadRapida').on('hidden.bs.modal', function () {
+        $('#actividadId').val(null);
         form[0].reset();
         cantidadInput.prop('disabled', true);
         unidadMedidaText.text('-').addClass('text-muted');
         camposEspecificosContainer.empty();
+        cicloSeleccionadoCultivoId = null;
+        $('#observacionesContainer').addClass('d-none');
 
-        // Destruir todos los Select2
         if (tipoActividadSelect.hasClass('select2-hidden-accessible')) {
             tipoActividadSelect.select2('destroy');
         }
         if (loteSelect.hasClass('select2-hidden-accessible')) {
             loteSelect.select2('destroy');
         }
-
-        // Restablecer fecha actual
         $('#fecha').val(new Date().toISOString().slice(0, 10));
     });
 
-    // MODIFICADA: Función guardar actividad
+    // Guardar actividad
     function guardarActividad() {
         var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
-        //var dataEspecifica = obtenerDatosEspecificos(tipoActividadNombre);
-
         var idTipoActividadNombre = tipoActividadSelect.find('option:selected').data('id-tipo-actividad');
         var dataEspecifica = obtenerDatosEspecificos(idTipoActividadNombre);
 
         var actividadId = $('#actividadId').val();
         var esEdicion = actividadId && actividadId > 0;
-
         const loteId = parseInt(loteSelect.val());
         const loteArray = [loteId];
-
         var idCiclo = parseInt($('#idCicloCultivo').val());
+
         var data = {
             fecha: $('#fecha').val(),
-            //lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
-            //    return parseInt(id);
-            //}) : [],
             lotesIds: loteArray,
             tipoidActividad: idTipoActividadNombre,
             observacion: $('#observacion').val(),
@@ -711,14 +583,12 @@ $(document).ready(function () {
             idCicloCultivo: idCiclo > 0 ? idCiclo : null
         };
 
-        // Mostrar loading en el botón
         var submitBtn = form.find('button[type="submit"]');
         var originalText = submitBtn.html();
         submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
         var url = esEdicion ? '/Actividad/EditarLabor' : '/Actividad/CrearLabor';
         var mensajeExito = esEdicion ? 'Actividad actualizada correctamente' : 'Actividad creada correctamente';
 
-        // Enviar al servidor
         $.ajax({
             url: url,
             type: 'POST',
@@ -731,29 +601,24 @@ $(document).ready(function () {
                 if (result.success) {
                     $('#modalActividadRapida').modal('hide');
                     mostrarExito(mensajeExito);
-
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 500);
+                    setTimeout(function () { window.location.reload(); }, 500);
                 } else {
                     mostrarError(result.message || (esEdicion ? 'Error al actualizar actividad' : 'Error al crear actividad'));
                     submitBtn.html(originalText).prop('disabled', false);
                 }
             },
-            error: function (error) {
+            error: function () {
                 mostrarMensaje('Error al conectar con el servidor', 'error');
                 submitBtn.html(originalText).prop('disabled', false);
             }
         });
     }
 
-    // FUNCIÓN: Obtener datos específicos según tipo de actividad
+    // Obtener datos específicos según tipo de actividad
     function obtenerDatosEspecificos(tipoActividadNombre) {
         var datos = {};
-
         switch (tipoActividadNombre) {
-            //case 'Siembra':
-            case 2:
+            case 2: // Siembra
                 datos = {
                     SuperficieHa: parseFloat($('#superficieHa').val()) || 0,
                     DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
@@ -764,9 +629,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
                 };
                 break;
-
-            //case 'Riego':
-            case 5:
+            case 5: // Riego
                 datos = {
                     HorasRiego: parseFloat($('#horasRiego').val()) || 0,
                     VolumenAguaM3: parseFloat($('#volumenAguaM3').val()) || 0,
@@ -776,9 +639,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoRiego').is(':checked')
                 };
                 break;
-
-            //case 'Fertilizado':
-            case 4:
+            case 4: // Fertilizado
                 datos = {
                     CantidadKgHa: parseFloat($('#cantidadKgHa').val()) || 0,
                     DosisKgHa: parseFloat($('#dosisKgHa').val()) || 0,
@@ -789,9 +650,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoFertilizacion').is(':checked')
                 };
                 break;
-
-            //case 'Pulverizacion':
-            case 3:
+            case 3: // Pulverizacion
                 datos = {
                     VolumenLitrosHa: parseFloat($('#volumenLitrosHa').val()) || 0,
                     Dosis: parseFloat($('#dosisPulverizacion').val()) || 0,
@@ -801,9 +660,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoPulverizacion').is(':checked')
                 };
                 break;
-
-            //case 'Monitoreo':
-            case 6:
+            case 6: // Monitoreo
                 datos = {
                     IdTipoMonitoreo: parseInt($('#idTipoMonitoreo').val()),
                     IdMonitoreo: parseInt($('#idMonitoreo').val()),
@@ -812,9 +669,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoMonitoreo').is(':checked')
                 };
                 break;
-
-            //case 'AnalisisSuelo':
-            case 1:
+            case 1: // AnalisisSuelo
                 datos = {
                     ProfundidadCm: $('#profundidadCm').val() ? parseFloat($('#profundidadCm').val()) : null,
                     PH: $('#ph').val() ? parseFloat($('#ph').val()) : null,
@@ -830,9 +685,7 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoAnalisisSuelo').is(':checked')
                 };
                 break;
-
-            //case 'Cosecha':
-            case 7:
+            case 7: // Cosecha
                 datos = {
                     RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
                     HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
@@ -842,16 +695,13 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoCosecha').is(':checked')
                 };
                 break;
-
-            //case 'OtraLabor':
-            case 8:
+            case 8: // OtraLabor
                 datos = {
                     Costo: parseFloat($('#costoOtraLaborTotal').val()) || 0,
                     EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
                 };
                 break;
         }
-
         return datos;
     }
 
@@ -867,24 +717,18 @@ $(document).ready(function () {
         }
     }
 
-
-
     // CÓDIGO EXISTENTE PARA GASTOS
-
     $('#btnGasto').on('click', function () {
         $('#modalGasto').modal('show');
         $('#modalGastoLabel').html('<i class="ph ph-receipt me-2"></i>Crear Gasto');
         $('#btnGuardarLabor').html('<i class="ph ph-check-circle me-1"></i>Guardar');
-
         cargarSwitchMoneda("switchMonedaCostoGasto", "labelMonedaCostoGasto");
     });
 
     $('#formGasto').on('submit', function (e) {
         e.preventDefault();
-
         var gastoId = $('#gastoId').val();
         var esEdicion = gastoId && gastoId > 0;
-
         var data = {
             id: esEdicion ? parseInt(gastoId) : 0,
             tipoGasto: parseInt($('#tipoGasto').val()),
@@ -893,193 +737,85 @@ $(document).ready(function () {
             costo: parseFloat($('#costoGasto').val()) || 0,
             esDolar: $('#switchMonedaCostoGasto').is(':checked')
         };
-
         $('#gastoId').val(null);
-
         var submitBtn = $('#formGasto').find('button[type="submit"]');
         var originalText = submitBtn.html();
-
         submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
         var url = esEdicion ? '/Gasto/Update' : '/Gasto/Create';
         var mensajeExito = esEdicion ? 'Gasto actualizado correctamente' : 'Gasto creado correctamente';
-
         $.ajax({
             url: url,
             type: esEdicion ? 'PUT' : 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function (result) {
                 if (result.success) {
                     mostrarMensaje(mensajeExito, 'success');
                     $('#modalGasto').modal('hide');
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 500);
-
+                    setTimeout(function () { window.location.reload(); }, 500);
                 } else {
                     mostrarMensaje(result.message || 'Error al guardar gasto', 'error');
                 }
             },
-            error: function (error) {
-                mostrarMensaje('Error al conectar con el servidor', 'error');
-            },
-            complete: function () {
-                submitBtn.html(originalText).prop('disabled', false);
-            }
+            error: function () { mostrarMensaje('Error al conectar con el servidor', 'error'); },
+            complete: function () { submitBtn.html(originalText).prop('disabled', false); }
         });
     });
 
-    // Resetear el modal cuando se cierre
-    $('#modalGasto').on('hidden.bs.modal', function () {
-        $('#formGasto')[0].reset();
-    });
+    $('#modalGasto').on('hidden.bs.modal', function () { $('#formGasto')[0].reset(); });
 
-    // Eventos para gestión de ciclos desde el modal
-    $('#btnNuevoCiclo').on('click', function() {
+    // --- GESTIÓN DE CICLOS ---
+
+    // Botón: Nuevo ciclo inline (sin modal)
+    $('#btnNuevoCiclo').on('click', function () {
         var loteId = parseInt($('#IdLote').val());
         if (!loteId) {
             mostrarMensaje('Debe seleccionar un lote primero', 'error');
             return;
         }
-        // Obtener cultivo si ya está seleccionado
-        var idCultivo = parseInt($('#idCultivo').val()) || 0;
-        abrirModalNuevoCiclo(loteId, idCultivo);
-    });
-
-    $('#btnCerrarCiclo').on('click', function() {
-        var cicloId = parseInt($('#idCicloCultivo').val());
-        if (!cicloId) {
-            mostrarMensaje('Debe seleccionar un ciclo activo para cerrar', 'error');
-            return;
-        }
-        if (!confirm('¿Está seguro de cerrar este ciclo de cultivo?')) return;
-        cerrarCiclo(cicloId);
-    });
-});
-
-// FUNCIONES PARA GESTIÓN DE CICLOS DE CULTIVO
-function cargarCiclosPorLote(idLote) {
-    $.ajax({
-        url: '/CicloCultivo/GetByLote?idLote=' + idLote,
-        type: 'GET',
-        success: function(result) {
-            var select = $('#idCicloCultivo');
-            select.empty();
-            select.append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
-
-            if (result.success && result.listObject && result.listObject.length > 0) {
-                $.each(result.listObject, function(i, ciclo) {
-                    var label = ciclo.cultivoConEpoca;
-                    if (ciclo.fechaInicio) {
-                        var fecha = new Date(ciclo.fechaInicio);
-                        label += ' (' + fecha.toLocaleDateString() + ')';
-                    }
-                    if (ciclo.estaActivo) label += ' [Activo]';
-                    select.append($('<option>', {
-                        value: ciclo.id,
-                        text: label,
-                        'data-activo': ciclo.estaActivo
-                    }));
-                });
-            } else {
-                select.append($('<option>', {
-                    value: '',
-                    text: 'Sin ciclos - Cree uno nuevo',
-                    disabled: true
-                }));
-            }
-        },
-        error: function() {
-            mostrarMensaje('Error al cargar ciclos de cultivo', 'error');
-        }
-    });
-}
-
-function abrirModalNuevoCiclo(loteId, idCultivo) {
-    // Crear modal dinámico para nuevo ciclo
-    var modalHtml =
-        '<div class="modal fade" id="modalNuevoCiclo" tabindex="-1" aria-hidden="true">' +
-        '    <div class="modal-dialog">' +
-        '        <div class="modal-content">' +
-        '            <div class="modal-header bg-success text-white">' +
-        '                <h5 class="modal-title"><i class="ph ph-seedling me-2"></i>Nuevo Ciclo de Cultivo</h5>' +
-        '                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
-        '            </div>' +
-        '            <div class="modal-body">' +
-        '                <div class="mb-3">' +
-        '                    <label for="nuevoCicloIdCultivo" class="form-label">Cultivo *</label>' +
-        '                    <select class="form-select" id="nuevoCicloIdCultivo" required>' +
-        '                        <option value="">Seleccione un cultivo...</option>' +
-        '                    </select>' +
-        '                </div>' +
-        '                <div class="mb-3">' +
-        '                    <label for="nuevoCicloIdVariedad" class="form-label">Variedad</label>' +
-        '                    <select class="form-select" id="nuevoCicloIdVariedad">' +
-        '                        <option value="">Sin variedad...</option>' +
-        '                    </select>' +
-        '                </div>' +
-        '                <div class="mb-3">' +
-        '                    <label for="nuevoCicloEpoca" class="form-label">Época</label>' +
-        '                    <select class="form-select" id="nuevoCicloEpoca">' +
-        '                        <option value="">Sin especificar</option>' +
-        '                        <option value="0">Primera</option>' +
-        '                        <option value="1">Segunda</option>' +
-        '                        <option value="2">Tercera</option>' +
-        '                    </select>' +
-        '                </div>' +
-        '                <input type="hidden" id="nuevoCicloIdLote" value="' + loteId + '" />' +
-        '            </div>' +
-        '            <div class="modal-footer">' +
-        '                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>' +
-        '                <button type="button" class="btn btn-success" id="btnGuardarNuevoCiclo">' +
-        '                    <i class="ph ph-check-circle me-1"></i>Crear Ciclo' +
-        '                </button>' +
-        '            </div>' +
-        '        </div>' +
-        '    </div>' +
-        '</div>';
-
-    // Eliminar modal anterior si existe
-    $('#modalNuevoCiclo').remove();
-    $('body').append(modalHtml);
-
-    // Cargar cultivos en el select
-    var selectCultivo = $('#nuevoCicloIdCultivo');
-    $.ajax({
-        url: '/Cultivo/GetAll',
-        type: 'GET',
-        success: function(result) {
-            if (result.success && result.listObject) {
-                $.each(result.listObject, function(i, c) {
-                    selectCultivo.append($('<option>', {
-                        value: c.id,
-                        text: c.nombre
-                    }));
-                });
-                // Seleccionar cultivo si ya está definido
-                if (idCultivo > 0) {
-                    selectCultivo.val(idCultivo);
-                    cargarVariedades(idCultivo);
-                }
-            }
+        // Ocultar el botón + y mostrar el inline
+        $(this).hide();
+        $('#nuevoCicloInline').removeClass('d-none');
+        // Cargar cultivos en el select inline si no tiene opciones
+        var $selectCultivo = $('#nuevoCicloIdCultivo');
+        if ($selectCultivo.find('option').length <= 1) {
+            cargarCultivos();
         }
     });
 
-    // Al cambiar cultivo, cargar variedades
-    selectCultivo.on('change', function() {
+    // Cargar variedades cuando cambia el cultivo en el inline
+    $(document).on('change', '#nuevoCicloIdCultivo', function () {
         var cultivoId = parseInt($(this).val());
         if (cultivoId) {
-            cargarVariedades(cultivoId);
+            cargarVariedadesInline(cultivoId);
         } else {
             $('#nuevoCicloIdVariedad').empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
         }
     });
 
-    // Guardar ciclo
-    $('#btnGuardarNuevoCiclo').on('click', function() {
+    function cargarVariedadesInline(idCultivo) {
+        var selectVariedad = $('#nuevoCicloIdVariedad');
+        selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
+        $.ajax({
+            url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
+            type: 'GET',
+            success: function (result) {
+                if (result.success && result.listObject) {
+                    $.each(result.listObject, function (i, v) {
+                        selectVariedad.append($('<option>', {
+                            value: v.id,
+                            text: v.nombre
+                        }));
+                    });
+                }
+            }
+        });
+    }
+
+    // Botón: Guardar ciclo inline
+    $('#btnGuardarNuevoCicloInline').on('click', function () {
+        var loteId = parseInt($('#IdLote').val());
         var cultivoId = parseInt($('#nuevoCicloIdCultivo').val());
         if (!cultivoId) {
             mostrarMensaje('Debe seleccionar un cultivo', 'error');
@@ -1091,55 +827,175 @@ function abrirModalNuevoCiclo(loteId, idCultivo) {
             idVariedad: parseInt($('#nuevoCicloIdVariedad').val()) || null,
             epoca: parseInt($('#nuevoCicloEpoca').val()) || null
         };
+
+        var btn = $(this);
+        var originalText = btn.html();
+        btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Creando...').prop('disabled', true);
+
         $.ajax({
             url: '/CicloCultivo/Crear',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
-            success: function(result) {
+            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            success: function (result) {
                 if (result.success && result.object) {
-                    $('#modalNuevoCiclo').modal('hide');
                     mostrarExito('Ciclo creado correctamente');
+                    // Ocultar inline y mostrar botón +
+                    $('#nuevoCicloInline').addClass('d-none');
+                    $('#btnNuevoCiclo').show();
                     // Recargar ciclos y seleccionar el nuevo
-                    cargarCiclosPorLote(loteId);
-                    setTimeout(function() {
-                        $('#idCicloCultivo').val(result.object.id);
-                    }, 500);
+                    cargarCiclosPorLote(loteId, result.object.id);
                 } else {
                     mostrarError(result.message || 'Error al crear ciclo');
+                    btn.html(originalText).prop('disabled', false);
                 }
             },
-            error: function() {
+            error: function () {
                 mostrarError('Error al conectar con el servidor');
+                btn.html(originalText).prop('disabled', false);
             }
         });
     });
 
-    $('#modalNuevoCiclo').modal('show');
-    // Limpiar al cerrar
-    $('#modalNuevoCiclo').on('hidden.bs.modal', function() {
-        $(this).remove();
+    // Botón: Cerrar ciclo
+    $('#btnCerrarCiclo').on('click', function () {
+        var cicloId = parseInt($('#idCicloCultivo').val());
+        if (!cicloId) {
+            mostrarMensaje('Debe seleccionar un ciclo activo para cerrar', 'error');
+            return;
+        }
+        mostrarConfirmacion('¿Está seguro de cerrar este ciclo de cultivo?', 'Cerrar Ciclo')
+            .then(function (result) {
+                if (result.isConfirmed) {
+                    cerrarCiclo(cicloId);
+                }
+            });
     });
+
+    // Evento: cambio en el selector de ciclo
+    $('#idCicloCultivo').on('change', function () {
+        var selectedOption = $(this).find('option:selected');
+        var idCultivo = parseInt(selectedOption.data('id-cultivo'));
+        var esActivo = selectedOption.data('activo') === true || selectedOption.data('activo') === 'true';
+        var tieneCicloValido = $(this).val() && $(this).val() !== '';
+
+        cicloSeleccionadoCultivoId = idCultivo > 0 ? idCultivo : null;
+
+        // Actualizar badge de ciclo activo
+        if (esActivo && idCultivo > 0) {
+            $('#cicloActivoBadge').removeClass('d-none');
+        } else {
+            $('#cicloActivoBadge').addClass('d-none');
+        }
+
+        // Actualizar botones
+        actualizarBotonesCiclo(tieneCicloValido);
+
+        // Si no hay ciclo seleccionado, deshabilitar selector de labor
+        if (!tieneCicloValido) {
+            $('#tipoidActividad').prop('disabled', true);
+        } else if ($('#IdLote').val()) {
+            // Si hay ciclo y hay lote, habilitar labor
+            $('#tipoidActividad').prop('disabled', false);
+        }
+
+        // Si hay un template visible de Siembra o Cosecha, actualizar el cultivo
+        var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
+        if (tipoActividadNombre && cicloSeleccionadoCultivoId) {
+            if (tipoActividadNombre === 'Siembra') {
+                var $cultivoSelect = $('#idCultivo');
+                if ($cultivoSelect.length && !$cultivoSelect.prop('disabled')) {
+                    $cultivoSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                    $cultivoSelect.prop('disabled', true);
+                    // Mostrar hint
+                    if ($('#hintCultivoCiclo').length === 0) {
+                        $('<small id="hintCultivoCiclo" class="text-success d-block mt-1">' +
+                            '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
+                            .insertAfter($cultivoSelect.closest('.mb-3'));
+                    }
+                }
+            } else if (tipoActividadNombre === 'Cosecha') {
+                var $cultivoCosechaSelect = $('#idCultivoCosecha');
+                if ($cultivoCosechaSelect.length) {
+                    $cultivoCosechaSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                }
+            } else if (tipoActividadNombre === 'Monitoreo') {
+                cargarEstadosFenologicos();
+            }
+        }
+    });
+});
+
+// Función para actualizar botones de ciclo según estado
+function actualizarBotonesCiclo(hayCicloSeleccionado) {
+    if (hayCicloSeleccionado) {
+        $('#btnNuevoCiclo').hide();
+        $('#btnCerrarCiclo').prop('disabled', false);
+    } else {
+        $('#btnNuevoCiclo').show();
+        $('#btnCerrarCiclo').prop('disabled', true);
+    }
 }
 
-function cargarVariedades(idCultivo) {
-    var selectVariedad = $('#nuevoCicloIdVariedad');
-    selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
+// FUNCIONES PARA GESTIÓN DE CICLOS DE CULTIVO
+function cargarCiclosPorLote(idLote, seleccionarId) {
     $.ajax({
-        url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
+        url: '/CicloCultivo/GetByLote?idLote=' + idLote,
         type: 'GET',
-        success: function(result) {
-            if (result.success && result.listObject) {
-                $.each(result.listObject, function(i, v) {
-                    selectVariedad.append($('<option>', {
-                        value: v.id,
-                        text: v.nombre
+        success: function (result) {
+            var select = $('#idCicloCultivo');
+            select.empty();
+            select.append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
+
+            var tieneActivo = false;
+
+            if (result.success && result.listObject && result.listObject.length > 0) {
+                $.each(result.listObject, function (i, ciclo) {
+                    var label = ciclo.cultivoConEpoca;
+                    if (ciclo.estaActivo) {
+                        label += ' [Activo]';
+                        tieneActivo = true;
+                    } else {
+                        label += ' [Cerrado]';
+                    }
+                    select.append($('<option>', {
+                        value: ciclo.id,
+                        text: label,
+                        'data-activo': ciclo.estaActivo,
+                        'data-id-cultivo': ciclo.idCultivo || 0,
+                        disabled: !ciclo.estaActivo
                     }));
                 });
+            } else {
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Sin ciclos - Use + para crear',
+                    disabled: true
+                }));
             }
+
+            // Si hay un ID para seleccionar, seleccionarlo
+            if (seleccionarId) {
+                select.val(seleccionarId).trigger('change');
+            } else if (tieneActivo) {
+                // Seleccionar el primer ciclo activo
+                var optionActivo = select.find('option[data-activo="true"]').first();
+                if (optionActivo.length) {
+                    select.val(optionActivo.val()).trigger('change');
+                } else {
+                    select.val('').trigger('change');
+                }
+            } else {
+                select.val('').trigger('change');
+            }
+
+            // Actualizar botones según si hay ciclo seleccionado/activo
+            var selectedVal = select.val();
+            actualizarBotonesCiclo(selectedVal && selectedVal !== '');
+        },
+        error: function () {
+            mostrarMensaje('Error al cargar ciclos de cultivo', 'error');
         }
     });
 }
@@ -1151,13 +1007,10 @@ function cerrarCiclo(idCicloCultivo) {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(data),
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        success: function(result) {
+        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+        success: function (result) {
             if (result.success) {
                 mostrarExito('Ciclo cerrado correctamente');
-                // Recargar ciclos
                 var loteId = parseInt($('#IdLote').val());
                 if (loteId) {
                     cargarCiclosPorLote(loteId);
@@ -1166,8 +1019,27 @@ function cerrarCiclo(idCicloCultivo) {
                 mostrarError(result.message || 'Error al cerrar ciclo');
             }
         },
-        error: function() {
+        error: function () {
             mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
+
+function cargarVariedades(idCultivo) {
+    var selectVariedad = $('#nuevoCicloIdVariedad, #idVariedad');
+    selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
+    $.ajax({
+        url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
+        type: 'GET',
+        success: function (result) {
+            if (result.success && result.listObject) {
+                $.each(result.listObject, function (i, v) {
+                    selectVariedad.append($('<option>', {
+                        value: v.id,
+                        text: v.nombre
+                    }));
+                });
+            }
         }
     });
 }
@@ -1206,27 +1078,23 @@ $('#btnClima').on('click', function () {
 
 $('#tipoClima').on('change', function () {
     var tipo = $(this).val();
-    if (tipo == "1") { // Granizo
+    if (tipo == "1") {
         $('#milimetros').val('').prop('disabled', true);
-    } else { // Lluvia
+    } else {
         $('#milimetros').prop('disabled', false);
     }
 });
 
-// Validación y envío del formulario de clima
 $('#formClima').on('submit', function (e) {
     e.preventDefault();
-
     if (!$('#campoClima').val()) {
         $('#campoClima').addClass('is-invalid');
         return;
     } else {
         $('#campoClima').removeClass('is-invalid');
     }
-
     var tipo = $('#tipoClima').val();
     var milimetros = parseFloat($('#milimetros').val());
-
     if (tipo == "0" && (isNaN(milimetros) || milimetros <= 0)) {
         e.preventDefault();
         $('#milimetros').addClass('is-invalid');
@@ -1236,7 +1104,6 @@ $('#formClima').on('submit', function (e) {
     }
     var registroClimaId = $('#registroClimaId').val();
     var esEdicion = registroClimaId && registroClimaId > 0;
-
     var data = {
         IdCampo: parseInt($('#campoClima').val()),
         TipoClima: parseInt($('#tipoClima').val()),
@@ -1245,45 +1112,33 @@ $('#formClima').on('submit', function (e) {
         Observaciones: $('#observacionesClima').val(),
         id: esEdicion ? parseInt(registroClimaId) : 0,
     };
-
     var submitBtn = $('#formClima').find('button[type="submit"]');
     var originalText = submitBtn.html();
-
     submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
     var url = esEdicion ? '/RegistroClima/Update' : '/RegistroClima/Create';
     var mensajeExito = esEdicion ? 'Registro de Clima actualizado correctamente' : 'Registro de Clima creado correctamente';
-
     $.ajax({
         url: url,
         type: esEdicion ? 'PUT' : 'POST',
         contentType: 'application/json',
         data: JSON.stringify(data),
-        headers: {
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
+        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
         success: function (result) {
             if (result.success) {
                 mostrarMensaje(mensajeExito, 'success');
                 $('#modalClima').modal('hide');
-                setTimeout(function () {
-                    window.location.reload();
-                }, 500);
-
+                setTimeout(function () { window.location.reload(); }, 500);
             } else {
                 mostrarMensaje(result.message || 'Error al guardar el registro de clima', 'error');
             }
         },
-        error: function (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'error');
-        },
-        complete: function () {
-            submitBtn.html(originalText).prop('disabled', false);
-        }
+        error: function () { mostrarMensaje('Error al conectar con el servidor', 'error'); },
+        complete: function () { submitBtn.html(originalText).prop('disabled', false); }
     });
 });
 
-// Resetear el modal cuando se cierre
 $('#modalClima').on('hidden.bs.modal', function () {
     $('#formClima')[0].reset();
     $('#campoClima').removeClass('is-invalid');
 });
+

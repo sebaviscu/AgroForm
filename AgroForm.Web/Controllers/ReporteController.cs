@@ -17,6 +17,7 @@ public class ReporteController : Controller
         _campoService = campoService;
     }
 
+    [HttpGet("[action]")]
     public async Task<IActionResult> Campo()
     {
         var campos = await _campoService.GetAllAsync();

@@ -12,10 +12,13 @@ namespace AgroForm.Model.Actividades
         public int IdTipoActividad { get; set; }
         public int IdCampania { get; set; }
         public string Campania { get; set; } = string.Empty;
-        public int IdLote { get; set; } 
+        public int IdLote { get; set; }
         public string Lote { get; set; } = string.Empty;
         public string Campo { get; set; } = string.Empty;
         public bool EsDolar { get; set; }
+
+        public int IdCicloCultivo { get; set; }
+        public string CicloCultivoNombre { get; set; } = string.Empty;
 
         public string TipoActividad { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }

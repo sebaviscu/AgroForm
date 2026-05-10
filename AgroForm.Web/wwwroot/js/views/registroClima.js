@@ -1,7 +1,40 @@
 ﻿$(document).ready(function () {
-
+    inicializarDataTable();
     configurarEventosGrilla();
 });
+
+function inicializarDataTable() {
+    $('#tblClima').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        },
+        dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
+        buttons: {
+            dom: {
+                button: {
+                    className: 'btn'
+                }
+            },
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="ph ph-file-xls me-1"></i>Excel',
+                    className: 'btn btn-outline-success btn-sm',
+                    title: 'Clima_' + new Date().toISOString().slice(0, 10).replace(/-/g, '')
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="ph ph-file-pdf me-1"></i>PDF',
+                    className: 'btn btn-outline-danger btn-sm',
+                    title: 'Clima_' + new Date().toISOString().slice(0, 10).replace(/-/g, '')
+                }
+            ]
+        },
+        pageLength: 25,
+        responsive: true,
+        order: [[0, 'desc']]
+    });
+}
 function configurarEventosGrilla() {
 
     $('#tblClima tbody').on('click', '.btn-edit', function () {

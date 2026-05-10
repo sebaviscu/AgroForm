@@ -26,7 +26,7 @@
 </style>
 
 <div class="modal fade" id="modalActividadRapida" tabindex="-1" aria-labelledby="modalActividadRapidaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="modalActividadRapidaLabel">
@@ -38,6 +38,7 @@
 
                 <input type="hidden" id="actividadId">
                 <div class="modal-body">
+                    <!-- Fila principal: Fecha | Lotes | Ciclo | Labor -->
                     <div class="row">
                         <div class="col-md-3">
                             <div class="mb-3">
@@ -47,7 +48,7 @@
                                 <div class="invalid-feedback">Por favor ingrese la fecha</div>
                             </div>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="IdLote" class="form-label">Lotes *</label>
                                 <select class="form-select" id="IdLote" name="IdLote" required>
@@ -65,20 +66,68 @@
                                                         data-superficie-para-sembrar="@tipo.SuperficieHectareas"
                                                         data-siembra-a-cosechar="@tipo.SiembraACosecharString"
                                                         data-id-cultivo="@tipo.IdCultivo"
-                                                        data-superficie-sembrada="@tipo.SuperficieSembrada"
-                                                        data-permite-cosechas="@tipo.PermiteCosechas"
-                                                        data-permite-siembra="@tipo.PermiteSiembra">
+                                                        data-superficie-sembrada="@tipo.SuperficieSembrada">
                                                     @tipo.Nombre
                                                 </option>
                                             }
                                         </optgroup>
                                     }
                                 </select>
-
                                 <div class="invalid-feedback">Por favor seleccione al menos un lote</div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="idCicloCultivo" class="form-label">
+                                    Ciclo de Cultivo
+                                    <span id="cicloActivoBadge" class="badge bg-success d-none ms-1" style="font-size:0.65em;">Activo</span>
+                                </label>
+
+                                <div class="input-group">
+                                    <select class="form-select" id="idCicloCultivo" name="IdCicloCultivo" disabled>
+                                        <option value="">Seleccione un ciclo...</option>
+                                    </select>
+                                    <button class="btn btn-outline-success" type="button" id="btnNuevoCiclo" title="Nuevo ciclo" disabled>
+                                        <i class="ph ph-plus"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" type="button" id="btnCerrarCiclo" title="Cerrar ciclo activo" disabled>
+                                        <i class="ph ph-x-circle"></i>
+                                    </button>
+                                </div>
+
+
+                                <div class="invalid-feedback">Debe seleccionar o crear un ciclo</div>
+
+                                <!-- Contenedor inline para creación de nuevo ciclo (se muestra al clickear +) -->
+                                <div id="nuevoCicloInline" class="d-none mt-2 p-2 border rounded bg-light">
+                                    <div class="mb-2">
+                                        <label for="nuevoCicloIdCultivo" class="form-label small">Cultivo *</label>
+                                        <select class="form-select form-select-sm" id="nuevoCicloIdCultivo">
+                                            <option value="">Seleccione cultivo...</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="nuevoCicloIdVariedad" class="form-label small">Variedad</label>
+                                        <select class="form-select form-select-sm" id="nuevoCicloIdVariedad">
+                                            <option value="">Sin variedad...</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="nuevoCicloEpoca" class="form-label small">Época</label>
+                                        <select class="form-select form-select-sm" id="nuevoCicloEpoca">
+                                            <option value="">Sin especificar</option>
+                                            <option value="0">Primera</option>
+                                            <option value="1">Segunda</option>
+                                            <option value="2">Tercera</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-success w-100" id="btnGuardarNuevoCicloInline">
+                                        <i class="ph ph-check-circle me-1"></i>Crear Ciclo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="tipoidActividad" class="form-label">Tipo de Labor *</label>
                                 <select class="form-select" id="tipoidActividad" name="TipoidActividad" required>
@@ -98,27 +147,6 @@
                         </div>
                     </div>
 
-                    <!-- Fila: Ciclo de Cultivo -->
-                    <div class="row">
-                        <div class="col-md-5 offset-md-3">
-                            <div class="mb-3">
-                                <label for="idCicloCultivo" class="form-label">Ciclo de Cultivo</label>
-                                <div class="input-group">
-                                    <select class="form-select" id="idCicloCultivo" name="IdCicloCultivo">
-                                        <option value="">Seleccione un ciclo...</option>
-                                    </select>
-                                    <button class="btn btn-outline-success" type="button" id="btnNuevoCiclo" title="Nuevo ciclo">
-                                        <i class="ph ph-plus"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger" type="button" id="btnCerrarCiclo" title="Cerrar ciclo activo">
-                                        <i class="ph ph-x-circle"></i>
-                                    </button>
-                                </div>
-                                <div class="invalid-feedback">Debe seleccionar o crear un ciclo</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="row text-center">
                         <div class="mb-3">
                             <span id="info-cosecha">
@@ -132,7 +160,7 @@
                     </div>
 
                     <!-- Observaciones -->
-                    <div class="mb-3">
+                    <div class="mb-3 d-none" id="observacionesContainer">
                         <label for="observacion" class="form-label">Observaciones</label>
                         <textarea class="form-control" id="observacion" name="Observacion"
                                   rows="3" placeholder="Observaciones adicionales...">@Model.Observacion</textarea>

@@ -25,7 +25,7 @@ namespace AgroForm.Model
 
         public enum EstadosCamapaña
         {
-            Iniciada,
+            Planificada,
             [Display(Name = "En Curso")]
             EnCurso,
             [Display(Name = "Finalizada")]
@@ -115,8 +115,11 @@ namespace AgroForm.Model
 
         public enum EpocaSiembra
         {
+            [Display(Name = "1ra")]
             primera,
+            [Display(Name = "2da")]
             segunda,
+            [Display(Name = "3ra")]
             tercera
         }
     }

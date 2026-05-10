@@ -153,7 +153,7 @@ namespace AgroForm.Web.Controllers
             
             // Buscar campaña actual
             var campaniaResult = await _campaniaService.GetCurrentByLicencia(user.IdLicencia);
-            var idCampania = campaniaResult.Data?.Id.ToString() ?? "0";
+            var idCampania = campaniaResult.Data?.Id.ToString() ?? string.Empty;
 
             var claims = new List<Claim>
             {
@@ -161,7 +161,8 @@ namespace AgroForm.Web.Controllers
                 new Claim(ClaimTypes.Name, user.Nombre),
                 new Claim("Licencia", user.IdLicencia.ToString()),
                 new Claim("Campania", idCampania),
-                new Claim("Moneda", ((int)Monedas.Peso).ToString()),
+                new Claim("Moneda", user.IdMonedaReferencia.HasValue ? ((int)Monedas.DolarOficial).ToString() : ((int)Monedas.Peso).ToString()),
+                new Claim("IdMonedaReferencia", user.IdMonedaReferencia?.ToString() ?? ""),
                 new Claim(ClaimTypes.Role, ((int)user.Rol).ToString())
             };
 

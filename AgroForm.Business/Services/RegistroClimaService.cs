@@ -63,5 +63,37 @@ namespace AgroForm.Business.Services
                 return OperationResult<List<RegistroClima>>.Failure($"Error al obtener Registro de clima: {ex.Message}", "DATABASE_ERROR");
             }
         }
+
+        public async Task<OperationResult<List<RegistroClima>>> GetRegistroClimasHistoricoAsync(int meses = 6, int idCampo = 0)
+        {
+            try
+            {
+                var fechaFinActual = TimeHelper.GetArgentinaTime();
+                var fechaInicioActual = fechaFinActual.AddMonths(-meses);
+                
+                // Mismo período del año anterior
+                var fechaInicioHistorico = fechaInicioActual.AddYears(-1);
+                var fechaFinHistorico = fechaFinActual.AddYears(-1);
+
+                var query = GetQuery()
+                    .Where(_ => _.IdCampania == _userContext.IdCampaña)
+                    .Where(_ => _.Fecha >= fechaInicioHistorico && _.Fecha <= fechaFinHistorico)
+                    .Where(_ => _.TipoClima == TipoClima.Lluvia || _.TipoClima == TipoClima.Granizo)
+                    .AsNoTracking();
+
+                if (idCampo > 0)
+                {
+                    query = query.Where(rc => rc.IdCampo == idCampo);
+                }
+                
+                var lista = await query.ToListAsync();
+                return OperationResult<List<RegistroClima>>.SuccessResult(lista);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener Registro de clima histórico {meses}, {idCampo}", meses, idCampo);
+                return OperationResult<List<RegistroClima>>.Failure($"Error al obtener Registro de clima histórico: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
     }
 }

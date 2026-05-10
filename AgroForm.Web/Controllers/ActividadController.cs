@@ -294,7 +294,7 @@ namespace AgroForm.Web.Controllers
                 }
 
                 var campania = await _campaniaService.GetCurrent();
-                if (campania.Success && campania.Data.EstadosCampania == EstadosCamapaña.Iniciada)
+                if (campania.Success && campania.Data.EstadosCampania == EstadosCamapaña.Planificada)
                 {
                     campania.Data.EstadosCampania = EstadosCamapaña.EnCurso;
                     await _campaniaService.UpdateAsync(campania.Data);

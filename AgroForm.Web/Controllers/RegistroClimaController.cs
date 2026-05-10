@@ -111,6 +111,7 @@ namespace AgroForm.Web.Controllers
             try
             {
                 var result = await _service.GetRegistroClimasAsync(meses, campoId);
+                var resultHistorico = await _service.GetRegistroClimasHistoricoAsync(meses, campoId);
 
                 if (!result.Success)
                 {
@@ -120,6 +121,7 @@ namespace AgroForm.Web.Controllers
                 }
 
                 var registros = result.Data;
+                var registrosHistoricos = resultHistorico.Data ?? new List<RegistroClima>();
                 var fechaFin = TimeHelper.GetArgentinaTime();
 
                 var todosLosMeses = new List<DateTime>();
@@ -130,8 +132,24 @@ namespace AgroForm.Web.Controllers
                 }
                 todosLosMeses = todosLosMeses.OrderBy(m => m).ToList();
 
-                // Agrupar datos por mes
+                // Agrupar datos actuales por mes
                 var datosAgrupados = registros
+                    .GroupBy(rc => new
+                    {
+                        Año = rc.Fecha.Year,
+                        Mes = rc.Fecha.Month
+                    })
+                    .ToDictionary(
+                        g => new DateTime(g.Key.Año, g.Key.Mes, 1),
+                        g => new
+                        {
+                            TotalLluvia = g.Where(x => x.TipoClima == TipoClima.Lluvia).Sum(x => x.Milimetros),
+                            CantidadGranizo = g.Count(x => x.TipoClima == TipoClima.Granizo)
+                        }
+                    );
+
+                // Agrupar datos históricos
+                var datosHistoricosAgrupados = registrosHistoricos
                     .GroupBy(rc => new
                     {
                         Año = rc.Fecha.Year,
@@ -150,15 +168,40 @@ namespace AgroForm.Web.Controllers
                 var resultado = todosLosMeses.Select(mes =>
                 {
                     var tieneDatos = datosAgrupados.TryGetValue(mes, out var datos);
+                    var tieneDatosHistoricos = datosHistoricosAgrupados.TryGetValue(mes, out var datosHistoricos);
                     return new
                     {
                         mes = mes.ToString("MMM yyyy"),
                         totalLluvia = tieneDatos ? Math.Round((decimal)datos.TotalLluvia, 1) : 0,
-                        cantidadGranizo = tieneDatos ? datos.CantidadGranizo : 0
+                        cantidadGranizo = tieneDatos ? datos.CantidadGranizo : 0,
+                        totalLluviaHistorico = tieneDatosHistoricos ? Math.Round((decimal)datosHistoricos.TotalLluvia, 1) : 0,
+                        cantidadGranizoHistorico = tieneDatosHistoricos ? datosHistoricos.CantidadGranizo : 0
                     };
                 }).ToList();
 
-                return Json(new { success = true, data = resultado });
+                // Calcular totales para comparación histórica
+                var totalLluviaActual = registros.Where(x => x.TipoClima == TipoClima.Lluvia).Sum(x => x.Milimetros);
+                var totalLluviaHistorico = registrosHistoricos.Where(x => x.TipoClima == TipoClima.Lluvia).Sum(x => x.Milimetros);
+                
+                decimal variacionPorcentaje;
+                bool tieneDatosHistoricos = registrosHistoricos.Any(x => x.TipoClima == TipoClima.Lluvia);
+                
+                if (tieneDatosHistoricos && totalLluviaHistorico > 0) {
+                    variacionPorcentaje = Math.Round(((totalLluviaActual - totalLluviaHistorico) / totalLluviaHistorico) * 100, 1);
+                } else {
+                    variacionPorcentaje = 0; // No hay datos históricos o es cero
+                }
+
+                return Json(new { 
+                    success = true, 
+                    data = resultado,
+                    comparacionHistorica = new {
+                        totalLluviaActual = Math.Round((decimal)totalLluviaActual, 1),
+                        totalLluviaHistorico = Math.Round((decimal)totalLluviaHistorico, 1),
+                        variacionPorcentaje = variacionPorcentaje,
+                        tieneDatosHistoricos = tieneDatosHistoricos
+                    }
+                });
             }
             catch (Exception ex)
             {

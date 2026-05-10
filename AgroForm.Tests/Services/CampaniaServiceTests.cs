@@ -23,7 +23,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña 2024", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
@@ -33,7 +33,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 2, 
                 Nombre = "Campaña 2023", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
@@ -84,7 +84,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña 2024", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1
             };
@@ -194,7 +194,7 @@ namespace AgroForm.Tests.Services
             var nuevaCampania = new Campania 
             { 
                 Nombre = "Nueva Campaña", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 // No asignar IdLicencia ni IdCampania
             };
@@ -216,7 +216,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña Original", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 RegistrationDate = DateTime.Now.AddDays(-1),
                 RegistrationUser = "usuario_original"
@@ -250,7 +250,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 999, 
                 Nombre = "Campaña Inexistente", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
             };
@@ -271,7 +271,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña Misma Licencia", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
@@ -281,7 +281,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 2, 
                 Nombre = "Campaña Otra Licencia", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 2,
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
@@ -310,7 +310,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña Otra Licencia", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 2,
             };
@@ -343,7 +343,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña Test", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
             };
@@ -374,7 +374,7 @@ namespace AgroForm.Tests.Services
             { 
                 Id = 1, 
                 Nombre = "Campaña 1", 
-                EstadosCampania = EnumClass.EstadosCamapaña.Iniciada,
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
                 FechaInicio = DateTime.Now,
                 IdLicencia = 1,
             };

@@ -28,8 +28,12 @@ $(document).ready(function () {
         var row = $(this).closest('tr');
         var id = row.data('id');
         var cultivo = row.find('td:eq(2)').text();
-        if (!confirm('¿Está seguro de cerrar el ciclo de ' + cultivo + '?')) return;
-        cerrarCicloGestion(id, row);
+        mostrarConfirmacion('¿Está seguro de cerrar el ciclo de ' + cultivo + '?', 'Cerrar Ciclo')
+            .then(function (result) {
+                if (result.isConfirmed) {
+                    cerrarCicloGestion(id, row);
+                }
+            });
     });
 });
 

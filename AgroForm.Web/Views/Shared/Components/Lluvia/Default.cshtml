@@ -59,21 +59,28 @@
                         <div class="lluvia-stats">
                             <div class="row text-center justify-content-center">
 
-                                <div class="col-4 mb-3">
+                                <div class="col-3 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-info fw-bold" id="totalLluvia">0.0 mm</div>
                                         <div class="stat-label small text-muted">Total Lluvia</div>
                                     </div>
                                 </div>
 
-                                <div class="col-4 mb-3">
+                                <div class="col-3 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-primary fw-bold" id="promedioMensual">0.0 mm</div>
                                         <div class="stat-label small text-muted">Promedio Mensual Lluvia</div>
                                     </div>
                                 </div>
 
-                                <div class="col-4 mb-3">
+                                <div class="col-3 mb-3">
+                                    <div class="stat-item">
+                                        <div class="stat-value fw-bold" id="comparacionHistorica">0.0%</div>
+                                        <div class="stat-label small text-muted">vs. Año Anterior</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-3 mb-3">
                                     <div class="stat-item">
                                         <div class="stat-value text-secondary fw-bold" id="totalGranizo">0</div>
                                         <div class="stat-label small text-muted">Eventos de Granizo</div>
@@ -246,7 +253,7 @@
                     $('#loadingClima').hide();
                 if (result.success && result.data) {
                     actualizarGrafico(result.data);
-                    actualizarEstadisticas(result.data);
+                    actualizarEstadisticas(result.data, result.comparacionHistorica);
                 }
             },
             error: function(error) {
@@ -279,7 +286,7 @@
         ]);
     }
 
-    function actualizarEstadisticas(datos) {
+    function actualizarEstadisticas(datos, comparacionHistorica) {
         var totalLluvia = datos.reduce((sum, item) => sum + item.totalLluvia, 0);
         var totalEventosGranizo = datos.reduce((sum, item) => sum + item.cantidadGranizo, 0);
         var promedioMensual = totalLluvia / datos.length;
@@ -287,6 +294,32 @@
         $('#totalLluvia').text(totalLluvia.toFixed(1) + ' mm');
         $('#totalGranizo').text(totalEventosGranizo);
         $('#promedioMensual').text(promedioMensual.toFixed(1) + ' mm');
+
+        // Actualizar comparación histórica
+        if (comparacionHistorica) {
+            var variacion = comparacionHistorica.variacionPorcentaje;
+            var tieneDatosHistoricos = comparacionHistorica.tieneDatosHistoricos;
+            var $comparacionElement = $('#comparacionHistorica');
+            
+            // Quitar clases de color anteriores
+            $comparacionElement.removeClass('text-success text-danger text-secondary');
+            
+            if (!tieneDatosHistoricos) {
+                // No hay datos históricos
+                $comparacionElement.addClass('text-secondary');
+                $comparacionElement.text('Sin datos');
+            } else if (variacion > 0) {
+                $comparacionElement.addClass('text-success');
+                $comparacionElement.text('+' + variacion.toFixed(1) + '%');
+            } else if (variacion < 0) {
+                $comparacionElement.addClass('text-danger');
+                $comparacionElement.text(variacion.toFixed(1) + '%');
+            } else {
+                // Hay datos históricos pero la variación es cero
+                $comparacionElement.addClass('text-secondary');
+                $comparacionElement.text('0.0%');
+            }
+        }
     }
 
 </script>

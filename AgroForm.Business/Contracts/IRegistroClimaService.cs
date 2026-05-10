@@ -12,5 +12,6 @@ namespace AgroForm.Business.Contracts
     {
         Task<OperationResult<List<RegistroClima>>> GetByCampaniaAsync(int? idCampania);
         Task<OperationResult<List<RegistroClima>>> GetRegistroClimasAsync(int meses = 6, int idCampo = 0);
+        Task<OperationResult<List<RegistroClima>>> GetRegistroClimasHistoricoAsync(int meses = 6, int idCampo = 0);
     }
 }

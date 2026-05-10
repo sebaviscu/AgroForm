@@ -59,7 +59,14 @@
                                         <span class="badge bg-secondary">Cerrado</span>
                                     }
                                 </td>
-                                <td>@ciclo.Siembras.Count</td>
+                                <td>
+                                    @{
+                                        var totalLabores = ciclo.Siembras.Count + ciclo.Riegos.Count + ciclo.Fertilizaciones.Count
+                                            + ciclo.Pulverizaciones.Count + ciclo.Monitoreos.Count + ciclo.AnalisisSuelos.Count
+                                            + ciclo.Cosechas.Count + ciclo.OtrasLabores.Count;
+                                    }
+                                    @totalLabores
+                                </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <button type="button" class="btn btn-outline-info btnVerDetalle" title="Ver detalle">

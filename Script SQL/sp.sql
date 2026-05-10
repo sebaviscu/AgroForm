@@ -41,13 +41,17 @@ BEGIN
         s.IdLote,
         l.Nombre AS Lote,
         campo.Nombre AS Campo,
-        CAST(CASE WHEN s.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT) AS EsDolar
+        CAST(CASE WHEN s.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT) AS EsDolar,
+        s.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Siembras s
     INNER JOIN Lotes l ON l.Id = s.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = s.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = s.IdTipoActividad
     INNER JOIN Cultivos c ON c.Id = s.IdCultivo
+    INNER JOIN CicloCultivos cc ON cc.Id = s.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE s.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR s.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR s.IdLote = @IdLoteFilter)
@@ -77,12 +81,16 @@ BEGIN
         r.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN r.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN r.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        r.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Riegos r
     INNER JOIN Lotes l ON l.Id = r.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = r.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = r.IdTipoActividad
+    INNER JOIN CicloCultivos cc ON cc.Id = r.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE r.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR r.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR r.IdLote = @IdLoteFilter)
@@ -113,13 +121,17 @@ BEGIN
         f.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN f.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN f.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        f.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Fertilizaciones f
     INNER JOIN Lotes l ON l.Id = f.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = f.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = f.IdTipoActividad
     LEFT JOIN Catalogos cat ON cat.Id = f.IdNutriente
+    INNER JOIN CicloCultivos cc ON cc.Id = f.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE f.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR f.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR f.IdLote = @IdLoteFilter)
@@ -152,13 +164,17 @@ BEGIN
         p.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN p.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN p.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        p.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Pulverizaciones p
     INNER JOIN Lotes l ON l.Id = p.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = p.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = p.IdTipoActividad
     LEFT JOIN Catalogos cat ON cat.Id = p.IdProductoAgroquimico
+    INNER JOIN CicloCultivos cc ON cc.Id = p.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE p.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR p.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR p.IdLote = @IdLoteFilter)
@@ -188,13 +204,17 @@ BEGIN
         m.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN m.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN m.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        m.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Monitoreos m
     INNER JOIN Lotes l ON l.Id = m.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = m.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = m.IdTipoActividad
     INNER JOIN Catalogos catTipo ON catTipo.Id = m.IdTipoMonitoreo
+    INNER JOIN CicloCultivos cc ON cc.Id = m.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE m.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR m.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR m.IdLote = @IdLoteFilter)
@@ -227,13 +247,17 @@ BEGIN
         cs.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN cs.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN cs.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        cs.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM Cosechas cs
     INNER JOIN Lotes l ON l.Id = cs.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = cs.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = cs.IdTipoActividad
     INNER JOIN Cultivos c ON c.Id = cs.IdCultivo
+    INNER JOIN CicloCultivos cc ON cc.Id = cs.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE cs.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR cs.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR cs.IdLote = @IdLoteFilter)
@@ -283,12 +307,16 @@ BEGIN
         a.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN a.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN a.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        a.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM AnalisisSuelos a
     INNER JOIN Lotes l ON l.Id = a.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = a.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = a.IdTipoActividad
+    INNER JOIN CicloCultivos cc ON cc.Id = a.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE a.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR a.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR a.IdLote = @IdLoteFilter)
@@ -318,12 +346,16 @@ BEGIN
         o.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN o.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT)
+        CAST(CASE WHEN o.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        o.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
     FROM OtrasLabores o
     INNER JOIN Lotes l ON l.Id = o.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
     INNER JOIN Campanias camp ON camp.Id = o.IdCampania
     INNER JOIN TiposActividad ta ON ta.Id = o.IdTipoActividad
+    INNER JOIN CicloCultivos cc ON cc.Id = o.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
     WHERE o.IdLicencia = @IdLicencia
       AND (@IdCampaniaFilter IS NULL OR o.IdCampania = @IdCampaniaFilter)
       AND (@IdLoteFilter IS NULL OR o.IdLote = @IdLoteFilter)
