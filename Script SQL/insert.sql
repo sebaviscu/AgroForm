@@ -1,16 +1,14 @@
 
 
-INSERT INTO Licencias (RazonSocial, NombreContacto, NumeroContacto, TipoLicencia, EsPrueba, Activo, RegistrationDate)
-VALUES ('AgroForm S.A.', 'Administrador', '0000-000000',1, 0, 1, GETDATE());
 
 INSERT INTO Usuarios 
-(IdLicencia, Nombre, Email, Rol, Activo, PasswordHash, PasswordSalt, EmailConfirmed, RegistrationDate,SuperAdmin, RegistrationUser)
+(IdLicencia, Nombre, Email, Rol, Activo, PasswordHash, PasswordSalt, EmailConfirmed, RegistrationDate, SuperAdmin, RegistrationUser)
 VALUES
 (
     NULL, 
     'Administrador', 
     'admin@agroform.com', 
-    99, -- Rol administrador, según tu enum
+    2, -- Rol administrador, según tu enum
     1,
     '0Zh5ZmURh/ssi3KeLS1HZqYDXqf9RVLHEVmMTqzkDkmYFwS186VLfv2sUJBpEQ8gWOf3xSTb4rSEJk4iVFWsng==',
     0x77168C588E15B95C907FCFB6E51EB6C481A23D79C17167EA3ABAE95DCA1DAFB5D1EE681A763C4CD7190582F853FA7F842C006209F83882B5CF5AE5308E850B4E696337E6000BC1A4EBB8736EE4B4EE416DC140F1B5729E099EFD0D1E4ACB63DAC809575FA861EF36308BA33F392A95750823FBFB94A12FACE79E8DC6D1344701

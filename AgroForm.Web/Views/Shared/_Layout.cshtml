@@ -301,7 +301,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-4">
                     <div>
                         <div class="fw-semibold">Tema</div>
                         <div class="text-muted small">Elegí modo claro u oscuro</div>
@@ -311,6 +311,24 @@
                         <label class="form-check-label" for="themeSwitchUser">Oscuro</label>
                     </div>
                 </div>
+                
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <div class="fw-semibold">Tipo de Dólar</div>
+                        <div class="text-muted small">Seleccione su tipo de dólar de referencia</div>
+                    </div>
+                    <div>
+                        <select class="form-select form-select-sm" id="tipoDolarModal" style="width: 150px;">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="guardarConfiguracionMoneda()">
+                        <i class="ph ph-check-circle me-1"></i>Guardar Cambios
+                    </button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -319,84 +337,9 @@
     </div>
 </div>
 
-<script>
-    // Inicialización del tema para la vista de usuario
-    $(document).ready(function () {
-        const themeSwitch = document.getElementById('themeSwitchUser');
-        if (!themeSwitch) return;
-
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        themeSwitch.checked = savedTheme === 'dark';
-
-        themeSwitch.addEventListener('change', function () {
-            setTheme(this.checked ? 'dark' : 'light');
-        });
-    });
+<script src="~/js/layout.js" asp-append-version="true"></script>
 </script>
 
-<!-- Script para manejar la simulación -->
-    <script>
-        // Funciones globales de simulación
-        function detenerSimulacion() {
-            mostrarConfirmacion(
-                '¿Está seguro de que desea detener la simulación? Volverá a tener vista de Super Admin.',
-                'Detener Simulación'
-            ).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/Simulacion/DetenerSimulacion',
-                        type: 'POST',
-                        headers: {
-                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                        },
-                        success: function (response) {
-                            if (response.success) {
-                                toastr.success(response.message);
-                                actualizarEstadoSimulacion();
-                                // Volver a la vista de administrador
-                                setTimeout(() => {
-                                    window.location.href = response.redirectUrl || '/Administrador/Index';
-                                }, 800);
-                            } else {
-                                toastr.error(response.message);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            toastr.error('Error al detener simulación: ' + (xhr.responseJSON?.message || error));
-                        }
-                    });
-                }
-            });
-        }
-
-        function actualizarEstadoSimulacion() {
-            $.ajax({
-                url: '/Simulacion/GetEstadoSimulacion',
-                type: 'GET',
-                success: function (response) {
-                    if (response.isSimulating) {
-                        // Mostrar banner de simulación
-                        $('#bannerSimulacionContainer').removeClass('d-none');
-                        $('#licenciaSimulada').text(response.licenciaActual);
-                        $('#sidebar').addClass('simulating');
-                    } else {
-                        // Ocultar banner de simulación
-                        $('#bannerSimulacionContainer').addClass('d-none');
-                        $('#sidebar').removeClass('simulating');
-                    }
-                },
-                error: function () {
-                    console.error('Error al obtener estado de simulación');
-                }
-            });
-        }
-
-        // Verificar estado de simulación al cargar la página
-        $(document).ready(function() {
-            actualizarEstadoSimulacion();
-        });
-    </script>
 
 </body>
 </html>

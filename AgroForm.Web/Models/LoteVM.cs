@@ -8,7 +8,7 @@ namespace AgroForm.Web.Models
         public string Nombre { get; set; } = string.Empty;
         public decimal? SuperficieHectareas { get; set; }
 
-        public int idCampo { get; set; }
+        public int IdCampo { get; set; }
         public CampoVM? Campo { get; set; }
 
         public int? IdCultivo => SiembraACosechar != null ? SiembraACosechar.IdCultivo : null;
@@ -76,7 +76,7 @@ namespace AgroForm.Web.Models
             }
         }
 
-        public int idCampania { get; set; }
+        public int IdCampania { get; set; }
 
         public ICollection<LaborDTO> Actividades { get; set; } = new List<LaborDTO>();
 

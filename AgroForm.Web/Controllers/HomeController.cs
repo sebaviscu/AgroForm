@@ -30,7 +30,17 @@ public class HomeController : Controller
         var dolar = await _monedaService.ObtenerTipoCambioActualAsync();
         vm.CotizacionDolar = dolar.TipoCambioReferencia.ToString("N0");
         vm.CotizacionFecha = dolar.ModificationDate.HasValue ? dolar.ModificationDate.Value.ToString("dd/MM/yyyy HH:mm") : "-";
-        vm.NombreCorizacion = dolar.Nombre;
+        
+        // Mostrar nombre específico según configuración del usuario
+        if (_monedaService != null)
+        {
+            var monedaConfigurada = await _monedaService.ObtenerMonedaConfiguradaUsuarioAsync();
+            vm.NombreCorizacion = monedaConfigurada.Nombre.ToUpper();
+        }
+        else
+        {
+            vm.NombreCorizacion = dolar.Nombre;
+        }
 
         var gastosResult = await _gastoService.GetAllByCamapniaAsync();
 

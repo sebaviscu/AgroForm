@@ -1,0 +1,105 @@
+@model AgroForm.Web.Models.CicloCultivo.CicloCultivoIndexVM
+@{
+    ViewData["Title"] = "Ciclos de Cultivo";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph ph-seedling text-success me-2"></i>Ciclos de Cultivo
+            </h1>
+            <p class="text-muted mb-0">Gestión de ciclos de cultivo por lote</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-success" id="btnNuevoCicloGestion">
+                <i class="ph ph-plus-circle me-1"></i>Nuevo Ciclo
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de Ciclos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaCiclos" class="table table-hover align-middle" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lote</th>
+                            <th>Campo</th>
+                            <th>Cultivo</th>
+                            <th>Variedad</th>
+                            <th>Época</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Estado</th>
+                            <th>Labores</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ciclo in Model.Ciclos)
+                        {
+                            <tr data-id="@ciclo.Id">
+                                <td>@ciclo.Lote?.Nombre</td>
+                                <td>@ciclo.Lote?.Campo?.Nombre</td>
+                                <td>@ciclo.Cultivo?.Nombre</td>
+                                <td>@ciclo.Variedad?.Nombre</td>
+                                <td>@ciclo.EpocaDisplay</td>
+                                <td>@ciclo.FechaInicio?.ToString("dd/MM/yyyy")</td>
+                                <td>@ciclo.FechaFin?.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (ciclo.EstaActivo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Cerrado</span>
+                                    }
+                                </td>
+                                <td>@ciclo.Siembras.Count</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-info btnVerDetalle" title="Ver detalle">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        @if (ciclo.EstaActivo)
+                                        {
+                                            <button type="button" class="btn btn-outline-danger btnCerrarCiclo" title="Cerrar ciclo">
+                                                <i class="ph ph-x-circle"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle -->
+<div class="modal fade" id="modalDetalleCiclo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="ph ph-seedling me-2"></i>Detalle del Ciclo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleCicloBody">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/views/cicloCultivo.js" asp-append-version="true"></script>
+}

@@ -37,6 +37,9 @@ namespace AgroForm.Model.Actividades
         public int IdMoneda { get; set; }
         public Moneda Moneda { get; set; } = null!;
         public bool EsDolar => Moneda != null && Moneda.Id == 2 ? true : false;
+
+        public int IdCicloCultivo { get; set; }
+        public CicloCultivo CicloCultivo { get; set; } = null!;
     }
 
 }

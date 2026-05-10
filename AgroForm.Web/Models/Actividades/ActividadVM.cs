@@ -9,7 +9,7 @@ namespace AgroForm.Web.Models
         public string IconoTipoActividad { get; set; } = string.Empty;
         public string IconoColorTipoActividad { get; set; } = string.Empty;
         public string Campo { get; set; } = string.Empty;
-        public int idCampo { get; set; }
+        public int IdCampo { get; set; }
         public DateTime Fecha { get; set; }
         public string Estado { get; set; } = string.Empty;
         public string Responsable { get; set; } = string.Empty;

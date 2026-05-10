@@ -97,7 +97,8 @@ namespace AgroForm.Business.Services
                     Activo = true,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    IdMonedaReferencia = (int)Monedas.DolarOficial
                 };
 
                 await userRepo.AddAsync(user);

@@ -18,14 +18,16 @@ namespace AgroForm.Business.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ActividadService> _logger;
         private readonly IUserContext _userContext;
+        private readonly AppDbContext _dbContext;
         private readonly IDictionary<TipoActividadEnum, object> _reposPorTipo;
         private readonly IDictionary<Type, object> _reposPorTipoClr;
 
-        public ActividadService(ILogger<ActividadService> logger, IUserContext userContext, IUnitOfWork unitOfWork)
+        public ActividadService(ILogger<ActividadService> logger, IUserContext userContext, IUnitOfWork unitOfWork, AppDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _userContext = userContext;
+            _dbContext = dbContext;
 
             var repoAnalisis = unitOfWork.Repository<AnalisisSuelo>();
             var repoCosecha = unitOfWork.Repository<Cosecha>();
@@ -61,7 +63,8 @@ namespace AgroForm.Business.Services
             };
         }
 
-        public async Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? idCampania = null, int? idLote = null, List<int> idsLotes = null)
+        [Obsolete("Este método será eliminado en una versión futura. Usar el nuevo GetLaboresByAsync que ejecuta el SP GetLaboresByAsync.")]
+        public async Task<OperationResult<List<LaborDTO>>> GetLaboresByAsyncLegacy(int? idCampania = null, int? idLote = null, List<int> idsLotes = null)
         {
             var labores = new List<LaborDTO>();
 
@@ -348,6 +351,34 @@ namespace AgroForm.Business.Services
             return OperationResult<List<LaborDTO>>.SuccessResult(labores.OrderByDescending(l => l.RegistrationDate).ToList());
         }
 
+        public async Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? idCampania = null, int? idLote = null, List<int> idsLotes = null)
+        {
+            try
+            {
+                var idLicencia = _userContext.IdLicencia ?? 0;
+                var idsLotesStr = idsLotes != null && idsLotes.Any() ? string.Join(",", idsLotes) : null;
+
+                _logger.LogInformation("Ejecutando SP GetLaboresByAsync: IdLicencia={IdLicencia}, IdCampania={IdCampania}, IdLote={IdLote}, IdsLotes={IdsLotes}",
+                    idLicencia, idCampania, idLote, idsLotesStr);
+
+                var labores = await _dbContext.Database
+                    .SqlQueryRaw<LaborDTO>(
+                        "EXEC GetLaboresByAsync @p0, @p1, @p2, @p3",
+                        idLicencia,
+                        idCampania,
+                        idLote,
+                        idsLotesStr)
+                    .ToListAsync();
+
+                return OperationResult<List<LaborDTO>>.SuccessResult(labores);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar labores mediante SP GetLaboresByAsync");
+                return OperationResult<List<LaborDTO>>.Failure(ex.Message, "DATABASE_ERROR");
+            }
+        }
+
         public async Task<OperationResult<bool>> SaveActividadAsync(List<ILabor> actividades)
         {
             foreach (var actividad in actividades)
@@ -370,6 +401,7 @@ namespace AgroForm.Business.Services
                     return OperationResult<bool>.Failure(ex.Message, "DATABASE_ERROR");
                 }
             }
+            await _unitOfWork.SaveAsync();
             return OperationResult<bool>.SuccessResult(true);
 
         }
@@ -487,6 +519,7 @@ namespace AgroForm.Business.Services
             {
                 dynamic repo = repoObj;
                 await repo.DeleteByIdAsync(idActividad);
+                await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
             {

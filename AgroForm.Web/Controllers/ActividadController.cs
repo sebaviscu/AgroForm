@@ -3,6 +3,7 @@ using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
 using AgroForm.Model.Configuracion;
+using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
 using AgroForm.Web.Utilities;
 using Mapster;
@@ -22,15 +23,17 @@ namespace AgroForm.Web.Controllers
         protected readonly IActividadService _service;
         private readonly IMonedaService _monedaService;
         private readonly ICampaniaService _campaniaService;
+        private readonly ICicloCultivoService _cicloCultivoService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService)
+        public ActividadController(ILogger<ActividadController> logger, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService, ICicloCultivoService cicloCultivoService)
         {
             _logger = logger;
             _service = service;
             _campoService = campoService;
             _monedaService = monedaService;
             _campaniaService = campaniaService;
+            _cicloCultivoService = cicloCultivoService;
         }
 
         public async Task<IActionResult> Index()
@@ -112,11 +115,11 @@ namespace AgroForm.Web.Controllers
             }
         }
 
-        private static ILabor ArmarLabor(ActividadRapidaVM model, UserAuth user, decimal tipoCambioUSD)
+        private ILabor ArmarLabor(ActividadRapidaVM model, UserAuth user, decimal tipoCambioUSD)
         {
             ILabor actividad = null;
 
-            switch ((TipoActividadEnum)model.TipoidActividad)
+            switch ((TipoActividadEnum)model.TipoIdActividad)
             {
                 case TipoActividadEnum.Siembra:
                     actividad = new Siembra
@@ -216,9 +219,12 @@ namespace AgroForm.Web.Controllers
             actividad.Costo = model.DatosEspecificos?.Costo;
             actividad.IdMoneda = esDolar ? (int)Monedas.DolarOficial : (int)Monedas.Peso;
             actividad.Fecha = model.Fecha;
-            actividad.IdTipoActividad = model.TipoidActividad;
+            actividad.IdTipoActividad = model.TipoIdActividad;
             actividad.Observacion = model.Observacion ?? string.Empty;
-            actividad.IdLote = model.idLote ?? throw new Exception("No se envió Id del lote.");
+            actividad.IdLote = model.IdLote ?? throw new Exception("No se envió Id del lote.");
+
+            if (model.IdCicloCultivo.HasValue)
+                ((dynamic)actividad).IdCicloCultivo = model.IdCicloCultivo.Value;
             actividad.CostoARS = UtilidadService.CalcularCostoARS(actividad.Costo, esDolar, tipoCambioUSD);
             actividad.CostoUSD = UtilidadService.CalcularCostoUSD(actividad.Costo, esDolar, tipoCambioUSD);
 
@@ -257,7 +263,32 @@ namespace AgroForm.Web.Controllers
 
                 foreach (var loteId in model.LotesIds)
                 {
-                    model.idLote = loteId;
+                    model.IdLote = loteId;
+
+                    // Si no viene IdCicloCultivo, buscar ciclo activo o crear uno automáticamente
+                    if (!model.IdCicloCultivo.HasValue)
+                    {
+                        var cicloActivo = await _cicloCultivoService.ObtenerCicloActivoAsync(loteId);
+                        if (cicloActivo.Success && cicloActivo.Data != null)
+                        {
+                            model.IdCicloCultivo = cicloActivo.Data.Id;
+                        }
+                        else
+                        {
+                            // Si es siembra, crear ciclo automáticamente
+                            if ((TipoActividadEnum)model.TipoIdActividad == TipoActividadEnum.Siembra)
+                            {
+                                var nuevoCiclo = await _cicloCultivoService.CrearCicloAsync(
+                                    loteId,
+                                    model.DatosEspecificos?.IdCultivo ?? 0,
+                                    model.DatosEspecificos?.IdVariedad,
+                                    null);
+                                if (nuevoCiclo.Success)
+                                    model.IdCicloCultivo = nuevoCiclo.Data.Id;
+                            }
+                        }
+                    }
+
                     var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
                     actividades.Add(actividad);
                 }

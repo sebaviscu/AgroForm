@@ -13,6 +13,8 @@ namespace AgroForm.Business.Contracts
     public interface IActividadService
     {
         Task<OperationResult<List<LaborDTO>>> GetLaboresByAsync(int? IdCampania = null, int? IdLote = null, List<int> IdsLotes = null);
+        [Obsolete("Usar GetLaboresByAsync (el nuevo que ejecuta el SP) en su lugar.")]
+        Task<OperationResult<List<LaborDTO>>> GetLaboresByAsyncLegacy(int? IdCampania = null, int? IdLote = null, List<int> IdsLotes = null);
         Task<OperationResult<bool>> SaveActividadAsync(List<ILabor> actividades);
         Task DeteleActividadAsync(int idActividad, TipoActividadEnum IdTipoActividad);
         Task<object> GetLaboresByAsync(int idActividad, TipoActividadEnum idTipoActividad);

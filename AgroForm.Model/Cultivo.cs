@@ -12,6 +12,7 @@ namespace AgroForm.Model
         public string Nombre { get; set; } = string.Empty;
         public int? Orden { get; set; }
         public bool Activo { get; set; } = true;
+        public string? Color { get; set; } // Hex color for dashboard visualization
 
         public List<Variedad> Variedades { get; set; } = new();
         public List<EstadoFenologico> EstadosFenologicos { get; set; } = new();

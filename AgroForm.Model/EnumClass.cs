@@ -113,6 +113,12 @@ namespace AgroForm.Model
             Otros
         }
 
+        public enum EpocaSiembra
+        {
+            primera,
+            segunda,
+            tercera
+        }
     }
 
     public static class EnumExtensions

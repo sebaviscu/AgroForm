@@ -28,6 +28,7 @@ namespace AgroForm.Model
         public List<AnalisisSuelo> AnalisisSuelos { get; set; } = new();
         public List<Cosecha> Cosechas { get; set; } = new();
         public List<OtraLabor> OtrasLabores { get; set; } = new();
+        public List<CicloCultivo> CicloCultivos { get; set; } = new();
 
         public decimal CostoTotalLaboresArs =>
              (Siembras.Any(_ => _.Costo != null) ? Siembras.Sum(x => x.CostoARS.GetValueOrDefault()) : 0) +

@@ -156,7 +156,6 @@ $(document).ready(function () {
         llenarSelectConCatalogo(30, 'MetodoSiembra', todosCatalogos);
 
         //cosecha
-        cargarCultivos();
         cargarSwitchMoneda("switchMonedaCostoCosecha", "labelMonedaCostoCosecha");
 
         // riego
@@ -437,6 +436,14 @@ $(document).ready(function () {
             const selectElement = document.getElementById('IdLote');
             const selectedOption = selectElement.options[selectElement.selectedIndex];
 
+            // Cargar ciclos para el lote seleccionado
+            if (selectedValue) {
+                cargarCiclosPorLote(parseInt(selectedValue));
+            } else {
+                var cicloSelect = $('#idCicloCultivo');
+                cicloSelect.empty().append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
+            }
+
             // Si no hay selección, salir
             if (!selectedOption) return;
 
@@ -688,6 +695,7 @@ $(document).ready(function () {
         const loteId = parseInt(loteSelect.val());
         const loteArray = [loteId];
 
+        var idCiclo = parseInt($('#idCicloCultivo').val());
         var data = {
             fecha: $('#fecha').val(),
             //lotesIds: loteSelect.val() ? loteSelect.val().map(function (id) {
@@ -699,7 +707,8 @@ $(document).ready(function () {
             tipoActividad: tipoActividadNombre,
             datosEspecificos: dataEspecifica,
             idLabor: esEdicion ? parseInt(actividadId) : null,
-            idLote: esEdicion ? parseInt($('#IdLote').val()[0]) : null
+            idLote: esEdicion ? parseInt($('#IdLote').val()[0]) : null,
+            idCicloCultivo: idCiclo > 0 ? idCiclo : null
         };
 
         // Mostrar loading en el botón
@@ -927,8 +936,241 @@ $(document).ready(function () {
     $('#modalGasto').on('hidden.bs.modal', function () {
         $('#formGasto')[0].reset();
     });
+
+    // Eventos para gestión de ciclos desde el modal
+    $('#btnNuevoCiclo').on('click', function() {
+        var loteId = parseInt($('#IdLote').val());
+        if (!loteId) {
+            mostrarMensaje('Debe seleccionar un lote primero', 'error');
+            return;
+        }
+        // Obtener cultivo si ya está seleccionado
+        var idCultivo = parseInt($('#idCultivo').val()) || 0;
+        abrirModalNuevoCiclo(loteId, idCultivo);
+    });
+
+    $('#btnCerrarCiclo').on('click', function() {
+        var cicloId = parseInt($('#idCicloCultivo').val());
+        if (!cicloId) {
+            mostrarMensaje('Debe seleccionar un ciclo activo para cerrar', 'error');
+            return;
+        }
+        if (!confirm('¿Está seguro de cerrar este ciclo de cultivo?')) return;
+        cerrarCiclo(cicloId);
+    });
 });
 
+// FUNCIONES PARA GESTIÓN DE CICLOS DE CULTIVO
+function cargarCiclosPorLote(idLote) {
+    $.ajax({
+        url: '/CicloCultivo/GetByLote?idLote=' + idLote,
+        type: 'GET',
+        success: function(result) {
+            var select = $('#idCicloCultivo');
+            select.empty();
+            select.append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
+
+            if (result.success && result.listObject && result.listObject.length > 0) {
+                $.each(result.listObject, function(i, ciclo) {
+                    var label = ciclo.cultivoConEpoca;
+                    if (ciclo.fechaInicio) {
+                        var fecha = new Date(ciclo.fechaInicio);
+                        label += ' (' + fecha.toLocaleDateString() + ')';
+                    }
+                    if (ciclo.estaActivo) label += ' [Activo]';
+                    select.append($('<option>', {
+                        value: ciclo.id,
+                        text: label,
+                        'data-activo': ciclo.estaActivo
+                    }));
+                });
+            } else {
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Sin ciclos - Cree uno nuevo',
+                    disabled: true
+                }));
+            }
+        },
+        error: function() {
+            mostrarMensaje('Error al cargar ciclos de cultivo', 'error');
+        }
+    });
+}
+
+function abrirModalNuevoCiclo(loteId, idCultivo) {
+    // Crear modal dinámico para nuevo ciclo
+    var modalHtml =
+        '<div class="modal fade" id="modalNuevoCiclo" tabindex="-1" aria-hidden="true">' +
+        '    <div class="modal-dialog">' +
+        '        <div class="modal-content">' +
+        '            <div class="modal-header bg-success text-white">' +
+        '                <h5 class="modal-title"><i class="ph ph-seedling me-2"></i>Nuevo Ciclo de Cultivo</h5>' +
+        '                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+        '            </div>' +
+        '            <div class="modal-body">' +
+        '                <div class="mb-3">' +
+        '                    <label for="nuevoCicloIdCultivo" class="form-label">Cultivo *</label>' +
+        '                    <select class="form-select" id="nuevoCicloIdCultivo" required>' +
+        '                        <option value="">Seleccione un cultivo...</option>' +
+        '                    </select>' +
+        '                </div>' +
+        '                <div class="mb-3">' +
+        '                    <label for="nuevoCicloIdVariedad" class="form-label">Variedad</label>' +
+        '                    <select class="form-select" id="nuevoCicloIdVariedad">' +
+        '                        <option value="">Sin variedad...</option>' +
+        '                    </select>' +
+        '                </div>' +
+        '                <div class="mb-3">' +
+        '                    <label for="nuevoCicloEpoca" class="form-label">Época</label>' +
+        '                    <select class="form-select" id="nuevoCicloEpoca">' +
+        '                        <option value="">Sin especificar</option>' +
+        '                        <option value="0">Primera</option>' +
+        '                        <option value="1">Segunda</option>' +
+        '                        <option value="2">Tercera</option>' +
+        '                    </select>' +
+        '                </div>' +
+        '                <input type="hidden" id="nuevoCicloIdLote" value="' + loteId + '" />' +
+        '            </div>' +
+        '            <div class="modal-footer">' +
+        '                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>' +
+        '                <button type="button" class="btn btn-success" id="btnGuardarNuevoCiclo">' +
+        '                    <i class="ph ph-check-circle me-1"></i>Crear Ciclo' +
+        '                </button>' +
+        '            </div>' +
+        '        </div>' +
+        '    </div>' +
+        '</div>';
+
+    // Eliminar modal anterior si existe
+    $('#modalNuevoCiclo').remove();
+    $('body').append(modalHtml);
+
+    // Cargar cultivos en el select
+    var selectCultivo = $('#nuevoCicloIdCultivo');
+    $.ajax({
+        url: '/Cultivo/GetAll',
+        type: 'GET',
+        success: function(result) {
+            if (result.success && result.listObject) {
+                $.each(result.listObject, function(i, c) {
+                    selectCultivo.append($('<option>', {
+                        value: c.id,
+                        text: c.nombre
+                    }));
+                });
+                // Seleccionar cultivo si ya está definido
+                if (idCultivo > 0) {
+                    selectCultivo.val(idCultivo);
+                    cargarVariedades(idCultivo);
+                }
+            }
+        }
+    });
+
+    // Al cambiar cultivo, cargar variedades
+    selectCultivo.on('change', function() {
+        var cultivoId = parseInt($(this).val());
+        if (cultivoId) {
+            cargarVariedades(cultivoId);
+        } else {
+            $('#nuevoCicloIdVariedad').empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
+        }
+    });
+
+    // Guardar ciclo
+    $('#btnGuardarNuevoCiclo').on('click', function() {
+        var cultivoId = parseInt($('#nuevoCicloIdCultivo').val());
+        if (!cultivoId) {
+            mostrarMensaje('Debe seleccionar un cultivo', 'error');
+            return;
+        }
+        var data = {
+            idLote: loteId,
+            idCultivo: cultivoId,
+            idVariedad: parseInt($('#nuevoCicloIdVariedad').val()) || null,
+            epoca: parseInt($('#nuevoCicloEpoca').val()) || null
+        };
+        $.ajax({
+            url: '/CicloCultivo/Crear',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(result) {
+                if (result.success && result.object) {
+                    $('#modalNuevoCiclo').modal('hide');
+                    mostrarExito('Ciclo creado correctamente');
+                    // Recargar ciclos y seleccionar el nuevo
+                    cargarCiclosPorLote(loteId);
+                    setTimeout(function() {
+                        $('#idCicloCultivo').val(result.object.id);
+                    }, 500);
+                } else {
+                    mostrarError(result.message || 'Error al crear ciclo');
+                }
+            },
+            error: function() {
+                mostrarError('Error al conectar con el servidor');
+            }
+        });
+    });
+
+    $('#modalNuevoCiclo').modal('show');
+    // Limpiar al cerrar
+    $('#modalNuevoCiclo').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+function cargarVariedades(idCultivo) {
+    var selectVariedad = $('#nuevoCicloIdVariedad');
+    selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
+    $.ajax({
+        url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
+        type: 'GET',
+        success: function(result) {
+            if (result.success && result.listObject) {
+                $.each(result.listObject, function(i, v) {
+                    selectVariedad.append($('<option>', {
+                        value: v.id,
+                        text: v.nombre
+                    }));
+                });
+            }
+        }
+    });
+}
+
+function cerrarCiclo(idCicloCultivo) {
+    var data = { idCicloCultivo: idCicloCultivo };
+    $.ajax({
+        url: '/CicloCultivo/Cerrar',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        headers: {
+            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+        },
+        success: function(result) {
+            if (result.success) {
+                mostrarExito('Ciclo cerrado correctamente');
+                // Recargar ciclos
+                var loteId = parseInt($('#IdLote').val());
+                if (loteId) {
+                    cargarCiclosPorLote(loteId);
+                }
+            } else {
+                mostrarError(result.message || 'Error al cerrar ciclo');
+            }
+        },
+        error: function() {
+            mostrarError('Error al conectar con el servidor');
+        }
+    });
+}
 
 // CÓDIGO EXISTENTE PARA CLIMA (sin cambios)
 function cargarCamposParaClima() {

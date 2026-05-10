@@ -19,5 +19,7 @@ namespace AgroForm.Model
 
         public string PasswordHash { get; set; } = string.Empty;
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+        
+        public int? IdMonedaReferencia { get; set; }
     }
 }

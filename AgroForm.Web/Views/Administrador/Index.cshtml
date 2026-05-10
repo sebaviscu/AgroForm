@@ -531,6 +531,8 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nombre</th>
+                                            <th>Orden</th>
+                                            <th>Color</th>
                                             <th>Estado</th>
                                             <th class="text-center">Acciones</th>
                                         </tr>
@@ -558,6 +560,7 @@
                                             <th>Cultivo</th>
                                             <th>Nombre</th>
                                             <th>Tipo</th>
+                                            <th>Estado</th>
                                             <th class="text-center">Acciones</th>
                                         </tr>
                                     </thead>
@@ -683,6 +686,14 @@
                                     <input type="password" class="form-control" id="contrasenaUsuario" name="Usuario.Password"
                                            placeholder="Ingrese la contraseña" required>
                                     <div class="invalid-feedback">Por favor ingrese una contraseña.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="repetirContrasenaUsuario" class="form-label">Repetir Contraseña *</label>
+                                    <input type="password" class="form-control" id="repetirContrasenaUsuario" name="Usuario.RepetirPassword"
+                                           placeholder="Repita la contraseña" required>
+                                    <div class="invalid-feedback">Las contraseñas no coinciden.</div>
                                 </div>
                             </div>
                         </div>
@@ -931,6 +942,16 @@
                     <div class="mb-3">
                         <label for="ordenCultivo" class="form-label">Orden</label>
                         <input type="number" class="form-control" id="ordenCultivo" name="Orden">
+                    </div>
+                    <div class="mb-3">
+                        <label for="colorCultivo" class="form-label">Color</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="colorCultivo" name="Color" 
+                                   placeholder="#FF5733" pattern="^#[0-9A-Fa-f]{6}$" maxlength="7">
+                            <input type="color" class="form-control form-control-color" id="colorCultivoPicker" 
+                                   style="max-width: 50px;" value="#FF5733">
+                        </div>
+                        <div class="form-text">Color hexadecimal para visualización (ej: #FF5733)</div>
                     </div>
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="activoCultivo" name="Activo" checked>

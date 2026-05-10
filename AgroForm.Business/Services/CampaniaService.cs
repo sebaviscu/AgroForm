@@ -27,13 +27,8 @@ namespace AgroForm.Business.Services
                     item.IdLicencia = _userContext.IdLicencia;
                 }
 
-                await _repository.AddAsync(entity);
-                int result = await _unitOfWork.SaveAsync();
+                return await base.CreateAsync(entity);
 
-                if (result > 0)
-                    return OperationResult<Campania>.SuccessResult(entity);
-
-                return OperationResult<Campania>.Failure("No se pudo insertar el registro en la base de datos.", "SAVE_FAILED");
             }
             catch (Exception ex)
             {

@@ -279,9 +279,21 @@ function guardarLicencia() {
 
     // Solo incluir datos de usuario si es creación
     if (!datos.Id) {
+        var password = $('#contrasenaUsuario').val();
+        var repetirPassword = $('#repetirContrasenaUsuario').val();
+        
+        // Validar que las contraseñas coincidan
+        if (password !== repetirPassword) {
+            mostrarError('Las contraseñas no coinciden');
+            $('#repetirContrasenaUsuario').addClass('is-invalid');
+            return;
+        }
+        
         datos.Usuario = {
             Nombre: $('#nombreUsuario').val().trim(),
             Email: $('#emailUsuario').val().trim(),
+            Password: password,
+            RepetirPassword: repetirPassword,
             PhoneNumber: $('#telefonoUsuario').val().trim() || null,
             Rol: 0,
             Activo: true

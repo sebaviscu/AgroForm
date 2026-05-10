@@ -2,23 +2,19 @@ using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Model;
-using AgroForm.Model.Configuracion;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
-using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
     public class ServiceBase<T> : IServiceBase<T> where T : EntityBase
     {
         protected readonly IUnitOfWork _unitOfWork;
-        protected readonly ILogger<ServiceBase<T>> _logger;
+        protected readonly ILogger _logger;
         protected readonly IUserContext _userContext;
         protected readonly IGenericRepository<T> _repository;
 
-        public ServiceBase(IUnitOfWork unitOfWork, ILogger<ServiceBase<T>> logger, IUserContext userContext)
+        public ServiceBase(IUnitOfWork unitOfWork, ILogger logger, IUserContext userContext)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -165,6 +161,12 @@ namespace AgroForm.Business.Services
                 if (original == null)
                     return OperationResult<T>.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
 
+                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                    entidadConLicencia.IdLicencia = _userContext.IdLicencia;
+
+                if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
+                    entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
+
                 var validationResult = await ValidateAsync(entity);
                 if (!validationResult.Success)
                     return OperationResult<T>.Failure(validationResult.ErrorMessage, "VALIDATION_ERROR");
@@ -273,6 +275,22 @@ namespace AgroForm.Business.Services
 
         public static OperationResult<T> SuccessResult(T data) => new() { Success = true, Data = data };
         public static OperationResult<T> Failure(string errorMessage, string errorCode = "") => new() { Success = false, ErrorMessage = errorMessage, ErrorCode = errorCode };
+
+        public override string ToString()
+        {
+            var result = $"OperationResult<{typeof(T).Name}>: Success={Success}";
+            
+            if (!string.IsNullOrEmpty(ErrorMessage))
+                result += $", ErrorMessage=\"{ErrorMessage}\"";
+            
+            if (!string.IsNullOrEmpty(ErrorCode))
+                result += $", ErrorCode=\"{ErrorCode}\"";
+            
+            if (Data != null)
+                result += $", Data={Data}";
+            
+            return result;
+        }
     }
 
     public class OperationResult
@@ -283,5 +301,18 @@ namespace AgroForm.Business.Services
 
         public static OperationResult SuccessResult() => new() { Success = true };
         public static OperationResult Failure(string errorMessage, string errorCode = "") => new() { Success = false, ErrorMessage = errorMessage, ErrorCode = errorCode };
+
+        public override string ToString()
+        {
+            var result = $"OperationResult: Success={Success}";
+            
+            if (!string.IsNullOrEmpty(ErrorMessage))
+                result += $", ErrorMessage=\"{ErrorMessage}\"";
+            
+            if (!string.IsNullOrEmpty(ErrorCode))
+                result += $", ErrorCode=\"{ErrorCode}\"";
+            
+            return result;
+        }
     }
 }

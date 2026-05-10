@@ -15,7 +15,7 @@ namespace AgroForm.Web.Controllers
     {
         private readonly IActividadService _actividadService;
 
-        public CampoController(ILogger<CampoController> logger, ICampoService service, IActividadService actividadService)
+        public CampoController(ILogger<CampoController> logger, ICampoService service, IActividadService actividadService, IUserContext userContext)
             : base(logger, service)
         {
             _actividadService = actividadService;

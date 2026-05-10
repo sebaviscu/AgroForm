@@ -11,6 +11,7 @@ namespace AgroForm.Business.Contracts
     public interface IMonedaService : IServiceBase<Moneda>
     {
         Task<Moneda> ObtenerTipoCambioActualAsync();
+        Task<Moneda> ObtenerMonedaConfiguradaUsuarioAsync();
         Task<bool> ActualizarMonedasCotizacionAsync(List<DolarInfo> dolarInfos);
     }
 }

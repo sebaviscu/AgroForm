@@ -43,6 +43,9 @@ namespace AgroForm.Model.Actividades
 
         public int? IdLaboratorio { get; set; }
         public Catalogo? Laboratorio { get; set; }
+
+        public int IdCicloCultivo { get; set; }
+        public CicloCultivo CicloCultivo { get; set; } = null!;
     }
 
 }

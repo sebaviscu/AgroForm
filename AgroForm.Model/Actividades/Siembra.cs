@@ -42,6 +42,9 @@ namespace AgroForm.Model.Actividades
 
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;
+
+        public int IdCicloCultivo { get; set; }
+        public CicloCultivo CicloCultivo { get; set; } = null!;
     }
 
 }

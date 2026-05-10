@@ -21,13 +21,38 @@ namespace AgroForm.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateWithAdmin([FromBody] dynamic request)
+        public async Task<IActionResult> CreateWithAdmin([FromBody] LicenciaConUsuarioVM request)
         {
             try
             {
                 ValidarAutorizacion(new[] { Model.EnumClass.Roles.SuperAdmin });
                 
-                // Extraer datos de la licencia
+                // Validaciones básicas
+                if (request.Usuario == null)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = "Los datos del usuario administrador son obligatorios";
+                    return BadRequest(gResponse);
+                }
+
+                if (string.IsNullOrEmpty(request.Usuario.Nombre) || 
+                    string.IsNullOrEmpty(request.Usuario.Email) || 
+                    string.IsNullOrEmpty(request.Usuario.Password))
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = "Nombre, email y contraseña del administrador son obligatorios";
+                    return BadRequest(gResponse);
+                }
+
+                // Validar que las contraseñas coincidan
+                if (request.Usuario.Password != request.Usuario.RepetirPassword)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = "Las contraseñas no coinciden";
+                    return BadRequest(gResponse);
+                }
+
+                // Mapear licencia
                 var licencia = new Licencia
                 {
                     RazonSocial = request.RazonSocial,
@@ -39,20 +64,8 @@ namespace AgroForm.Web.Controllers
                     Activo = true
                 };
 
-                // Extraer datos del usuario
-                var adminName = request.Usuario?.Nombre?.ToString();
-                var adminEmail = request.Usuario?.Email?.ToString();
-                var adminPassword = request.Usuario?.Password?.ToString();
-
-                if (string.IsNullOrEmpty(adminName) || string.IsNullOrEmpty(adminEmail) || string.IsNullOrEmpty(adminPassword))
-                {
-                    gResponse.Success = false;
-                    gResponse.Message = "Los datos del usuario administrador son obligatorios";
-                    return BadRequest(gResponse);
-                }
-
-                // Usar el método especializado para crear licencia con admin
-                var result = await _service.CreateLicenseWithAdminAsync(licencia, adminName, adminEmail, adminPassword);
+                // Usar el método existente del servicio
+                var result = await _service.CreateLicenseWithAdminAsync(licencia, request.Usuario.Nombre, request.Usuario.Email, request.Usuario.Password);
 
                 if (!result.Success)
                 {

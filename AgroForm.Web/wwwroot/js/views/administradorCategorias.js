@@ -21,6 +21,17 @@ function inicializarDataTableCategorias() {
         },
         columns: [
             { data: 'nombre', className: 'fw-bold' },
+            { data: 'orden', className: 'text-center' },
+            { 
+                data: 'color',
+                render: function(data) {
+                    if (!data) return '<span class="text-muted">-</span>';
+                    return `<div class="d-flex align-items-center">
+                        <div style="width: 20px; height: 20px; background-color: ${data}; border: 1px solid #dee2e6; border-radius: 3px; margin-right: 8px;"></div>
+                        <span>${data}</span>
+                    </div>`;
+                }
+            },
             { 
                 data: 'activo',
                 render: function (data) {
@@ -72,6 +83,12 @@ function inicializarDataTableCategorias() {
                     return tipos[data] || data;
                 }
             },
+            { 
+                data: 'activo',
+                render: function (data) {
+                    return data ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
+                }
+            },
             {
                 data: 'id',
                 className: 'text-center',
@@ -102,6 +119,18 @@ function configurarEventosCategorias() {
         guardarEntidad('/Cultivo/', 'idCultivo', 'formCultivo', tableCultivos, '#modalCultivo');
     });
 
+    // Sincronización entre input de texto y color picker
+    $('#colorCultivo').on('input', function() {
+        const color = $(this).val();
+        if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+            $('#colorCultivoPicker').val(color);
+        }
+    });
+
+    $('#colorCultivoPicker').on('input', function() {
+        $('#colorCultivo').val($(this).val());
+    });
+
     // Variedades
     $('#btnNuevaVariedad').click(() => abrirModalVariedad());
     $('#tblVariedades tbody').on('click', '.btn-edit-variedad', function() {
@@ -120,6 +149,7 @@ function abrirModalCultivo() {
     $('#idCultivo').val('');
     $('#formCultivo')[0].reset();
     $('#activoCultivo').prop('checked', true);
+    $('#colorCultivoPicker').val('#FF5733');
     $('#modalCultivo').modal('show');
 }
 
@@ -130,6 +160,8 @@ function cargarCultivo(id) {
             $('#idCultivo').val(data.id);
             $('#nombreCultivo').val(data.nombre);
             $('#ordenCultivo').val(data.orden);
+            $('#colorCultivo').val(data.color || '');
+            $('#colorCultivoPicker').val(data.color || '#FF5733');
             $('#activoCultivo').prop('checked', data.activo);
             $('#modalCultivo').modal('show');
         } else {

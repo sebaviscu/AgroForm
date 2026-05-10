@@ -55,6 +55,26 @@ namespace AgroForm.Web.Controllers
             });
         }
 
+        [HttpPost]
+        public override async Task<IActionResult> Create([FromBody] CampaniaVM dto)
+        {
+            // Llamar al método base para mantener la lógica estándar
+            var result = await base.Create(dto);
+
+            // Si la creación fue exitosa, verificar si es la primera campaña del usuario
+            if (result is OkObjectResult okResult && okResult.Value is GenericResponse<CampaniaVM> response && response.Success)
+            {
+                var user = ValidarAutorizacion(new[] { Roles.Administrador });
+                if (user.IdCampaña == null)
+                {
+                    await UpdateClaimAsync("Campania", response.Object.Id.ToString());
+                    response.Message = "Registro creado correctamente. Se ha asignado la campaña actual.";
+                }
+            }
+
+            return result;
+        }
+
         [HttpPut]
         public override async Task<IActionResult> Update([FromBody] CampaniaVM dto)
         {

@@ -605,7 +605,7 @@ function renderizarCamposConLotes(esEdicion = false) {
             contenedor.append(campoHtml);
 
             // Renderizar lotes de este campo
-            var lotesContainer = $(`#lotes-${item.campo.id}`);
+            var lotesContainer = $('#lotes-' + item.campo.id);
             if (item.lotes.length === 0) {
                 lotesContainer.html('<div class="text-center py-2 text-muted"><small>No hay lotes agregados</small></div>');
             } else {
@@ -760,7 +760,7 @@ function guardarCampania() {
         item.lotes.forEach(function (lote) {
             if (!lote.esExistente) { // Solo agregar lotes nuevos
                 data.Lotes.push({
-                    idCampo: parseInt(item.campo.id),
+                    IdCampo: parseInt(item.campo.id),
                     Nombre: lote.nombre,
                     SuperficieHectareas: lote.superficie,
                     IdCampania: idCampania != '' ? parseInt(idCampania) : 0
@@ -924,10 +924,12 @@ function cargarLotesExistentes(lotes) {
     var lotesPorCampo = {};
 
     lotes.forEach(function (lote) {
-        if (!lotesPorCampo[lote.idCampo]) {
-            lotesPorCampo[lote.idCampo] = [];
+        var idCampo = lote.idCampo;
+        
+        if (!lotesPorCampo[idCampo]) {
+            lotesPorCampo[idCampo] = [];
         }
-        lotesPorCampo[lote.idCampo].push(lote);
+        lotesPorCampo[idCampo].push(lote);
     });
 
     // Para cada campo con lotes, crear la estructura
@@ -941,7 +943,7 @@ function cargarLotesExistentes(lotes) {
                 nombre: option.text(),
                 ubicacion: option.data('ubicacion'),
                 superficieTotal: parseFloat(option.data('superficie') || '0'),
-                esExistente: true // <- MARCAR CAMPO COMO EXISTENTE
+                esExistente: true
             };
 
             // Agregar el campo con sus lotes existentes
@@ -949,19 +951,20 @@ function cargarLotesExistentes(lotes) {
                 campo: campo,
                 lotes: lotesCampo.map(function (lote) {
                     return {
-                        id: lote.id, // ID real de la base de datos
+                        id: lote.id,
                         nombre: lote.nombre,
                         superficie: lote.superficieHectareas,
                         idCampo: parseInt(idCampo),
-                        esExistente: true // Marcar como lote existente
+                        esExistente: true
                     };
                 })
             });
         }
-    });
+    }); // <-- Cierre del Object.keys().forEach()
 
     renderizarCamposConLotes(true); // <- Pasar true para modo edición
-}
+} // <-- Cierre de la función cargarLotesExistentes
+
 
 function limpiarValidaciones() {
     try {

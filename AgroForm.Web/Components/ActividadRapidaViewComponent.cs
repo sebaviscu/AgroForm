@@ -1,6 +1,7 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
 using AgroForm.Web.Models.IndexVM;
 using Mapster;
@@ -13,13 +14,16 @@ namespace AgroForm.Web.Components
     {
         private readonly ITipoActividadService _tipoActividadService;
         private readonly ILoteService _loteService;
+        private readonly ICicloCultivoService _cicloCultivoService;
 
         public ActividadRapidaViewComponent(
             ITipoActividadService tipoActividadService,
-            ILoteService loteService)
+            ILoteService loteService,
+            ICicloCultivoService cicloCultivoService)
         {
             _tipoActividadService = tipoActividadService;
             _loteService = loteService;
+            _cicloCultivoService = cicloCultivoService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()

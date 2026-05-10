@@ -98,6 +98,27 @@
                         </div>
                     </div>
 
+                    <!-- Fila: Ciclo de Cultivo -->
+                    <div class="row">
+                        <div class="col-md-5 offset-md-3">
+                            <div class="mb-3">
+                                <label for="idCicloCultivo" class="form-label">Ciclo de Cultivo</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="idCicloCultivo" name="IdCicloCultivo">
+                                        <option value="">Seleccione un ciclo...</option>
+                                    </select>
+                                    <button class="btn btn-outline-success" type="button" id="btnNuevoCiclo" title="Nuevo ciclo">
+                                        <i class="ph ph-plus"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" type="button" id="btnCerrarCiclo" title="Cerrar ciclo activo">
+                                        <i class="ph ph-x-circle"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">Debe seleccionar o crear un ciclo</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row text-center">
                         <div class="mb-3">
                             <span id="info-cosecha">

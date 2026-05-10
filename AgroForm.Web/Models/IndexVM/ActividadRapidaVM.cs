@@ -7,7 +7,7 @@ namespace AgroForm.Web.Models.IndexVM
     public class ActividadRapidaVM
     {
         public int? IdLabor { get; set; }
-        public int? idLote { get; set; }
+        public int? IdLote { get; set; }
 
         public DateTime Fecha { get; set; } = DateTime.Now;
 
@@ -16,18 +16,22 @@ namespace AgroForm.Web.Models.IndexVM
         //public List<SelectListItem>? Lotes { get; set; }
         public List<LoteVM>? Lotes { get; set; }
 
-        public int TipoidActividad { get; set; }
+        public int TipoIdActividad { get; set; }
 
         public string? Observacion { get; set; }
 
         public decimal? Cantidad { get; set; }
-        public int? idInsumo { get; set; }
+        public int? IdInsumo { get; set; }
 
         public List<ActividadVM>? TiposActividadCompletos { get; set; }
 
         // Nuevas propiedades para manejar tipos específicos
         public string? TipoActividad { get; set; }
         public DatosEspecificosVM? DatosEspecificos { get; set; }
+
+        // Gestión de CicloCultivo
+        public int? IdCicloCultivo { get; set; }
+        public List<CicloCultivoVM>? CiclosActivos { get; set; }
     }
 
     public class DatosEspecificosVM

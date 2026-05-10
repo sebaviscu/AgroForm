@@ -5,6 +5,7 @@ using AgroForm.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Business.Services
 {
@@ -17,7 +18,22 @@ namespace AgroForm.Business.Services
 
         public async Task<Moneda> ObtenerTipoCambioActualAsync()
         {
-            return await GetQuery().FirstAsync(m => m.Id == (int)_userContext.User.Moneda);
+            // Si usuario tiene Peso → retornar moneda peso (cotización 1.0)
+            if (_userContext.User.Moneda == Monedas.Peso)
+            {
+                return await GetQuery().FirstAsync(m => m.Id == (int)Monedas.Peso);
+            }
+            
+            // Si usuario tiene Dólar → buscar su preferencia específica
+            var monedaReferenciaId = _userContext.User.IdMonedaReferencia ?? (int)Monedas.DolarOficial;
+            return await GetQuery().FirstAsync(m => m.Id == monedaReferenciaId);
+        }
+
+        public async Task<Moneda> ObtenerMonedaConfiguradaUsuarioAsync()
+        {
+            // Retorna la moneda específica configurada por el usuario
+            var monedaId = _userContext.User.IdMonedaReferencia ?? (int)Monedas.DolarOficial;
+            return await GetQuery().FirstAsync(m => m.Id == monedaId);
         }
 
         public async Task<bool> ActualizarMonedasCotizacionAsync(List<DolarInfo> dolarInfos)

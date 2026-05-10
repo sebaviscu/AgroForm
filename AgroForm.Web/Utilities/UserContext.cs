@@ -81,7 +81,8 @@ namespace AgroForm.Web.Utilities
                         IdCampaña = UtilidadService.GetClaimValue<int>(claimUser, "Campania"),
                         IdUsuario = UtilidadService.GetClaimValue<int>(claimUser, ClaimTypes.NameIdentifier),
                         IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
-                        Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
+                        Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda"),
+                        IdMonedaReferencia = UtilidadService.GetClaimValue<int?>(claimUser, "IdMonedaReferencia")
                     };
                 }
                 else

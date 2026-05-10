@@ -113,6 +113,13 @@ namespace AgroForm.Web.Controllers
                 ClaimsPrincipal claimuser = HttpContext.User;
                 if (claimuser.Identity.IsAuthenticated)
                 {
+                    var userAuth = ValidarAutorizacion();
+                    
+                    if (userAuth.IdRol == Roles.SuperAdmin)
+                    {
+                        return RedirectToAction("Index", "Administrador");
+                    }
+
                     return RedirectToAction("Index", "Home");
                 }
                 return View();

@@ -41,6 +41,7 @@ namespace AgroForm.Data.DBContext
         public DbSet<AnalisisSuelo> AnalisisSuelos { get; set; }
         public DbSet<Cosecha> Cosechas { get; set; }
         public DbSet<OtraLabor> OtrasLabores { get; set; }
+        public DbSet<CicloCultivo> CicloCultivos { get; set; }
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
 
@@ -54,24 +55,7 @@ namespace AgroForm.Data.DBContext
             // Nota: Las configuraciones están definidas directamente en OnModelCreating
             // ya que no se utilizan clases IEntityTypeConfiguration separadas
 
-            // ===============================
-            // Filtros Globales (Multi-tenancy)
-            // ===============================
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                // Filtro por licencia
-                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(entityType.ClrType))
-                {
-                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(CreateFilterExpression(entityType.ClrType));
-                }
-                
-                // Filtro por campaña (adicional al de licencia)
-                if (typeof(IEntityBaseWithCampania).IsAssignableFrom(entityType.ClrType))
-                {
-                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(CreateCampaniaFilterExpression(entityType.ClrType));
-                }
-            }
-
+                        
 
             modelBuilder.Entity<Campo>(entity =>
             {
@@ -80,8 +64,8 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.Ubicacion).HasMaxLength(250);
                 entity.Property(e => e.SuperficieHectareas).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.Latitud).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.Longitud).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Latitud).HasColumnType("decimal(18,8)");
+                entity.Property(e => e.Longitud).HasColumnType("decimal(18,8)");
 
                 entity.HasIndex(e => e.IdLicencia);
             });
@@ -110,7 +94,7 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(l => l.Campania)
                     .WithMany(c => c.Lotes)
                     .HasForeignKey(l => l.IdCampania)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<RegistroClima>(entity =>
@@ -174,6 +158,38 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
             });
 
+            // CicloCultivo
+            modelBuilder.Entity<CicloCultivo>(entity =>
+            {
+                entity.ToTable("CicloCultivos");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.IdLicencia);
+
+                entity.Property(e => e.Epoca)
+                    .IsRequired(false);
+
+                entity.HasOne(cc => cc.Lote)
+                    .WithMany(l => l.CicloCultivos)
+                    .HasForeignKey(cc => cc.IdLote)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(cc => cc.Cultivo)
+                    .WithMany()
+                    .HasForeignKey(cc => cc.IdCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(cc => cc.Campania)
+                    .WithMany()
+                    .HasForeignKey(cc => cc.IdCampania)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(cc => cc.Variedad)
+                    .WithMany()
+                    .HasForeignKey(cc => cc.IdVariedad)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<Siembra>(entity =>
             {
                 entity.ToTable("Siembras");
@@ -232,6 +248,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Siembras)
+                    .HasForeignKey(a => a.IdCicloCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Riego
@@ -283,6 +304,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(h => h.Moneda)
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Riegos)
+                    .HasForeignKey(a => a.IdCicloCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -340,6 +366,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Fertilizaciones)
+                    .HasForeignKey(a => a.IdCicloCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Pulverizacion
@@ -384,6 +415,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(h => h.Moneda)
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Pulverizaciones)
+                    .HasForeignKey(a => a.IdCicloCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -431,6 +467,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(h => h.Moneda)
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Monitoreos)
+                    .HasForeignKey(a => a.IdCicloCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -484,6 +525,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.AnalisisSuelos)
+                    .HasForeignKey(a => a.IdCicloCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
 
@@ -530,6 +576,11 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.Cosechas)
+                    .HasForeignKey(a => a.IdCicloCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<OtraLabor>(entity =>
@@ -565,6 +616,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(h => h.Moneda)
                     .WithMany()
                     .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.OtrasLabores)
+                    .HasForeignKey(a => a.IdCicloCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -685,60 +741,6 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Cascade);
 
             });
-        }
-
-        private LambdaExpression CreateFilterExpression(Type type)
-        {
-            var parameter = Expression.Parameter(type, "e");
-            var property = Expression.Property(parameter, "IdLicencia");
-            
-            // e.IdLicencia == _userContext.IdLicencia
-            var userIdLicencia = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IdLicencia));
-            var equalExpression = Expression.Equal(property, userIdLicencia);
-
-            // _userContext.IsSuperAdmin || e.IdLicencia == _userContext.IdLicencia
-            var isSuperAdmin = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IsSuperAdmin));
-            var combinedExpression = Expression.OrElse(isSuperAdmin, equalExpression);
-
-            return Expression.Lambda(combinedExpression, parameter);
-        }
-
-        private LambdaExpression CreateCampaniaFilterExpression(Type type)
-        {
-            var parameter = Expression.Parameter(type, "e");
-            var property = Expression.Property(parameter, "IdCampania");
-            
-            // Obtener el valor de IdCampaña del usuario
-            var userIdCampaniaProperty = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IdCampaña));
-
-            // _userContext.IdCampaña.HasValue
-            var hasValueExpression = Expression.Property(userIdCampaniaProperty, "HasValue");
-
-            // _userContext.IdCampaña.Value
-            var userIdCampaniaValue = Expression.Property(userIdCampaniaProperty, "Value");
-
-            // e.IdCampania == _userContext.IdCampaña.Value (soportando int/int?)
-            Expression equalExpression;
-            if (property.Type == typeof(int?))
-            {
-                // e.IdCampania == (int?)_userContext.IdCampaña.Value
-                var userValueAsNullable = Expression.Convert(userIdCampaniaValue, typeof(int?));
-                equalExpression = Expression.Equal(property, userValueAsNullable);
-            }
-            else
-            {
-                // e.IdCampania == _userContext.IdCampaña.Value
-                equalExpression = Expression.Equal(property, userIdCampaniaValue);
-            }
-
-            // _userContext.IdCampaña.HasValue && e.IdCampania == _userContext.IdCampaña.Value
-            var filteredExpression = Expression.AndAlso(hasValueExpression, equalExpression);
-
-            // _userContext.IsSuperAdmin || e.IdCampania == _userContext.IdCampaña
-            var isSuperAdmin = Expression.Property(Expression.Constant(_userContext), nameof(_userContext.IsSuperAdmin));
-            var combinedExpression = Expression.OrElse(isSuperAdmin, filteredExpression);
-
-            return Expression.Lambda(combinedExpression, parameter);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

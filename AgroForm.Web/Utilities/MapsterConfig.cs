@@ -15,36 +15,23 @@ namespace AgroForm.Web.Utilities
             TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
             TypeAdapterConfig.GlobalSettings.Default.MaxDepth(3);
 
-            // Mapeos básicos - Mapster usa configuración implícita bidireccional
-            // No necesita TwoWay() como AutoMapper, los mapeos son implícitos
+            // Mapeos complejos con configuración personalizada (solo los necesarios)
             
-            // Mapeos complejos con configuración personalizada
+            // Mapeo para Gasto -> GastoDto (requiere conversión de DateOnly a DateTime)
             TypeAdapterConfig<Gasto, GastoDto>.NewConfig()
                 .Map(dest => dest.Fecha, src => src.Fecha.ToDateTime(TimeOnly.MinValue))
-                .Map(dest => dest.Descripcion, src => src.TipoGasto.ToString())
-                .Map(dest => dest.Costo, src => src.Costo)
-                .Map(dest => dest.CostoARS, src => src.CostoARS)
-                .Map(dest => dest.CostoUSD, src => src.CostoUSD);
+                .Map(dest => dest.Descripcion, src => src.TipoGasto.ToString());
+                // Las propiedades Costo, CostoARS, CostoUSD se mapean automáticamente por nombre
 
+            // Mapeo para LaborDTO -> GastoDto (requiere mapeo de propiedades con nombres diferentes)
             TypeAdapterConfig<LaborDTO, GastoDto>.NewConfig()
-                .Map(dest => dest.Descripcion, src => src.TipoActividad)
-                .Map(dest => dest.Fecha, src => src.Fecha)
-                .Map(dest => dest.Costo, src => src.Costo)
-                .Map(dest => dest.CostoARS, src => src.CostoARS)
-                .Map(dest => dest.CostoUSD, src => src.CostoUSD);
+                .Map(dest => dest.Descripcion, src => src.TipoActividad);
+                // Las demás propiedades se mapean automáticamente por nombre
 
-            // Mapeo para Variedad incluyendo el cultivo relacionado
-            TypeAdapterConfig<Variedad, VariedadVM>.NewConfig()
-                .Map(dest => dest.Cultivo, src => src.Cultivo);
-
-            // Mapeo para Cultivo
-            TypeAdapterConfig<Cultivo, CultivoVM>.NewConfig()
-                .Map(dest => dest.Variedades, src => src.Variedades)
-                .Map(dest => dest.EstadosFenologicos, src => src.EstadosFenologicos);
-
-            // Mapeo para Licencia incluyendo PagoLicencias
-            TypeAdapterConfig<Licencia, LicenciaVM>.NewConfig()
-                .Map(dest => dest.PagoLicencias, src => src.PagoLicencias);
+            // Los siguientes mapeos son redundantes y pueden ser eliminados:
+            // - Variedad -> VariedadVM: Mapster mapea automáticamente las propiedades por nombre
+            // - Cultivo -> CultivoVM: Mapster mapea automáticamente las colecciones por nombre
+            // - Licencia -> LicenciaVM: Mapster mapea automáticamente las colecciones por nombre
         }
 
         // Métodos de extensión para facilitar el uso
