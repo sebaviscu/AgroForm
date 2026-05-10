@@ -13,5 +13,13 @@ namespace AgroForm.Business.Contracts
             int? idCampo = null,
             int? idLote = null,
             int? idCultivo = null);
+
+        /// <summary>
+        /// Obtiene el reporte integral de un campo/lote con todas las secciones:
+        /// Resumen Ejecutivo, Timeline, Evolución, Clima, Suelo, Costos, Rendimiento, Alertas, Historial Multi-Campaña.
+        /// </summary>
+        Task<OperationResult<ReporteCampoIntegralDto>> GetReporteCampoIntegralAsync(
+            int idCampo,
+            int? idCampania = null);
     }
 }

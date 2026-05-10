@@ -1,82 +1,380 @@
-﻿
-@{
-    ViewData["Title"] = "Reporte de Campos";
+﻿@{
+    ViewData["Title"] = "Informe Integral del Campo";
 }
 
+<style>
+    /* ===== Timeline Styles ===== */
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 28px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--bs-border-color);
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 70px;
+        margin-bottom: 20px;
+    }
+    .timeline-icon {
+        position: absolute;
+        left: 14px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 14px;
+        z-index: 1;
+    }
+    .timeline-content {
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-card-bg);
+    }
+    /* ===== KPI Cards ===== */
+    .kpi-card {
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    /* ===== Score Rings ===== */
+    .score-ring {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        position: relative;
+    }
+    .score-excellent {
+        background: conic-gradient(#28a745 var(--pct), var(--bs-border-color) var(--pct));
+    }
+    .score-good {
+        background: conic-gradient(#17a2b8 var(--pct), var(--bs-border-color) var(--pct));
+    }
+    .score-regular {
+        background: conic-gradient(#ffc107 var(--pct), var(--bs-border-color) var(--pct));
+    }
+    .score-critical {
+        background: conic-gradient(#dc3545 var(--pct), var(--bs-border-color) var(--pct));
+    }
+    .score-ring-inner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--bs-card-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* ===== Soil Parameters ===== */
+    .soil-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--bs-border-color);
+        position: relative;
+        overflow: visible;
+    }
+    .soil-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    .soil-bar-label {
+        position: absolute;
+        top: -22px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .soil-low { background: #dc3545; }
+    .soil-medium { background: #ffc107; }
+    .soil-optimum { background: #28a745; }
+    .soil-high { background: #17a2b8; }
+    /* ===== Alert Cards ===== */
+    .alert-card {
+        border-left: 4px solid;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        background: var(--bs-card-bg);
+        border: 1px solid var(--bs-border-color);
+        border-left-width: 4px;
+    }
+    .alert-severity-alta { border-left-color: #dc3545; }
+    .alert-severity-media { border-left-color: #ffc107; }
+    .alert-severity-baja { border-left-color: #17a2b8; }
+    /* ===== Report Header ===== */
+    .report-header {
+        background: linear-gradient(135deg, var(--bs-primary) 0%, #1a6d1a 100%);
+        border-radius: 16px;
+        padding: 30px;
+        color: #fff;
+    }
+    /* ===== Loading ===== */
+    .report-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+    }
+    /* ===== Tab styling ===== */
+    .nav-tabs-custom .nav-link {
+        border: none;
+        padding: 10px 18px;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        opacity: 0.7;
+        transition: all 0.2s;
+    }
+    .nav-tabs-custom .nav-link:hover, 
+    .nav-tabs-custom .nav-link.active {
+        opacity: 1;
+        background: transparent;
+        border-bottom: 2px solid var(--bs-primary);
+    }
+    /* ===== Cost breakdown ===== */
+    .cost-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .cost-item:last-child {
+        border-bottom: none;
+    }
+    /* ===== History accordion ===== */
+    .history-campaign {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .history-campaign-header {
+        padding: 14px 18px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bs-card-bg);
+        transition: background 0.2s;
+    }
+    .history-campaign-header:hover {
+        background: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    .history-campaign-body {
+        padding: 14px 18px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+    /* Print */
+    @@media print {
+        .no-print { display: none !important; }
+        .report-header { background: #1a6d1a !important; -webkit-print-color-adjust: exact; }
+        .kpi-card { break-inside: avoid; }
+    }
+</style>
 
 <div class="container-fluid">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 fw-bold mb-1">
-                <i class="ph ph-chart-bar text-primary me-2"></i> Reporte de Campos
-            </h1>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-end">
-                <div class="d-flex align-items-end">
-                    <div class="me-3">
-                        <label for="selectCampos" class="form-label">Campo</label>
-                        <select class="form-select" id="selectCampos" name="idCampo">
-                            <!-- Aquí se cargarán los lotes/campos -->
-                        </select>
-                    </div>
-                </div>
-
+    <div class="report-header mb-4 no-print">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 fw-bold mb-1">
+                    <i class="ph ph-file-text me-2"></i> Informe Integral del Campo
+                </h1>
+                <p class="mb-0 opacity-75">Análisis completo del campo y sus lotes</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm" onclick="exportarPDF()" title="Exportar PDF">
+                    <i class="ph ph-file-pdf me-1"></i> PDF
+                </button>
+                <button class="btn btn-light btn-sm" onclick="window.print()" title="Imprimir">
+                    <i class="ph ph-printer me-1"></i> Imprimir
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header border-bottom-0 bg-transparent p-0">
-            <ul class="nav nav-tabs nav-tabs-custom" id="reporteTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
-                            data-bs-target="#general-content" type="button" role="tab"
-                            aria-controls="general" aria-selected="true">
-                        <i class="ph ph-chart-pie me-2"></i> General
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="historico-tab" data-bs-toggle="tab"
-                            data-bs-target="#historico-content" type="button" role="tab"
-                            aria-controls="historico" aria-selected="false">
-                        <i class="ph ph-clock-counter-clockwise me-2"></i> Histórico
-                    </button>
-                </li>
-            </ul>
-        </div>
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4 no-print">
         <div class="card-body">
-            <div class="tab-content" id="reporteTabsContent">
-                <!-- Contenido General -->
-                <div class="tab-pane fade show active" id="general-content"
-                     role="tabpanel" aria-labelledby="general-tab">
-                    <div class="text-center py-5">
-                        <i class="ph ph-chart-pie display-4 text-muted mb-3"></i>
-                        <h5 class="text-muted">Contenido del reporte general</h5>
-                        <p class="text-muted">Aquí irá la información general del campo seleccionado.</p>
-                    </div>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="selectCampos" class="form-label fw-semibold">
+                        <i class="ph ph-map-pin me-1"></i> Campo
+                    </label>
+                    <select class="form-select" id="selectCampos" name="idCampo">
+                        <option value="" selected disabled>Seleccione un campo...</option>
+                    </select>
                 </div>
-
-                <!-- Contenido Histórico -->
-                <div class="tab-pane fade" id="historico-content"
-                     role="tabpanel" aria-labelledby="historico-tab">
-                    <div class="text-center py-5">
-                        <i class="ph ph-clock-counter-clockwise display-4 text-muted mb-3"></i>
-                        <h5 class="text-muted">Contenido del histórico</h5>
-                        <p class="text-muted">Aquí irá el histórico de actividades del campo seleccionado.</p>
-                    </div>
+                <div class="col-md-3">
+                    <label for="selectCampania" class="form-label fw-semibold">
+                        <i class="ph ph-calendar me-1"></i> Campaña
+                    </label>
+                    <select class="form-select" id="selectCampania" name="idCampania" disabled>
+                        <option value="">Todas las campañas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="selectLote" class="form-label fw-semibold">
+                        <i class="ph ph-grid-nine me-1"></i> Lote
+                    </label>
+                    <select class="form-select" id="selectLote" name="idLote" disabled>
+                        <option value="">Todos los lotes</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-primary flex-fill" id="btnGenerarReporte" disabled>
+                        <i class="ph ph-chart-bar me-1"></i> Generar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Report Content -->
+    <div id="reportContent">
+        <!-- Loading State -->
+        <div class="report-loading" id="reportLoading">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <h5 class="text-muted">Seleccione un campo para generar el informe</h5>
+            <p class="text-muted">El informe incluye análisis climático, de suelo, costos, rendimiento y más.</p>
+        </div>
+
+        <!-- Data State (hidden by default) -->
+        <div id="reportData" style="display:none;">
+            <!-- Resumen Ejecutivo - Always visible on top -->
+            <div class="card shadow-sm mb-4" id="section-resumen">
+                <div class="card-body" id="resumenEjecutivoContent">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header border-bottom-0 bg-transparent p-0">
+                    <ul class="nav nav-tabs nav-tabs-custom" id="reporteTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="timeline-tab" data-bs-toggle="tab"
+                                    data-bs-target="#timeline-content" type="button" role="tab">
+                                <i class="ph ph-timer me-1"></i> Timeline
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="evolucion-tab" data-bs-toggle="tab"
+                                    data-bs-target="#evolucion-content" type="button" role="tab">
+                                <i class="ph ph-chart-line-up me-1"></i> Evolución
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="clima-tab" data-bs-toggle="tab"
+                                    data-bs-target="#clima-content" type="button" role="tab">
+                                <i class="ph ph-cloud-rain me-1"></i> Clima
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="suelo-tab" data-bs-toggle="tab"
+                                    data-bs-target="#suelo-content" type="button" role="tab">
+                                <i class="ph ph-flask me-1"></i> Suelo
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="costos-tab" data-bs-toggle="tab"
+                                    data-bs-target="#costos-content" type="button" role="tab">
+                                <i class="ph ph-coins me-1"></i> Costos
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="rendimiento-tab" data-bs-toggle="tab"
+                                    data-bs-target="#rendimiento-content" type="button" role="tab">
+                                <i class="ph ph-trend-up me-1"></i> Rendimiento
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="alertas-tab" data-bs-toggle="tab"
+                                    data-bs-target="#alertas-content" type="button" role="tab">
+                                <i class="ph ph-warning-circle me-1"></i> Alertas
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="historial-tab" data-bs-toggle="tab"
+                                    data-bs-target="#historial-content" type="button" role="tab">
+                                <i class="ph ph-clock-counter-clockwise me-1"></i> Historial
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="reporteTabsContent">
+                        <!-- Timeline -->
+                        <div class="tab-pane fade" id="timeline-content" role="tabpanel">
+                            <div id="timelineContent"><p class="text-muted">Cargando timeline...</p></div>
+                        </div>
+                        <!-- Evolución -->
+                        <div class="tab-pane fade" id="evolucion-content" role="tabpanel">
+                            <div id="evolucionContent"><p class="text-muted">Cargando evolución...</p></div>
+                        </div>
+                        <!-- Clima -->
+                        <div class="tab-pane fade" id="clima-content" role="tabpanel">
+                            <div id="climaContent"><p class="text-muted">Cargando datos climáticos...</p></div>
+                        </div>
+                        <!-- Suelo -->
+                        <div class="tab-pane fade" id="suelo-content" role="tabpanel">
+                            <div id="sueloContent"><p class="text-muted">Cargando análisis de suelo...</p></div>
+                        </div>
+                        <!-- Costos -->
+                        <div class="tab-pane fade" id="costos-content" role="tabpanel">
+                            <div id="costosContent"><p class="text-muted">Cargando costos...</p></div>
+                        </div>
+                        <!-- Rendimiento -->
+                        <div class="tab-pane fade" id="rendimiento-content" role="tabpanel">
+                            <div id="rendimientoContent"><p class="text-muted">Cargando rendimiento...</p></div>
+                        </div>
+                        <!-- Alertas -->
+                        <div class="tab-pane fade" id="alertas-content" role="tabpanel">
+                            <div id="alertasContent"><p class="text-muted">Cargando alertas...</p></div>
+                        </div>
+                        <!-- Historial -->
+                        <div class="tab-pane fade" id="historial-content" role="tabpanel">
+                            <div id="historialContent"><p class="text-muted">Cargando historial...</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="~/js/views/reporteCampos.js" asp-append-version="true"></script>
 }
