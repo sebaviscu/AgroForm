@@ -217,8 +217,9 @@ namespace AgroForm.Tests.Services
                 Nombre = "Plaga Actualizado", 
                 Tipo = TipoCatalogoEnum.Maleza,
                 Activo = false,
-                Descripcion = "Descripción actualizada"
-                // No incluir RegistrationDate, RegistrationUser, IdLicencia
+                Descripcion = "Descripción actualizada",
+                RegistrationUser = "usuario_original" // Preservar el usuario original
+                // No incluir RegistrationDate, IdLicencia
             };
 
             // Act
@@ -501,7 +502,7 @@ namespace AgroForm.Tests.Services
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Catalogo por tipo no encontrados", result.ErrorMessage);
+            Assert.Equal("Catálogo por tipo no encontrado", result.ErrorMessage);
         }
 
         [Theory]
@@ -611,7 +612,7 @@ namespace AgroForm.Tests.Services
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Catalogo por tipo no encontrados", result.ErrorMessage);
+            Assert.Equal("Catálogo por tipo no encontrado", result.ErrorMessage);
         }
 
         [Fact]
@@ -622,7 +623,7 @@ namespace AgroForm.Tests.Services
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Catalogo por tipo no encontrados", result.ErrorMessage);
+            Assert.Equal("Catálogos activos no encontrados", result.ErrorMessage);
         }
     }
 }

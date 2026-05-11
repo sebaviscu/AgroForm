@@ -128,7 +128,7 @@ namespace AgroForm.Tests.Services
             // Assert
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
-            Assert.Equal("No se encontró el registro", result.ErrorMessage);
+            Assert.Equal("No se encontró la licencia", result.ErrorMessage);
         }
 
         [Fact]

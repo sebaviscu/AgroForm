@@ -1,9 +1,11 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
+using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static AgroForm.Model.EnumClass;
 
 [Authorize(AuthenticationSchemes = "AgroFormAuth")]
 [Route("[controller]")]
@@ -14,19 +16,25 @@ public class ReporteController : Controller
     private readonly IReportService _reportService;
     private readonly ICampaniaService _campaniaService;
     private readonly ICultivoService _cultivoService;
+    private readonly ILoteService _loteService;
+    private readonly ICatalogoService _catalogoService;
 
     public ReporteController(
         ICierreCampaniaService cierreCampaniaService,
         ICampoService campoService,
         IReportService reportService,
         ICampaniaService campaniaService,
-        ICultivoService cultivoService)
+        ICultivoService cultivoService,
+        ILoteService loteService,
+        ICatalogoService catalogoService)
     {
         _cierreCampaniaService = cierreCampaniaService;
         _campoService = campoService;
         _reportService = reportService;
         _campaniaService = campaniaService;
         _cultivoService = cultivoService;
+        _loteService = loteService;
+        _catalogoService = catalogoService;
     }
 
     [HttpGet("[action]")]
@@ -354,6 +362,111 @@ public class ReporteController : Controller
         {
             gResponse.Success = false;
             gResponse.Message = "Ha ocurrido un error al generar el reporte de rendimiento";
+            return BadRequest(gResponse);
+        }
+    }
+
+    // ============================================================
+    // Reporte de Aplicaciones (Pulverización + Fertilización)
+    // ============================================================
+
+    /// <summary>
+    /// Vista principal del reporte de aplicaciones agrícolas
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> Aplicaciones()
+    {
+        try
+        {
+            var camposResult = await _campoService.GetAllAsync();
+            var campaniasResult = await _campaniaService.GetAllAsync();
+            var cultivosResult = await _cultivoService.GetAllAsync();
+
+            // Obtener productos agroquímicos del catálogo
+            var catalogoResult = await _catalogoService.GetAllAsync();
+            var productos = catalogoResult.Success
+                ? catalogoResult.Data.Where(c => c.Tipo == TipoCatalogoEnum.ProductoAgroquimico && c.Activo).ToList()
+                : new List<Catalogo>();
+
+            // Obtener nutrientes del catálogo
+            var nutrientes = catalogoResult.Success
+                ? catalogoResult.Data.Where(c => c.Tipo == TipoCatalogoEnum.Nutriente && c.Activo).ToList()
+                : new List<Catalogo>();
+
+            // Obtener tipos de fertilizante
+            var tiposFertilizante = catalogoResult.Success
+                ? catalogoResult.Data.Where(c => c.Tipo == TipoCatalogoEnum.TipoFertilizante && c.Activo).ToList()
+                : new List<Catalogo>();
+
+            // Combinar productos (agroquímicos + nutrientes + fertilizantes) para el filtro
+            var todosProductos = new List<FiltroItem>();
+            todosProductos.AddRange(productos.Select(p => new FiltroItem { Id = p.Id, Nombre = p.Nombre }));
+            todosProductos.AddRange(nutrientes.Select(n => new FiltroItem { Id = n.Id, Nombre = n.Nombre }));
+            todosProductos.AddRange(tiposFertilizante.Select(t => new FiltroItem { Id = t.Id, Nombre = t.Nombre }));
+            todosProductos = todosProductos.OrderBy(p => p.Nombre).ToList();
+
+            var viewModel = new AplicacionesVM
+            {
+                Campos = camposResult.Success
+                    ? camposResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre }).ToList()
+                    : new List<FiltroItem>(),
+                Campanias = campaniasResult.Success
+                    ? campaniasResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre ?? "N/A" }).ToList()
+                    : new List<FiltroItem>(),
+                Cultivos = cultivosResult.Success
+                    ? cultivosResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre ?? "Sin nombre" }).ToList()
+                    : new List<FiltroItem>(),
+                Productos = todosProductos
+            };
+
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            return View(new AplicacionesVM());
+        }
+    }
+
+    /// <summary>
+    /// Obtiene los datos del reporte de aplicaciones vía AJAX
+    /// </summary>
+    [HttpPost("GetAplicacionesData")]
+    public async Task<IActionResult> GetAplicacionesData([FromBody] AplicacionRequest request)
+    {
+        var gResponse = new GenericResponse<AplicacionReporteDto>();
+
+        try
+        {
+            var result = await _reportService.GetAplicacionesAsync(
+                request.IdCampania,
+                request.IdCampo,
+                request.IdLote,
+                request.IdCultivo,
+                request.IdTipoAplicacion,
+                request.IdProducto,
+                request.FechaDesde,
+                request.FechaHasta,
+                request.OrdenarPor,
+                request.OrdenDireccion,
+                request.Pagina,
+                request.TamanoPagina);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = result.Data;
+            gResponse.Message = "Reporte de aplicaciones generado correctamente";
+            return Ok(gResponse);
+        }
+        catch (Exception ex)
+        {
+            gResponse.Success = false;
+            gResponse.Message = "Ha ocurrido un error al generar el reporte de aplicaciones";
             return BadRequest(gResponse);
         }
     }

@@ -519,4 +519,242 @@ namespace AgroForm.Business.Contracts
         public bool TieneAnterior => PaginaActual > 1;
         public bool TieneSiguiente => PaginaActual < TotalPaginas;
     }
+
+    // ============================================================
+    // DTOs para el Reporte de Aplicaciones (Pulverización + Fertilización)
+    // ============================================================
+
+    /// <summary>
+    /// Request para el reporte de aplicaciones agrícolas
+    /// </summary>
+    public class AplicacionRequest
+    {
+        public int? IdCampania { get; set; }
+        public int? IdCampo { get; set; }
+        public int? IdLote { get; set; }
+        public int? IdCultivo { get; set; }
+        public int? IdTipoAplicacion { get; set; } // 3=Pulverizacion, 4=Fertilizado
+        public int? IdProducto { get; set; } // ProductoAgroquimico (pulv) or Nutriente (fert)
+        public DateTime? FechaDesde { get; set; }
+        public DateTime? FechaHasta { get; set; }
+        public string OrdenarPor { get; set; } = "Fecha";
+        public string OrdenDireccion { get; set; } = "desc";
+        public int Pagina { get; set; } = 1;
+        public int TamanoPagina { get; set; } = 20;
+    }
+
+    /// <summary>
+    /// DTO principal del reporte de aplicaciones agrícolas
+    /// </summary>
+    public class AplicacionReporteDto
+    {
+        public AplicacionKpiDto Kpis { get; set; } = new();
+        public List<AplicacionLoteDto> DatosAplicaciones { get; set; } = new();
+        public List<AplicacionTimelineDto> Timeline { get; set; } = new();
+        public List<InsumoConsumoDto> AnalisisInsumos { get; set; } = new();
+        public List<AplicacionTraceDto> Trazabilidad { get; set; } = new();
+        public List<DatoAplicacionPorProducto> CostosPorProducto { get; set; } = new();
+        public List<DatoAplicacionPorTipo> DistribucionPorTipo { get; set; } = new();
+        public List<DatoAplicacionTimeline> AplicacionesTimeline { get; set; } = new();
+        public List<DatoAplicacionPorCampania> ComparativaPorCampania { get; set; } = new();
+        public List<DatoAplicacionPorCampo> ComparativaPorCampo { get; set; } = new();
+        public PaginacionDto Paginacion { get; set; } = new();
+        public List<IndicadorInteligenteDto> Indicadores { get; set; } = new();
+    }
+
+    /// <summary>
+    /// KPIs principales del reporte de aplicaciones
+    /// </summary>
+    public class AplicacionKpiDto
+    {
+        public int TotalAplicaciones { get; set; }
+        public int TotalPulverizaciones { get; set; }
+        public int TotalFertilizaciones { get; set; }
+        public decimal TotalLitrosAplicados { get; set; }
+        public decimal TotalKgAplicados { get; set; }
+        public decimal? CostoTotalARS { get; set; }
+        public decimal? CostoTotalUSD { get; set; }
+        public decimal? CostoPromedioPorHaARS { get; set; }
+        public decimal? CostoPromedioPorHaUSD { get; set; }
+        public string ProductoMasAplicado { get; set; } = string.Empty;
+        public int ProductoMasAplicadoCantidad { get; set; }
+        public string NutrienteMasAplicado { get; set; } = string.Empty;
+        public int NutrienteMasAplicadoCantidad { get; set; }
+        public decimal PromedioAplicacionesPorLote { get; set; }
+        public decimal SuperficieTotalTratadaHa { get; set; }
+        public int TotalLotes { get; set; }
+        public string Moneda { get; set; } = "ARS";
+    }
+
+    /// <summary>
+    /// Fila de la tabla principal de aplicaciones (unifica Pulverizacion y Fertilizacion)
+    /// </summary>
+    public class AplicacionLoteDto
+    {
+        public int Id { get; set; }
+        public int IdTipoActividad { get; set; }
+        public string TipoActividad { get; set; } = string.Empty; // "Pulverización" o "Fertilización"
+        public string TipoActividadIcono { get; set; } = string.Empty;
+        public string TipoActividadColor { get; set; } = string.Empty;
+        public DateTime Fecha { get; set; }
+        public string Lote { get; set; } = string.Empty;
+        public int IdLote { get; set; }
+        public string Campo { get; set; } = string.Empty;
+        public int IdCampo { get; set; }
+        public string? Campania { get; set; }
+        public string? Cultivo { get; set; }
+        public string? ProductoAplicado { get; set; }
+        public string? TipoProducto { get; set; } // "Agroquímico", "Fertilizante", "Nutriente"
+        public decimal? Dosis { get; set; }
+        public string? UnidadDosis { get; set; } // "Lts/Ha" o "Kg/Ha"
+        public decimal? CantidadTotal { get; set; }
+        public string? UnidadCantidad { get; set; } // "Litros" o "Kg"
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+        public decimal? Costo { get; set; }
+        public string? Moneda { get; set; }
+        public string? Responsable { get; set; }
+        public string? Observacion { get; set; }
+        public string? ObservacionCortada { get; set; }
+        public decimal? SuperficieHa { get; set; }
+        public decimal? CostoPorHa { get; set; }
+    }
+
+    /// <summary>
+    /// Evento de timeline para el historial del lote
+    /// </summary>
+    public class AplicacionTimelineDto
+    {
+        public int Id { get; set; }
+        public int IdTipoActividad { get; set; }
+        public string TipoActividad { get; set; } = string.Empty;
+        public string Icono { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public DateTime Fecha { get; set; }
+        public string Lote { get; set; } = string.Empty;
+        public string? Campania { get; set; }
+        public string? Cultivo { get; set; }
+        public string? Descripcion { get; set; }
+        public string? ProductoAplicado { get; set; }
+        public decimal? Dosis { get; set; }
+        public string? Unidad { get; set; }
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+        public string? Responsable { get; set; }
+    }
+
+    /// <summary>
+    /// Análisis de consumo de insumos agrupado
+    /// </summary>
+    public class InsumoConsumoDto
+    {
+        public string Producto { get; set; } = string.Empty;
+        public string TipoProducto { get; set; } = string.Empty; // "Agroquímico", "Fertilizante", "Nutriente"
+        public decimal CantidadTotal { get; set; }
+        public string Unidad { get; set; } = string.Empty;
+        public decimal? CostoTotalARS { get; set; }
+        public decimal? CostoTotalUSD { get; set; }
+        public int CantidadAplicaciones { get; set; }
+        public int CantidadLotes { get; set; }
+        public string? CultivoPrincipal { get; set; }
+        public string? CampaniaPrincipal { get; set; }
+    }
+
+    /// <summary>
+    /// Trazabilidad de cada aplicación (auditoría)
+    /// </summary>
+    public class AplicacionTraceDto
+    {
+        public int Id { get; set; }
+        public int IdTipoActividad { get; set; }
+        public string TipoActividad { get; set; } = string.Empty;
+        public string Icono { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public DateTime Fecha { get; set; }
+        public string Lote { get; set; } = string.Empty;
+        public string Campo { get; set; } = string.Empty;
+        public string? Campania { get; set; }
+        public string? ProductoAplicado { get; set; }
+        public decimal? Dosis { get; set; }
+        public decimal? CantidadTotal { get; set; }
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+        public string? Responsable { get; set; }
+        public DateTime RegistrationDate { get; set; }
+        public string? RegistrationUser { get; set; }
+        public DateTime? ModificationDate { get; set; }
+        public string? ModificationUser { get; set; }
+    }
+
+    /// <summary>
+    /// Costos agregados por producto (para gráfico de barras)
+    /// </summary>
+    public class DatoAplicacionPorProducto
+    {
+        public string Producto { get; set; } = string.Empty;
+        public string TipoProducto { get; set; } = string.Empty;
+        public decimal CostoARS { get; set; }
+        public decimal CostoUSD { get; set; }
+        public decimal CantidadTotal { get; set; }
+        public string Unidad { get; set; } = string.Empty;
+        public int CantidadAplicaciones { get; set; }
+        public string? Color { get; set; }
+    }
+
+    /// <summary>
+    /// Distribución por tipo de aplicación (para gráfico de torta/donut)
+    /// </summary>
+    public class DatoAplicacionPorTipo
+    {
+        public string Tipo { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+        public decimal Porcentaje { get; set; }
+        public string Color { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Aplicaciones en el tiempo (para gráfico de líneas/área)
+    /// </summary>
+    public class DatoAplicacionTimeline
+    {
+        public string Periodo { get; set; } = string.Empty; // "2025-01", "2025-02", etc.
+        public DateTime FechaInicio { get; set; }
+        public int CantidadPulverizaciones { get; set; }
+        public int CantidadFertilizaciones { get; set; }
+        public int TotalAplicaciones { get; set; }
+        public decimal? CostoTotalARS { get; set; }
+    }
+
+    /// <summary>
+    /// Comparativa por campaña (para gráfico de barras agrupadas)
+    /// </summary>
+    public class DatoAplicacionPorCampania
+    {
+        public string Campania { get; set; } = string.Empty;
+        public int TotalAplicaciones { get; set; }
+        public int Pulverizaciones { get; set; }
+        public int Fertilizaciones { get; set; }
+        public decimal CostoTotalARS { get; set; }
+        public decimal CostoTotalUSD { get; set; }
+        public decimal TotalLitros { get; set; }
+        public decimal TotalKg { get; set; }
+    }
+
+    /// <summary>
+    /// Comparativa por campo (para gráfico de barras horizontal)
+    /// </summary>
+    public class DatoAplicacionPorCampo
+    {
+        public string Campo { get; set; } = string.Empty;
+        public int TotalAplicaciones { get; set; }
+        public int Pulverizaciones { get; set; }
+        public int Fertilizaciones { get; set; }
+        public decimal CostoTotalARS { get; set; }
+        public decimal SuperficieHa { get; set; }
+        public int CantidadLotes { get; set; }
+    }
+
+    // ============================================================
+    // DTOs existentes de otros reportes se mantienen arriba
+    // ============================================================
 }

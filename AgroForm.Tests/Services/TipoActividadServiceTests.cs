@@ -240,8 +240,9 @@ namespace AgroForm.Tests.Services
                 Id = 1, 
                 Nombre = "Siembra Actualizada", 
                 Icono = "planting", 
-                ColorIcono = "darkgreen"
-                // No incluir RegistrationDate, RegistrationUser, IdLicencia
+                ColorIcono = "darkgreen",
+                RegistrationUser = "usuario_original" // Preservar el usuario original
+                // No incluir RegistrationDate, IdLicencia
             };
 
             // Act

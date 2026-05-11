@@ -43,5 +43,23 @@ namespace AgroForm.Business.Contracts
             string ordenDireccion = "desc",
             int pagina = 1,
             int tamanoPagina = 20);
+
+        /// <summary>
+        /// Obtiene el reporte de aplicaciones agrícolas (Pulverización + Fertilización)
+        /// con KPIs, tabla principal, timeline, análisis de insumos, gráficos y trazabilidad.
+        /// </summary>
+        Task<OperationResult<AplicacionReporteDto>> GetAplicacionesAsync(
+            int? idCampania = null,
+            int? idCampo = null,
+            int? idLote = null,
+            int? idCultivo = null,
+            int? idTipoAplicacion = null,
+            int? idProducto = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            string ordenarPor = "Fecha",
+            string ordenDireccion = "desc",
+            int pagina = 1,
+            int tamanoPagina = 20);
     }
 }

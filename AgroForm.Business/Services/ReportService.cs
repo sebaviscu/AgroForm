@@ -2099,6 +2099,692 @@ namespace AgroForm.Business.Services
                 _ => "#4CAF50"
             };
         }
+
+        // ============================================================
+        // NUEVO: Reporte de Aplicaciones (Pulverización + Fertilización)
+        // ============================================================
+
+        public async Task<OperationResult<AplicacionReporteDto>> GetAplicacionesAsync(
+            int? idCampania = null,
+            int? idCampo = null,
+            int? idLote = null,
+            int? idCultivo = null,
+            int? idTipoAplicacion = null,
+            int? idProducto = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            string ordenarPor = "Fecha",
+            string ordenDireccion = "desc",
+            int pagina = 1,
+            int tamanoPagina = 20)
+        {
+            try
+            {
+                var idLicencia = _userContext.IdLicencia;
+
+                // ============================================================
+                // 1. Query Pulverizaciones
+                // ============================================================
+                var pulvQuery = _unitOfWork.Repository<Pulverizacion>().Query()
+                    .Include(p => p.Lote)
+                        .ThenInclude(l => l.Campo)
+                    .Include(p => p.CicloCultivo)
+                        .ThenInclude(cc => cc.Cultivo)
+                    .Include(p => p.CicloCultivo)
+                        .ThenInclude(cc => cc.Campania)
+                    .Include(p => p.ProductoAgroquimico)
+                    .Include(p => p.Usuario)
+                    .Include(p => p.Moneda)
+                    .Where(p => p.IdLicencia == idLicencia)
+                    .AsQueryable();
+
+                // ============================================================
+                // 2. Query Fertilizaciones
+                // ============================================================
+                var fertQuery = _unitOfWork.Repository<Fertilizacion>().Query()
+                    .Include(f => f.Lote)
+                        .ThenInclude(l => l.Campo)
+                    .Include(f => f.CicloCultivo)
+                        .ThenInclude(cc => cc.Cultivo)
+                    .Include(f => f.CicloCultivo)
+                        .ThenInclude(cc => cc.Campania)
+                    .Include(f => f.Nutriente)
+                    .Include(f => f.TipoFertilizante)
+                    .Include(f => f.Usuario)
+                    .Include(f => f.Moneda)
+                    .Where(f => f.IdLicencia == idLicencia)
+                    .AsQueryable();
+
+                // ============================================================
+                // 3. Aplicar filtros comunes
+                // ============================================================
+                if (idCampania.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.IdCampania == idCampania.Value);
+                    fertQuery = fertQuery.Where(f => f.IdCampania == idCampania.Value);
+                }
+                else if (_userContext.IdCampaña.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.IdCampania == _userContext.IdCampaña.Value);
+                    fertQuery = fertQuery.Where(f => f.IdCampania == _userContext.IdCampaña.Value);
+                }
+
+                if (idCampo.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.Lote != null && p.Lote.IdCampo == idCampo.Value);
+                    fertQuery = fertQuery.Where(f => f.Lote != null && f.Lote.IdCampo == idCampo.Value);
+                }
+
+                if (idLote.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.IdLote == idLote.Value);
+                    fertQuery = fertQuery.Where(f => f.IdLote == idLote.Value);
+                }
+
+                if (idCultivo.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.CicloCultivo != null && p.CicloCultivo.IdCultivo == idCultivo.Value);
+                    fertQuery = fertQuery.Where(f => f.CicloCultivo != null && f.CicloCultivo.IdCultivo == idCultivo.Value);
+                }
+
+                if (fechaDesde.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.Fecha >= fechaDesde.Value);
+                    fertQuery = fertQuery.Where(f => f.Fecha >= fechaDesde.Value);
+                }
+
+                if (fechaHasta.HasValue)
+                {
+                    pulvQuery = pulvQuery.Where(p => p.Fecha <= fechaHasta.Value);
+                    fertQuery = fertQuery.Where(f => f.Fecha <= fechaHasta.Value);
+                }
+
+                if (idTipoAplicacion.HasValue)
+                {
+                    if (idTipoAplicacion.Value == 3) // Solo pulverizaciones
+                        fertQuery = fertQuery.Where(f => false);
+                    else if (idTipoAplicacion.Value == 4) // Solo fertilizaciones
+                        pulvQuery = pulvQuery.Where(p => false);
+                }
+
+                // ============================================================
+                // 4. Ejecutar queries y unificar en memoria
+                // ============================================================
+                var pulverizaciones = await pulvQuery.ToListAsync();
+                var fertilizaciones = await fertQuery.ToListAsync();
+
+                var todasLasAplicaciones = new List<AplicacionLoteDto>();
+
+                // Mapear pulverizaciones
+                foreach (var p in pulverizaciones)
+                {
+                    var superficieHa = p.Lote?.SuperficieHectareas;
+                    var costoPorHa = p.CostoARS.HasValue && superficieHa.HasValue && superficieHa > 0
+                        ? (decimal?)Math.Round(p.CostoARS.Value / superficieHa.Value, 2)
+                        : (p.CostoUSD.HasValue && superficieHa.HasValue && superficieHa > 0
+                            ? (decimal?)Math.Round(p.CostoUSD.Value / superficieHa.Value, 2)
+                            : null);
+
+                    todasLasAplicaciones.Add(new AplicacionLoteDto
+                    {
+                        Id = p.Id,
+                        IdTipoActividad = 3,
+                        TipoActividad = "Pulverización",
+                        TipoActividadIcono = "ph-drop-half",
+                        TipoActividadColor = "#0d6efd",
+                        Fecha = p.Fecha,
+                        IdLote = p.IdLote,
+                        Lote = p.Lote?.Nombre ?? "N/A",
+                        IdCampo = p.Lote?.IdCampo ?? 0,
+                        Campo = p.Lote?.Campo?.Nombre ?? "N/A",
+                        Campania = p.CicloCultivo?.Campania?.Nombre,
+                        Cultivo = p.CicloCultivo?.Cultivo?.Nombre,
+                        ProductoAplicado = p.ProductoAgroquimico?.Nombre,
+                        TipoProducto = "Agroquímico",
+                        Dosis = p.Dosis,
+                        UnidadDosis = "Lts/Ha",
+                        CantidadTotal = p.VolumenLitrosHa.HasValue && superficieHa.HasValue
+                            ? Math.Round(p.VolumenLitrosHa.Value * superficieHa.Value, 2)
+                            : null,
+                        UnidadCantidad = "Litros",
+                        CostoARS = p.CostoARS,
+                        CostoUSD = p.CostoUSD,
+                        Costo = p.Costo,
+                        Moneda = p.Moneda?.Nombre,
+                        Responsable = p.Usuario?.Nombre ?? p.RegistrationUser,
+                        Observacion = p.Observacion,
+                        ObservacionCortada = p.Observacion?.Length > 70
+                            ? p.Observacion[..70] + "..."
+                            : p.Observacion,
+                        SuperficieHa = superficieHa,
+                        CostoPorHa = costoPorHa
+                    });
+                }
+
+                // Mapear fertilizaciones
+                foreach (var f in fertilizaciones)
+                {
+                    var superficieHa = f.Lote?.SuperficieHectareas;
+                    var productoNombre = !string.IsNullOrEmpty(f.TipoFertilizante?.Nombre)
+                        ? f.TipoFertilizante.Nombre
+                        : f.Nutriente?.Nombre ?? "Fertilizante";
+                    var costoPorHa = f.CostoARS.HasValue && superficieHa.HasValue && superficieHa > 0
+                        ? (decimal?)Math.Round(f.CostoARS.Value / superficieHa.Value, 2)
+                        : (f.CostoUSD.HasValue && superficieHa.HasValue && superficieHa > 0
+                            ? (decimal?)Math.Round(f.CostoUSD.Value / superficieHa.Value, 2)
+                            : null);
+
+                    todasLasAplicaciones.Add(new AplicacionLoteDto
+                    {
+                        Id = f.Id,
+                        IdTipoActividad = 4,
+                        TipoActividad = "Fertilización",
+                        TipoActividadIcono = "ph-flask",
+                        TipoActividadColor = "#198754",
+                        Fecha = f.Fecha,
+                        IdLote = f.IdLote,
+                        Lote = f.Lote?.Nombre ?? "N/A",
+                        IdCampo = f.Lote?.IdCampo ?? 0,
+                        Campo = f.Lote?.Campo?.Nombre ?? "N/A",
+                        Campania = f.CicloCultivo?.Campania?.Nombre,
+                        Cultivo = f.CicloCultivo?.Cultivo?.Nombre,
+                        ProductoAplicado = productoNombre,
+                        TipoProducto = "Fertilizante",
+                        Dosis = f.DosisKgHa ?? f.CantidadKgHa,
+                        UnidadDosis = "Kg/Ha",
+                        CantidadTotal = f.CantidadKgHa.HasValue && superficieHa.HasValue
+                            ? Math.Round(f.CantidadKgHa.Value * superficieHa.Value, 2)
+                            : (f.DosisKgHa.HasValue && superficieHa.HasValue
+                                ? Math.Round(f.DosisKgHa.Value * superficieHa.Value, 2)
+                                : null),
+                        UnidadCantidad = "Kg",
+                        CostoARS = f.CostoARS,
+                        CostoUSD = f.CostoUSD,
+                        Costo = f.Costo,
+                        Moneda = f.Moneda?.Nombre,
+                        Responsable = f.Usuario?.Nombre ?? f.RegistrationUser,
+                        Observacion = f.Observacion,
+                        ObservacionCortada = f.Observacion?.Length > 70
+                            ? f.Observacion[..70] + "..."
+                            : f.Observacion,
+                        SuperficieHa = superficieHa,
+                        CostoPorHa = costoPorHa
+                    });
+                }
+
+                // Filtrar por producto si se especificó
+                if (idProducto.HasValue)
+                {
+                    todasLasAplicaciones = todasLasAplicaciones
+                        .Where(a => (a.IdTipoActividad == 3 && pulverizaciones.Any(p => p.Id == a.Id && p.IdProductoAgroquimico == idProducto))
+                                 || (a.IdTipoActividad == 4 && fertilizaciones.Any(f => f.Id == a.Id && (f.IdNutriente == idProducto || f.IdTipoFertilizante == idProducto))))
+                        .ToList();
+                }
+
+                if (todasLasAplicaciones.Count == 0)
+                {
+                    return OperationResult<AplicacionReporteDto>.SuccessResult(new AplicacionReporteDto());
+                }
+
+                // ============================================================
+                // 5. Calcular KPIs
+                // ============================================================
+                var kpis = new AplicacionKpiDto();
+
+                kpis.TotalAplicaciones = todasLasAplicaciones.Count;
+                kpis.TotalPulverizaciones = todasLasAplicaciones.Count(a => a.IdTipoActividad == 3);
+                kpis.TotalFertilizaciones = todasLasAplicaciones.Count(a => a.IdTipoActividad == 4);
+                kpis.TotalLitrosAplicados = Math.Round(
+                    todasLasAplicaciones.Where(a => a.IdTipoActividad == 3 && a.CantidadTotal.HasValue)
+                        .Sum(a => a.CantidadTotal!.Value), 2);
+                kpis.TotalKgAplicados = Math.Round(
+                    todasLasAplicaciones.Where(a => a.IdTipoActividad == 4 && a.CantidadTotal.HasValue)
+                        .Sum(a => a.CantidadTotal!.Value), 2);
+                kpis.CostoTotalARS = Math.Round(
+                    todasLasAplicaciones.Where(a => a.CostoARS.HasValue).Sum(a => a.CostoARS!.Value), 2);
+                kpis.CostoTotalUSD = Math.Round(
+                    todasLasAplicaciones.Where(a => a.CostoUSD.HasValue).Sum(a => a.CostoUSD!.Value), 2);
+
+                // Costo por hectárea promedio
+                var superficieTotal = todasLasAplicaciones
+                    .Where(a => a.SuperficieHa.HasValue)
+                    .Select(a => a.IdLote)
+                    .Distinct()
+                    .Select(idL => todasLasAplicaciones.First(a => a.IdLote == idL).SuperficieHa)
+                    .Sum() ?? 0;
+
+                if (superficieTotal > 0)
+                {
+                    kpis.CostoPromedioPorHaARS = kpis.CostoTotalARS.HasValue
+                        ? Math.Round(kpis.CostoTotalARS.Value / superficieTotal, 2) : null;
+                    kpis.CostoPromedioPorHaUSD = kpis.CostoTotalUSD.HasValue
+                        ? Math.Round(kpis.CostoTotalUSD.Value / superficieTotal, 2) : null;
+                }
+
+                // Producto más aplicado (pulverizaciones)
+                var prodGroup = todasLasAplicaciones
+                    .Where(a => a.IdTipoActividad == 3 && !string.IsNullOrEmpty(a.ProductoAplicado))
+                    .GroupBy(a => a.ProductoAplicado ?? "")
+                    .Select(g => new { Producto = g.Key, Cantidad = g.Count() })
+                    .OrderByDescending(g => g.Cantidad)
+                    .FirstOrDefault();
+                if (prodGroup != null)
+                {
+                    kpis.ProductoMasAplicado = prodGroup.Producto;
+                    kpis.ProductoMasAplicadoCantidad = prodGroup.Cantidad;
+                }
+
+                // Nutriente más aplicado (fertilizaciones)
+                var nutriGroup = todasLasAplicaciones
+                    .Where(a => a.IdTipoActividad == 4 && !string.IsNullOrEmpty(a.ProductoAplicado))
+                    .GroupBy(a => a.ProductoAplicado ?? "")
+                    .Select(g => new { Producto = g.Key, Cantidad = g.Count() })
+                    .OrderByDescending(g => g.Cantidad)
+                    .FirstOrDefault();
+                if (nutriGroup != null)
+                {
+                    kpis.NutrienteMasAplicado = nutriGroup.Producto;
+                    kpis.NutrienteMasAplicadoCantidad = nutriGroup.Cantidad;
+                }
+
+                kpis.TotalLotes = todasLasAplicaciones.Select(a => a.IdLote).Distinct().Count();
+                kpis.PromedioAplicacionesPorLote = kpis.TotalLotes > 0
+                    ? Math.Round((decimal)kpis.TotalAplicaciones / kpis.TotalLotes, 1) : 0;
+                kpis.SuperficieTotalTratadaHa = Math.Round(superficieTotal, 2);
+                kpis.Moneda = "ARS";
+
+                // ============================================================
+                // 6. Ordenar y paginar tabla principal
+                // ============================================================
+                var queryOrdenada = ordenDireccion.ToLower() == "asc"
+                    ? todasLasAplicaciones.AsQueryable().OrderBy(d => OrdenarAplicacionPorPropiedad(d, ordenarPor))
+                    : todasLasAplicaciones.AsQueryable().OrderByDescending(d => OrdenarAplicacionPorPropiedad(d, ordenarPor));
+
+                var listaOrdenada = queryOrdenada.ToList();
+
+                var totalRegistros = listaOrdenada.Count;
+                var totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
+                pagina = Math.Max(1, Math.Min(pagina, Math.Max(1, totalPaginas)));
+
+                var datosPaginados = listaOrdenada
+                    .Skip((pagina - 1) * tamanoPagina)
+                    .Take(tamanoPagina)
+                    .ToList();
+
+                // ============================================================
+                // 7. Timeline de aplicaciones (historial combinado ordenado por fecha)
+                // ============================================================
+                var timeline = todasLasAplicaciones
+                    .OrderByDescending(a => a.Fecha)
+                    .Take(50)
+                    .Select(a => new AplicacionTimelineDto
+                    {
+                        Id = a.Id,
+                        IdTipoActividad = a.IdTipoActividad,
+                        TipoActividad = a.TipoActividad,
+                        Icono = a.TipoActividadIcono,
+                        Color = a.TipoActividadColor,
+                        Fecha = a.Fecha,
+                        Lote = a.Lote,
+                        Campania = a.Campania,
+                        Cultivo = a.Cultivo,
+                        Descripcion = $"{a.TipoActividad} - {a.ProductoAplicado ?? "Sin producto"} ({a.Dosis?.ToString("N2") ?? "-"} {a.UnidadDosis})",
+                        ProductoAplicado = a.ProductoAplicado,
+                        Dosis = a.Dosis,
+                        Unidad = a.UnidadDosis ?? a.UnidadCantidad,
+                        CostoARS = a.CostoARS,
+                        CostoUSD = a.CostoUSD,
+                        Responsable = a.Responsable
+                    })
+                    .ToList();
+
+                // ============================================================
+                // 8. Análisis de Insumos (agrupado por producto)
+                // ============================================================
+                var analisisInsumos = todasLasAplicaciones
+                    .Where(a => !string.IsNullOrEmpty(a.ProductoAplicado))
+                    .GroupBy(a => new { ProductoAplicado = a.ProductoAplicado ?? "", TipoProducto = a.TipoProducto ?? "" })
+                    .Select(g => new InsumoConsumoDto
+                    {
+                        Producto = g.Key.ProductoAplicado,
+                        TipoProducto = g.Key.TipoProducto,
+                        CantidadTotal = Math.Round(g.Sum(a => a.CantidadTotal ?? 0), 2),
+                        Unidad = g.Any(a => a.IdTipoActividad == 3) ? "Litros" : "Kg",
+                        CostoTotalARS = Math.Round(g.Sum(a => a.CostoARS ?? 0), 2),
+                        CostoTotalUSD = Math.Round(g.Sum(a => a.CostoUSD ?? 0), 2),
+                        CantidadAplicaciones = g.Count(),
+                        CantidadLotes = g.Select(a => a.IdLote).Distinct().Count(),
+                        CultivoPrincipal = g.GroupBy(a => a.Cultivo)
+                            .OrderByDescending(gc => gc.Count())
+                            .Select(gc => gc.Key)
+                            .FirstOrDefault(),
+                        CampaniaPrincipal = g.GroupBy(a => a.Campania)
+                            .OrderByDescending(gc => gc.Count())
+                            .Select(gc => gc.Key)
+                            .FirstOrDefault()
+                    })
+                    .OrderByDescending(d => d.CantidadTotal)
+                    .ToList();
+
+                // ============================================================
+                // 9. Trazabilidad (datos de auditoría)
+                // ============================================================
+                var trazabilidad = todasLasAplicaciones
+                    .OrderByDescending(a => a.Fecha)
+                    .Take(100)
+                    .Select(a => new AplicacionTraceDto
+                    {
+                        Id = a.Id,
+                        IdTipoActividad = a.IdTipoActividad,
+                        TipoActividad = a.TipoActividad,
+                        Icono = a.TipoActividadIcono,
+                        Color = a.TipoActividadColor,
+                        Fecha = a.Fecha,
+                        Lote = a.Lote,
+                        Campo = a.Campo,
+                        Campania = a.Campania,
+                        ProductoAplicado = a.ProductoAplicado,
+                        Dosis = a.Dosis,
+                        CantidadTotal = a.CantidadTotal,
+                        CostoARS = a.CostoARS,
+                        CostoUSD = a.CostoUSD,
+                        Responsable = a.Responsable,
+                        RegistrationDate = a.IdTipoActividad == 3
+                            ? pulverizaciones.First(p => p.Id == a.Id).RegistrationDate ?? DateTime.MinValue
+                            : fertilizaciones.First(f => f.Id == a.Id).RegistrationDate ?? DateTime.MinValue,
+                        RegistrationUser = a.IdTipoActividad == 3
+                            ? pulverizaciones.First(p => p.Id == a.Id).RegistrationUser
+                            : fertilizaciones.First(f => f.Id == a.Id).RegistrationUser,
+                        ModificationDate = a.IdTipoActividad == 3
+                            ? pulverizaciones.First(p => p.Id == a.Id).ModificationDate
+                            : fertilizaciones.First(f => f.Id == a.Id).ModificationDate,
+                        ModificationUser = a.IdTipoActividad == 3
+                            ? pulverizaciones.First(p => p.Id == a.Id).ModificationUser
+                            : fertilizaciones.First(f => f.Id == a.Id).ModificationUser
+                    })
+                    .ToList();
+
+                // ============================================================
+                // 10. Datos para gráficos
+                // ============================================================
+
+                // 10a. Costos por producto (barras)
+                var costosPorProducto = todasLasAplicaciones
+                    .Where(a => !string.IsNullOrEmpty(a.ProductoAplicado) && (a.CostoARS.HasValue || a.CostoUSD.HasValue))
+                    .GroupBy(a => new { ProductoAplicado = a.ProductoAplicado ?? "", TipoProducto = a.TipoProducto ?? "" })
+                    .Select(g => new DatoAplicacionPorProducto
+                    {
+                        Producto = g.Key.ProductoAplicado,
+                        TipoProducto = g.Key.TipoProducto,
+                        CostoARS = Math.Round(g.Sum(a => a.CostoARS ?? 0), 2),
+                        CostoUSD = Math.Round(g.Sum(a => a.CostoUSD ?? 0), 2),
+                        CantidadTotal = Math.Round(g.Sum(a => a.CantidadTotal ?? 0), 2),
+                        Unidad = g.Any(a => a.IdTipoActividad == 3) ? "Litros" : "Kg",
+                        CantidadAplicaciones = g.Count(),
+                        Color = g.Any(a => a.IdTipoActividad == 3) ? "#0d6efd" : "#198754"
+                    })
+                    .OrderByDescending(d => d.CostoARS)
+                    .Take(15)
+                    .ToList();
+
+                // 10b. Distribución por tipo (torta/donut)
+                var totalApps = (decimal)todasLasAplicaciones.Count;
+                var distribucionPorTipo = new List<DatoAplicacionPorTipo>
+                {
+                    new DatoAplicacionPorTipo
+                    {
+                        Tipo = "Pulverización",
+                        Cantidad = kpis.TotalPulverizaciones,
+                        Porcentaje = totalApps > 0 ? Math.Round(kpis.TotalPulverizaciones / totalApps * 100, 1) : 0,
+                        Color = "#0d6efd"
+                    },
+                    new DatoAplicacionPorTipo
+                    {
+                        Tipo = "Fertilización",
+                        Cantidad = kpis.TotalFertilizaciones,
+                        Porcentaje = totalApps > 0 ? Math.Round(kpis.TotalFertilizaciones / totalApps * 100, 1) : 0,
+                        Color = "#198754"
+                    }
+                };
+
+                // 10c. Timeline de aplicaciones (agrupado por mes)
+                var appsTimeline = todasLasAplicaciones
+                    .GroupBy(a => new { a.Fecha.Year, a.Fecha.Month })
+                    .Select(g => new DatoAplicacionTimeline
+                    {
+                        Periodo = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        FechaInicio = new DateTime(g.Key.Year, g.Key.Month, 1),
+                        CantidadPulverizaciones = g.Count(a => a.IdTipoActividad == 3),
+                        CantidadFertilizaciones = g.Count(a => a.IdTipoActividad == 4),
+                        TotalAplicaciones = g.Count(),
+                        CostoTotalARS = Math.Round(g.Sum(a => a.CostoARS ?? 0), 2)
+                    })
+                    .OrderBy(d => d.FechaInicio)
+                    .ToList();
+
+                // 10d. Comparativa por campaña (barras agrupadas)
+                var comparativaCampania = todasLasAplicaciones
+                    .Where(a => !string.IsNullOrEmpty(a.Campania))
+                    .GroupBy(a => a.Campania!)
+                    .Select(g => new DatoAplicacionPorCampania
+                    {
+                        Campania = g.Key,
+                        TotalAplicaciones = g.Count(),
+                        Pulverizaciones = g.Count(a => a.IdTipoActividad == 3),
+                        Fertilizaciones = g.Count(a => a.IdTipoActividad == 4),
+                        CostoTotalARS = Math.Round(g.Sum(a => a.CostoARS ?? 0), 2),
+                        CostoTotalUSD = Math.Round(g.Sum(a => a.CostoUSD ?? 0), 2),
+                        TotalLitros = Math.Round(g.Where(a => a.IdTipoActividad == 3).Sum(a => a.CantidadTotal ?? 0), 2),
+                        TotalKg = Math.Round(g.Where(a => a.IdTipoActividad == 4).Sum(a => a.CantidadTotal ?? 0), 2)
+                    })
+                    .OrderBy(d => d.Campania)
+                    .ToList();
+
+                // 10e. Comparativa por campo (barras horizontales)
+                var comparativaCampo = todasLasAplicaciones
+                    .Where(a => !string.IsNullOrEmpty(a.Campo))
+                    .GroupBy(a => new { Campo = a.Campo ?? "", a.IdCampo })
+                    .Select(g => new DatoAplicacionPorCampo
+                    {
+                        Campo = g.Key.Campo,
+                        TotalAplicaciones = g.Count(),
+                        Pulverizaciones = g.Count(a => a.IdTipoActividad == 3),
+                        Fertilizaciones = g.Count(a => a.IdTipoActividad == 4),
+                        CostoTotalARS = Math.Round(g.Sum(a => a.CostoARS ?? 0), 2),
+                        SuperficieHa = g.First().SuperficieHa ?? 0,
+                        CantidadLotes = g.Select(a => a.IdLote).Distinct().Count()
+                    })
+                    .OrderByDescending(d => d.TotalAplicaciones)
+                    .ToList();
+
+                // ============================================================
+                // 11. Indicadores inteligentes
+                // ============================================================
+                var indicadores = GenerarIndicadoresAplicacion(kpis, todasLasAplicaciones);
+
+                // ============================================================
+                // 12. Armar reporte final
+                // ============================================================
+                var reporte = new AplicacionReporteDto
+                {
+                    Kpis = kpis,
+                    DatosAplicaciones = datosPaginados,
+                    Timeline = timeline,
+                    AnalisisInsumos = analisisInsumos,
+                    Trazabilidad = trazabilidad,
+                    CostosPorProducto = costosPorProducto,
+                    DistribucionPorTipo = distribucionPorTipo,
+                    AplicacionesTimeline = appsTimeline,
+                    ComparativaPorCampania = comparativaCampania,
+                    ComparativaPorCampo = comparativaCampo,
+                    Indicadores = indicadores,
+                    Paginacion = new PaginacionDto
+                    {
+                        PaginaActual = pagina,
+                        TamanoPagina = tamanoPagina,
+                        TotalRegistros = totalRegistros,
+                        TotalPaginas = totalPaginas
+                    }
+                };
+
+                return OperationResult<AplicacionReporteDto>.SuccessResult(reporte);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar reporte de aplicaciones agrícolas");
+                return OperationResult<AplicacionReporteDto>.Failure(
+                    $"Error al generar reporte de aplicaciones: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
+        /// <summary>
+        /// Ordena aplicaciones por propiedad usando expresión switch
+        /// </summary>
+        private static object OrdenarAplicacionPorPropiedad(AplicacionLoteDto dto, string propiedad)
+        {
+            return propiedad switch
+            {
+                "Fecha" => (object)dto.Fecha,
+                "TipoActividad" => dto.TipoActividad,
+                "Lote" => dto.Lote,
+                "Campo" => dto.Campo,
+                "Campania" => (object?)dto.Campania ?? "",
+                "Cultivo" => (object?)dto.Cultivo ?? "",
+                "ProductoAplicado" => (object?)dto.ProductoAplicado ?? "",
+                "Dosis" => (object?)dto.Dosis ?? 0m,
+                "CantidadTotal" => (object?)dto.CantidadTotal ?? 0m,
+                "CostoARS" => (object?)dto.CostoARS ?? 0m,
+                "CostoUSD" => (object?)dto.CostoUSD ?? 0m,
+                "CostoPorHa" => (object?)dto.CostoPorHa ?? 0m,
+                "SuperficieHa" => (object?)dto.SuperficieHa ?? 0m,
+                "Responsable" => (object?)dto.Responsable ?? "",
+                _ => (object)dto.Fecha
+            };
+        }
+
+        /// <summary>
+        /// Genera indicadores inteligentes para el reporte de aplicaciones
+        /// </summary>
+        private static List<IndicadorInteligenteDto> GenerarIndicadoresAplicacion(
+            AplicacionKpiDto kpis,
+            List<AplicacionLoteDto> aplicaciones)
+        {
+            var indicadores = new List<IndicadorInteligenteDto>();
+
+            // 1. Proporción Pulverización vs Fertilización
+            if (kpis.TotalAplicaciones > 0)
+            {
+                var pctPulv = (decimal)kpis.TotalPulverizaciones / kpis.TotalAplicaciones * 100;
+                var pctFert = (decimal)kpis.TotalFertilizaciones / kpis.TotalAplicaciones * 100;
+
+                if (pctPulv > 75)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Predominio de pulverizaciones",
+                        Severidad = "Media",
+                        Titulo = "Alto porcentaje de pulverizaciones",
+                        Mensaje = $"Las pulverizaciones representan el {pctPulv:N0}% del total de aplicaciones ({kpis.TotalPulverizaciones} de {kpis.TotalAplicaciones})",
+                        Recomendacion = "Evaluar si se puede optimizar el manejo integrado de plagas para reducir aplicaciones.",
+                        Icono = "ph-drop-half",
+                        Color = "#0d6efd",
+                        Valor = pctPulv,
+                        Umbral = 75
+                    });
+                }
+
+                if (kpis.TotalFertilizaciones == 0)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Sin fertilizaciones registradas",
+                        Severidad = "Alta",
+                        Titulo = "Sin fertilizaciones registradas",
+                        Mensaje = "No se encontraron registros de fertilización en el período seleccionado.",
+                        Recomendacion = "Verificar si las fertilizaciones se están registrando correctamente en el sistema.",
+                        Icono = "ph-warning-circle",
+                        Color = "#dc3545",
+                        Valor = 0,
+                        Umbral = 1
+                    });
+                }
+
+                if (pctFert > 75)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Predominio de fertilizaciones",
+                        Severidad = "Baja",
+                        Titulo = "Alto porcentaje de fertilizaciones",
+                        Mensaje = $"Las fertilizaciones representan el {pctFert:N0}% del total de aplicaciones.",
+                        Recomendacion = "Monitorear que las dosis de fertilización estén alineadas con los análisis de suelo.",
+                        Icono = "ph-flask",
+                        Color = "#198754",
+                        Valor = pctFert,
+                        Umbral = 75
+                    });
+                }
+            }
+
+            // 2. Costo elevado
+            if (kpis.CostoTotalARS.HasValue && kpis.CostoTotalARS > 1000000)
+            {
+                indicadores.Add(new IndicadorInteligenteDto
+                {
+                    Tipo = "Costo elevado",
+                    Severidad = "Media",
+                    Titulo = "Costo total significativo",
+                    Mensaje = $"El costo total de aplicaciones es de ${kpis.CostoTotalARS.Value:N0} ARS",
+                    Recomendacion = "Revisar los costos unitarios de los productos y considerar alternativas más económicas.",
+                    Icono = "ph-currency-circle-dollar",
+                    Color = "#ffc107",
+                    Valor = kpis.CostoTotalARS,
+                    Umbral = 1000000
+                });
+            }
+
+            // 3. Lote con más aplicaciones
+            var loteTop = aplicaciones
+                .GroupBy(a => new { a.IdLote, a.Lote })
+                .Select(g => new { g.Key.Lote, Cantidad = g.Count() })
+                .OrderByDescending(g => g.Cantidad)
+                .FirstOrDefault();
+
+            if (loteTop != null && loteTop.Cantidad > kpis.PromedioAplicacionesPorLote * 2)
+            {
+                indicadores.Add(new IndicadorInteligenteDto
+                {
+                    Tipo = "Lote con alta intensidad",
+                    Severidad = "Media",
+                    Titulo = $"Lote con muchas aplicaciones: {loteTop.Lote}",
+                    Mensaje = $"El lote {loteTop.Lote} tiene {loteTop.Cantidad} aplicaciones, superando ampliamente el promedio de {kpis.PromedioAplicacionesPorLote:N1} por lote.",
+                    Recomendacion = "Revisar el historial del lote para identificar posibles problemas sanitarios recurrentes.",
+                    Icono = "ph-map-pin",
+                    Color = "#fd7e14",
+                    Valor = loteTop.Cantidad,
+                    Umbral = kpis.PromedioAplicacionesPorLote * 2
+                });
+            }
+
+            // 4. Superficie sin aplicaciones
+            if (kpis.SuperficieTotalTratadaHa == 0 && kpis.TotalAplicaciones > 0)
+            {
+                indicadores.Add(new IndicadorInteligenteDto
+                {
+                    Tipo = "Sin superficie registrada",
+                    Severidad = "Baja",
+                    Titulo = "Superficie no disponible",
+                    Mensaje = "No se pudo calcular la superficie tratada porque algunos lotes no tienen hectáreas registradas.",
+                    Recomendacion = "Completar el dato de superficie en los lotes para mejorar los indicadores.",
+                    Icono = "ph-info",
+                    Color = "#6c757d",
+                    Valor = 0,
+                    Umbral = 1
+                });
+            }
+
+            return indicadores;
+        }
     }
 }
 

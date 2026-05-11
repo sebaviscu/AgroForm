@@ -1,0 +1,699 @@
+@model AplicacionesVM
+@{
+    ViewData["Title"] = "Reporte de Aplicaciones Agrícolas";
+}
+
+<style>
+    /* ===== KPI Cards ===== */
+    .kpi-card {
+        border-radius: 12px;
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        background: var(--bs-card-bg, #fff);
+        padding: 1.25rem;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .kpi-label {
+        font-size: 0.85rem;
+        opacity: 0.75;
+        margin-top: 2px;
+    }
+    .kpi-trend {
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* ===== Tablas ===== */
+    .table-reporte th {
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        background: var(--bs-light, #f8f9fa);
+        border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+    }
+    .table-reporte td {
+        vertical-align: middle;
+        font-size: 0.875rem;
+    }
+    .table-reporte .sortable {
+        cursor: pointer;
+        user-select: none;
+    }
+    .table-reporte .sortable:hover {
+        color: var(--bs-primary, #0d6efd);
+    }
+    .table-reporte .sort-icon {
+        opacity: 0.3;
+        margin-left: 4px;
+    }
+    .table-reporte .sortable.active .sort-icon {
+        opacity: 1;
+        color: var(--bs-primary, #0d6efd);
+    }
+    .table-reporte .tipo-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* ===== Tab Navigation ===== */
+    .nav-tabs-reporte .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-weight: 500;
+        padding: 0.75rem 1.25rem;
+        transition: all 0.2s;
+        border-radius: 0;
+    }
+    .nav-tabs-reporte .nav-link:hover {
+        border-bottom-color: var(--bs-border-color, #dee2e6);
+        color: var(--bs-body-color, #212529);
+    }
+    .nav-tabs-reporte .nav-link.active {
+        border-bottom-color: var(--bs-primary, #0d6efd);
+        color: var(--bs-primary, #0d6efd);
+        background: transparent;
+    }
+    .nav-tabs-reporte .nav-link i {
+        margin-right: 6px;
+    }
+
+    /* ===== Timeline ===== */
+    .timeline-vertical {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .timeline-vertical::before {
+        content: '';
+        position: absolute;
+        left: 0.75rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--bs-border-color, #dee2e6);
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .timeline-icon {
+        position: absolute;
+        left: -1.625rem;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1rem;
+        z-index: 1;
+        border: 3px solid var(--bs-body-bg, #fff);
+    }
+    .timeline-content {
+        background: var(--bs-card-bg, #fff);
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+    }
+
+    /* ===== Chart Containers ===== */
+    .chart-container {
+        position: relative;
+        width: 100%;
+        min-height: 300px;
+    }
+    .chart-container canvas {
+        max-width: 100%;
+    }
+
+    /* ===== Estado de carga ===== */
+    #loadingState {
+        padding: 4rem 0;
+    }
+    .spinner-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* ===== Empty State ===== */
+    #emptyState {
+        padding: 4rem 0;
+    }
+
+    /* ===== Paginación ===== */
+    .pagination-reporte .page-item .page-link {
+        border-radius: 8px !important;
+        margin: 0 2px;
+        min-width: 36px;
+        text-align: center;
+    }
+    .pagination-reporte .page-item.active .page-link {
+        font-weight: 600;
+    }
+
+    /* ===== Indicadores ===== */
+    .indicador-card {
+        border-radius: 12px;
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    .indicador-card:hover {
+        transform: translateX(4px);
+    }
+
+    /* ===== Traceability Table ===== */
+    .trace-timeline {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    .trace-item {
+        padding: 0.75rem 1rem;
+        border-left: 3px solid;
+        margin-bottom: 0.5rem;
+        border-radius: 0 8px 8px 0;
+        background: var(--bs-card-bg, #fff);
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-left-width: 3px;
+    }
+
+    /* ===== Insumos Analysis ===== */
+    .insumo-bar {
+        height: 28px;
+        border-radius: 6px;
+        min-width: 4px;
+        transition: width 0.6s ease;
+    }
+
+    /* ===== Responsive ===== */
+    @@media (max-width: 768px) {
+        .kpi-value { font-size: 1.35rem; }
+        .kpi-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+        .nav-tabs-reporte .nav-link { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+        .table-reporte { font-size: 0.8rem; }
+    }
+</style>
+
+<div class="container-fluid py-3">
+    <!-- ===== Header ===== -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-1 fw-bold">
+                <i class="ph-drop-half me-2 text-primary"></i>Reporte de Aplicaciones Agrícolas
+            </h4>
+            <p class="text-muted mb-0 small">Pulverizaciones y Fertilizaciones - Análisis completo de insumos y costos</p>
+        </div>
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <button class="btn btn-outline-success btn-sm" onclick="exportarExcel()" title="Exportar a Excel">
+                <i class="ph-file-xls"></i> Excel
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="exportarPDF()" title="Exportar a PDF">
+                <i class="ph-file-pdf"></i> PDF
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#helpModal">
+                <i class="ph ph-question me-1"></i> Ayuda
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== Filtros ===== -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <div class="row g-2">
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Campaña</label>
+                    <select id="filtroCampania" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        @foreach (var c in Model.Campanias)
+                        {
+                            <option value="@c.Id">@c.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Campo</label>
+                    <select id="filtroCampo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @foreach (var c in Model.Campos)
+                        {
+                            <option value="@c.Id">@c.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Lote</label>
+                    <select id="filtroLote" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Cultivo</label>
+                    <select id="filtroCultivo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @foreach (var c in Model.Cultivos)
+                        {
+                            <option value="@c.Id">@c.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Tipo</label>
+                    <select id="filtroTipoAplicacion" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="3">Pulverización</option>
+                        <option value="4">Fertilización</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Producto</label>
+                    <select id="filtroProducto" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @foreach (var p in Model.Productos)
+                        {
+                            <option value="@p.Id">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Fecha Desde</label>
+                    <input type="date" id="filtroFechaDesde" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label small fw-semibold">Fecha Hasta</label>
+                    <input type="date" id="filtroFechaHasta" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary btn-sm w-100" onclick="cargarDatos()">
+                        <i class="ph-magnifying-glass me-1"></i>Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Loading State ===== -->
+    <div id="loadingState" class="text-center" style="display:none;">
+        <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-muted mb-0">Generando reporte de aplicaciones...</p>
+        </div>
+    </div>
+
+    <!-- ===== Empty State ===== -->
+    <div id="emptyState" class="text-center" style="display:none;">
+        <i class="ph-drop" style="font-size:4rem;opacity:0.3;"></i>
+        <h5 class="mt-3 text-muted">No se encontraron aplicaciones</h5>
+        <p class="text-muted small">Seleccione filtros y presione "Generar Reporte" para visualizar los datos.</p>
+    </div>
+
+    <!-- ===== Report Content ===== -->
+    <div id="reportContent" style="display:none;">
+        <!-- KPIs -->
+        <div id="kpisSection" class="row g-2 mb-3"></div>
+
+        <!-- Tabs -->
+        <div class="card">
+            <div class="card-header p-0 border-bottom-0">
+                <ul class="nav nav-tabs nav-tabs-reporte px-3 pt-2" id="reporteTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-dashboard" data-bs-toggle="tab" data-bs-target="#panel-dashboard" type="button" role="tab">
+                            <i class="ph-gauge"></i>Dashboard
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-datos" data-bs-toggle="tab" data-bs-target="#panel-datos" type="button" role="tab">
+                            <i class="ph-table"></i>Datos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-timeline" data-bs-toggle="tab" data-bs-target="#panel-timeline" type="button" role="tab">
+                            <i class="ph-clock-counter-clockwise"></i>Timeline
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-insumos" data-bs-toggle="tab" data-bs-target="#panel-insumos" type="button" role="tab">
+                            <i class="ph-flask"></i>Insumos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-graficos" data-bs-toggle="tab" data-bs-target="#panel-graficos" type="button" role="tab">
+                            <i class="ph-chart-bar"></i>Gráficos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-trazabilidad" data-bs-toggle="tab" data-bs-target="#panel-trazabilidad" type="button" role="tab">
+                            <i class="ph-tree-structure"></i>Trazabilidad
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content">
+                <!-- Panel: Dashboard -->
+                <div class="tab-pane fade show active" id="panel-dashboard" role="tabpanel">
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <div class="card h-100">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-chart-bar me-1"></i>Costos por Producto
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartCostosProducto"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-chart-pie-slice me-1"></i>Distribución por Tipo
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartDistribucionTipo"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-trend-up me-1"></i>Evolución Temporal
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartTimelineApps"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-barbell me-1"></i>Comparativa por Campaña
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartComparativaCampania"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-map-pin me-1"></i>Comparativa por Campo
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartComparativaCampo"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Datos (Tabla Principal) -->
+                <div class="tab-pane fade" id="panel-datos" role="tabpanel">
+                    <div id="tablaContainer">
+                        <div class="table-responsive">
+                            <table class="table table-reporte table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-col="Fecha">
+                                            <i class="ph-calendar me-1"></i>Fecha <i class="ph-caret-down sort-icon"></i>
+                                        </th>
+                                        <th class="sortable" data-col="TipoActividad">Tipo <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="Lote">Lote <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="Campo">Campo <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="Cultivo">Cultivo <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="ProductoAplicado">Producto <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="Dosis">Dosis <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="CantidadTotal">Cantidad <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="CostoARS">Costo ARS <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="CostoUSD">Costo USD <i class="ph-caret-down sort-icon"></i></th>
+                                        <th class="sortable" data-col="Responsable">Responsable <i class="ph-caret-down sort-icon"></i></th>
+                                        <th>Observación</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="paginacionContainer" class="d-flex justify-content-between align-items-center mt-3"></div>
+                    </div>
+                </div>
+
+                <!-- Panel: Timeline -->
+                <div class="tab-pane fade" id="panel-timeline" role="tabpanel">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <p class="text-muted small mb-0">
+                                <i class="ph-info me-1"></i>Historial de aplicaciones ordenado por fecha (últimas 50).
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <div id="timelineContainer" class="timeline-vertical"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Insumos -->
+                <div class="tab-pane fade" id="panel-insumos" role="tabpanel">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <p class="text-muted small mb-0">
+                                <i class="ph-info me-1"></i>Análisis de consumo de insumos agrupado por producto.
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-reporte table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Tipo</th>
+                                            <th>Cantidad Total</th>
+                                            <th>Unidad</th>
+                                            <th>Costo ARS</th>
+                                            <th>Costo USD</th>
+                                            <th>Aplicaciones</th>
+                                            <th>Lotes</th>
+                                            <th>Cultivo Principal</th>
+                                            <th>Campaña</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="insumosBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Gráficos -->
+                <div class="tab-pane fade" id="panel-graficos" role="tabpanel">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-chart-bar me-1"></i>Costos por Producto
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="min-height:350px;">
+                                        <canvas id="chartCostosProductoFull"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-chart-pie-slice me-1"></i>Distribución por Tipo
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="min-height:350px;">
+                                        <canvas id="chartDistribucionTipoFull"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-trend-up me-1"></i>Evolución Temporal de Aplicaciones
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="min-height:350px;">
+                                        <canvas id="chartTimelineAppsFull"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-barbell me-1"></i>Comparativa por Campaña
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="min-height:350px;">
+                                        <canvas id="chartComparativaCampaniaFull"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-transparent fw-semibold">
+                                    <i class="ph-map-pin me-1"></i>Comparativa por Campo
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="min-height:350px;">
+                                        <canvas id="chartComparativaCampoFull"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Trazabilidad -->
+                <div class="tab-pane fade" id="panel-trazabilidad" role="tabpanel">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <p class="text-muted small mb-0">
+                                <i class="ph-info me-1"></i>Auditoría completa de aplicaciones: quién, cuándo, qué, dónde, por qué y costo.
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <div id="trazabilidadContainer" class="trace-timeline"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ph-question me-2"></i>Ayuda - Reporte de Aplicaciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#helpFiltros">
+                                Filtros disponibles
+                            </button>
+                        </h2>
+                        <div id="helpFiltros" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body small">
+                                Use los filtros para acotar el reporte por campaña, campo, lote, cultivo, tipo de aplicación, producto y rango de fechas.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpKpis">
+                                Indicadores (KPIs)
+                            </button>
+                        </h2>
+                        <div id="helpKpis" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body small">
+                                Los KPIs muestran total de aplicaciones, litros/kg aplicados, costos totales y por hectárea, productos más utilizados y superficie tratada.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpTabs">
+                                Pestañas del reporte
+                            </button>
+                        </h2>
+                        <div id="helpTabs" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body small">
+                                <strong>Dashboard:</strong> Vista ejecutiva con gráficos principales.<br/>
+                                <strong>Datos:</strong> Tabla detallada con todas las aplicaciones, ordenable y paginada.<br/>
+                                <strong>Timeline:</strong> Línea de tiempo vertical con el historial de aplicaciones.<br/>
+                                <strong>Insumos:</strong> Análisis de consumo agrupado por producto.<br/>
+                                <strong>Gráficos:</strong> Conjunto completo de visualizaciones.<br/>
+                                <strong>Trazabilidad:</strong> Auditoría completa de cada aplicación.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpExport">
+                                Exportación
+                            </button>
+                        </h2>
+                        <div id="helpExport" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body small">
+                                Use los botones <strong>Excel</strong> y <strong>PDF</strong> en la esquina superior derecha para exportar los datos.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts de librerías externas -->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+    <!-- Pasar datos del servidor al cliente -->
+    <script>
+        window.aplicacionesModel = {
+            campanias: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Campanias.Select(c => new { c.Id, c.Nombre }))),
+            campos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Campos.Select(c => new { c.Id, c.Nombre }))),
+            cultivos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Cultivos.Select(c => new { c.Id, c.Nombre }))),
+            productos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Productos.Select(p => new { p.Id, p.Nombre })))
+        };
+    </script>
+    <script src="~/js/views/reporteAplicaciones.js"></script>
+}

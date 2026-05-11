@@ -188,7 +188,8 @@ namespace AgroForm.Tests.Services
             var ajusteActualizado = new Ajuste 
             { 
                 Id = 1, 
-                IdLicencia = 1
+                IdLicencia = 1,
+                RegistrationUser = "usuario_original" // Preservar el usuario original
             };
 
             // Act
@@ -198,6 +199,7 @@ namespace AgroForm.Tests.Services
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Equal("usuario_original", result.Data.RegistrationUser); // Preservado
+            Assert.Equal(TestUserAuth.UserName, result.Data.ModificationUser); // Actualizado
         }
 
         [Fact]
