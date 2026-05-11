@@ -129,16 +129,92 @@
     .alert-severity-alta { border-left-color: #dc3545; }
     .alert-severity-media { border-left-color: #ffc107; }
     .alert-severity-baja { border-left-color: #17a2b8; }
-    /* ===== Report Header ===== */
-    .report-header {
-        background: linear-gradient(135deg, var(--bs-primary) 0%, #1a6d1a 100%);
-        border-radius: 16px;
-        padding: 30px;
-        color: #fff;
+
+    /* ===== Dark Mode Fixes (via app's body[data-theme="dark"] toggle) ===== */
+    body[data-theme="dark"] .alert-card {
+        background: var(--surface) !important;
+        border-color: var(--border) !important;
+        color: var(--text);
+    }
+    body[data-theme="dark"] .alert-card .text-muted {
+        color: var(--text-muted) !important;
+    }
+    body[data-theme="dark"] .kpi-card {
+        color: var(--text);
+    }
+    body[data-theme="dark"] .kpi-card .text-muted {
+        color: var(--text-muted) !important;
+    }
+    body[data-theme="dark"] .kpi-card small {
+        color: var(--text-muted);
+    }
+    body[data-theme="dark"] .kpi-card h5 {
+        color: var(--text);
+    }
+    body[data-theme="dark"] .timeline-content {
+        background: var(--surface) !important;
+        color: var(--text);
+    }
+    body[data-theme="dark"] .score-ring-inner {
+        background: var(--surface) !important;
+        color: var(--text);
+    }
+    body[data-theme="dark"] .timeline::before {
+        background: var(--border) !important;
+    }
+    body[data-theme="dark"] .soil-bar {
+        background: var(--border) !important;
+    }
+    body[data-theme="dark"] .comparativa-ganador {
+        background-color: rgba(40, 167, 69, 0.15) !important;
+    }
+    body[data-theme="dark"] .history-campaign-header:hover {
+        background: rgba(13, 110, 253, 0.1) !important;
+    }
+    body[data-theme="dark"] .table {
+        color: var(--text);
+    }
+    body[data-theme="dark"] .table thead th {
+        background-color: var(--surface-2) !important;
+        color: var(--text);
+    }
+    body[data-theme="dark"] .chart-container canvas {
+        filter: brightness(0.9);
+    }
+    /* Report loading dark mode */
+    body[data-theme="dark"] #reportLoading {
+        color: var(--text);
+    }
+    body[data-theme="dark"] #reportLoading .text-muted {
+        color: var(--text-muted) !important;
+    }
+    body[data-theme="dark"] #reportLoading i.ph {
+        color: var(--text-muted) !important;
+    }
+    /* ===== Comparativa table ===== */
+    .comparativa-row {
+        border-bottom: 1px solid var(--bs-border-color);
+        padding: 10px 0;
+    }
+    .comparativa-row:last-child {
+        border-bottom: none;
+    }
+    .comparativa-valor-principal {
+        font-weight: 700;
+        color: var(--bs-primary);
+    }
+    .comparativa-valor-secundario {
+        font-weight: 600;
+        color: var(--bs-secondary);
+    }
+    .comparativa-ganador {
+        background-color: rgba(40, 167, 69, 0.08);
+        border-radius: 6px;
+        padding: 2px 8px;
     }
     /* ===== Loading ===== */
     .report-loading {
-        display: flex;
+        display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
@@ -153,11 +229,36 @@
         opacity: 0.7;
         transition: all 0.2s;
     }
-    .nav-tabs-custom .nav-link:hover, 
+    .nav-tabs-custom .nav-link:hover,
     .nav-tabs-custom .nav-link.active {
         opacity: 1;
         background: transparent;
         border-bottom: 2px solid var(--bs-primary);
+    }
+    /* ===== Chart containers ===== */
+    .chart-container {
+        position: relative;
+        height: 250px;
+        max-height: 250px;
+        width: 100%;
+    }
+    .chart-container canvas {
+        max-height: 250px !important;
+    }
+    /* ===== Compact filter row ===== */
+    .filters-row .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+    }
+    .filters-row .form-select {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        font-size: 0.85rem;
+    }
+    .filters-row .btn {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        font-size: 0.85rem;
     }
     /* ===== Cost breakdown ===== */
     .cost-item {
@@ -196,62 +297,54 @@
     /* Print */
     @@media print {
         .no-print { display: none !important; }
-        .report-header { background: #1a6d1a !important; -webkit-print-color-adjust: exact; }
         .kpi-card { break-inside: avoid; }
+        .tab-content > .tab-pane { display: block !important; opacity: 1 !important; visibility: visible !important; }
+        .nav-tabs { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
     }
 </style>
 
 <div class="container-fluid">
     <!-- Header -->
-    <div class="report-header mb-4 no-print">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="h3 fw-bold mb-1">
-                    <i class="ph ph-file-text me-2"></i> Informe Integral del Campo
-                </h1>
-                <p class="mb-0 opacity-75">Análisis completo del campo y sus lotes</p>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-light btn-sm" onclick="exportarPDF()" title="Exportar PDF">
-                    <i class="ph ph-file-pdf me-1"></i> PDF
-                </button>
-                <button class="btn btn-light btn-sm" onclick="window.print()" title="Imprimir">
-                    <i class="ph ph-printer me-1"></i> Imprimir
-                </button>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="ph ph-file-text me-2"></i> Informe Integral del Campo
+            </h1>
+            <p class="text-muted mb-0">Análisis completo del campo y sus lotes</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="mostrarAyudaReporte()" title="¿Cómo se calcula este informe?">
+                <i class="ph ph-question me-1"></i> Ayuda
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="exportarPDF()" title="Exportar PDF con todos los tabs">
+                <i class="ph ph-file-pdf me-1"></i> PDF
+            </button>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card shadow-sm mb-4 no-print">
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-4">
+    <div class="card shadow-sm mb-3 no-print">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-end filters-row">
+                <div class="col-auto">
                     <label for="selectCampos" class="form-label fw-semibold">
                         <i class="ph ph-map-pin me-1"></i> Campo
                     </label>
-                    <select class="form-select" id="selectCampos" name="idCampo">
+                    <select class="form-select" id="selectCampos" name="idCampo" style="min-width:200px;">
                         <option value="" selected disabled>Seleccione un campo...</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-auto">
                     <label for="selectCampania" class="form-label fw-semibold">
                         <i class="ph ph-calendar me-1"></i> Campaña
                     </label>
-                    <select class="form-select" id="selectCampania" name="idCampania" disabled>
+                    <select class="form-select" id="selectCampania" name="idCampania" disabled style="min-width:180px;">
                         <option value="">Todas las campañas</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="selectLote" class="form-label fw-semibold">
-                        <i class="ph ph-grid-nine me-1"></i> Lote
-                    </label>
-                    <select class="form-select" id="selectLote" name="idLote" disabled>
-                        <option value="">Todos los lotes</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button class="btn btn-primary flex-fill" id="btnGenerarReporte" disabled>
+                <div class="col-auto">
+                    <button class="btn btn-primary" id="btnGenerarReporte" disabled>
                         <i class="ph ph-chart-bar me-1"></i> Generar
                     </button>
                 </div>
@@ -263,11 +356,11 @@
     <div id="reportContent">
         <!-- Loading State -->
         <div class="report-loading" id="reportLoading">
-            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Cargando...</span>
+            <div class="text-center">
+                <i class="ph ph-map-pin display-3 text-muted mb-3"></i>
+                <h5 class="text-muted">Seleccione un campo para generar el informe</h5>
+                <p class="text-muted">El informe incluye análisis climático, de suelo, costos, rendimiento y más.</p>
             </div>
-            <h5 class="text-muted">Seleccione un campo para generar el informe</h5>
-            <p class="text-muted">El informe incluye análisis climático, de suelo, costos, rendimiento y más.</p>
         </div>
 
         <!-- Data State (hidden by default) -->
@@ -331,6 +424,12 @@
                                 <i class="ph ph-clock-counter-clockwise me-1"></i> Historial
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="comparativa-tab" data-bs-toggle="tab"
+                                    data-bs-target="#comparativa-content" type="button" role="tab">
+                                <i class="ph ph-arrows-left-right me-1"></i> Comparativa
+                            </button>
+                        </li>
                     </ul>
                 </div>
                 <div class="card-body">
@@ -367,6 +466,10 @@
                         <div class="tab-pane fade" id="historial-content" role="tabpanel">
                             <div id="historialContent"><p class="text-muted">Cargando historial...</p></div>
                         </div>
+                        <!-- Comparativa -->
+                        <div class="tab-pane fade" id="comparativa-content" role="tabpanel">
+                            <div id="comparativaContent"><p class="text-muted">Seleccione un segundo campo para comparar KPIs.</p></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -374,7 +477,244 @@
     </div>
 </div>
 
+<!-- Help Modal -->
+<div class="modal fade" id="ayudaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="ph ph-question me-2 text-primary"></i> ¿Cómo se calcula este informe?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">
+                    Este informe integral consolida automáticamente los datos registrados en el sistema para brindar una visión completa del campo y sus lotes. A continuación se explica cómo se genera cada sección:
+                </p>
+
+                <div class="accordion" id="ayudaAccordion">
+                    <!-- Resumen Ejecutivo -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaResumen">
+                                <i class="ph ph-gauge me-2 text-primary"></i> Resumen Ejecutivo (KPIs)
+                            </button>
+                        </h2>
+                        <div id="ayudaResumen" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Los indicadores clave se calculan en base a los datos registrados del campo:</p>
+                                <ul>
+                                    <li><strong>Cultivos:</strong> Se listan todos los cultivos activos por lote, indicando la superficie ocupada y la cantidad de ciclos registrados. Si un lote tiene múltiples ciclos, se divide la superficie proporcionalmente.</li>
+                                    <li><strong>Superficie:</strong> Suma total de hectáreas de todos los lotes del campo.</li>
+                                    <li><strong>Días desde siembra:</strong> Calculado automáticamente desde la fecha de siembra más temprana de los cultivos activos hasta la fecha actual.</li>
+                                    <li><strong>Estado General:</strong> Determinado por el promedio de actividad reciente, alertas activas y score de salud del cultivo.</li>
+                                    <li><strong>Scores:</strong> Productividad, salud del cultivo y humedad se calculan en base a NDVI promedio, frecuencia de labores y datos climáticos.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaTimeline">
+                                <i class="ph ph-timer me-2 text-primary"></i> Timeline Agronómico
+                            </button>
+                        </h2>
+                        <div id="ayudaTimeline" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>El timeline muestra cronológicamente todas las actividades (labores) registradas en el campo, obtenidas de los módulos de Siembra, Fertilización, Pulverización, Riego, Monitoreo, Cosecha, Análisis de Suelo y Otras Labores.</p>
+                                <ul>
+                                    <li>Los iconos y colores de cada actividad se obtienen de la configuración de <strong>Tipo de Actividad</strong> definida en el sistema.</li>
+                                    <li>Se ordenan por fecha, mostrando primero las más recientes.</li>
+                                    <li>Se puede filtrar por campaña para ver solo las actividades de un período específico.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Evolución -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaEvolucion">
+                                <i class="ph ph-chart-line-up me-2 text-primary"></i> Evolución del Cultivo
+                            </button>
+                        </h2>
+                        <div id="ayudaEvolucion" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>La evolución del cultivo se representa mediante una curva de <strong>NDVI</strong> (Índice de Vegetación de Diferencia Normalizada) estimada a lo largo del ciclo del cultivo:</p>
+                                <ul>
+                                    <li><strong>Fase inicial (0-30 días):</strong> El NDVI es bajo mientras el cultivo emerge y establece su sistema radicular.</li>
+                                    <li><strong>Fase vegetativa (30-90 días):</strong> El NDVI aumenta rápidamente a medida que el cultivo desarrolla su área foliar.</li>
+                                    <li><strong>Fase de senescencia (90-150 días):</strong> El NDVI disminuye gradualmente al madurar el cultivo.</li>
+                                    <li><strong>Post-madurez (>150 días):</strong> El NDVI continúa descendiendo.</li>
+                                </ul>
+                                <p>La comparativa entre campañas muestra el rendimiento y NDVI promedio actual vs. la campaña anterior.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clima -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaClima">
+                                <i class="ph ph-cloud-rain me-2 text-primary"></i> Análisis Climático
+                            </button>
+                        </h2>
+                        <div id="ayudaClima" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Los datos climáticos se obtienen de los registros climáticos cargados en el sistema para el campo:</p>
+                                <ul>
+                                    <li><strong>Lluvia acumulada:</strong> Suma total de precipitaciones registradas en el período seleccionado.</li>
+                                    <li><strong>Días sin lluvia:</strong> Cantidad de días consecutivos sin precipitación registrada.</li>
+                                    <li><strong>Temperaturas:</strong> Mínima, máxima y promedio registradas.</li>
+                                    <li><strong>Balance hídrico:</strong> Estimación basada en la relación entre precipitación acumulada y las necesidades hídricas del cultivo.</li>
+                                    <li><strong>Estrés hídrico:</strong> Se determina cuando hay períodos prolongados sin lluvia en etapas críticas del cultivo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suelo -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaSuelo">
+                                <i class="ph ph-flask me-2 text-primary"></i> Análisis de Suelo
+                            </button>
+                        </h2>
+                        <div id="ayudaSuelo" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>El análisis de suelo se genera a partir de los análisis de suelo registrados en el sistema:</p>
+                                <ul>
+                                    <li>Cada parámetro (pH, materia orgánica, nitrógeno, fósforo, potasio, etc.) se evalúa individualmente.</li>
+                                    <li>Se asigna un <strong>nivel</strong> (Bajo, Óptimo, Alto) según rangos predefinidos.</li>
+                                    <li>La <strong>interpretación</strong> explica qué significa cada valor para el cultivo.</li>
+                                    <li>Las <strong>advertencias</strong> se generan automáticamente cuando un parámetro está fuera del rango óptimo, indicando la necesidad de atención sin sugerir productos específicos.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Costos -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaCostos">
+                                <i class="ph ph-coins me-2 text-primary"></i> Costos y Rentabilidad
+                            </button>
+                        </h2>
+                        <div id="ayudaCostos" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Los costos se calculan automáticamente a partir de todas las actividades registradas:</p>
+                                <ul>
+                                    <li>Cada labor registrada (siembra, fertilización, pulverización, etc.) tiene un costo asociado que se suma al total.</li>
+                                    <li>Los costos se expresan tanto en <strong>pesos argentinos (ARS)</strong> como en <strong>dólares (USD)</strong>.</li>
+                                    <li><strong>Costo por hectárea:</strong> Se divide el costo total entre la superficie total del campo.</li>
+                                    <li><strong>Margen estimado:</strong> Diferencia entre el ingreso estimado por venta de la producción y los costos totales.</li>
+                                    <li><strong>Rentabilidad proyectada:</strong> Porcentaje de retorno sobre la inversión, calculado como (margen / costo total) × 100.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rendimiento -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaRendimiento">
+                                <i class="ph ph-trend-up me-2 text-primary"></i> Rendimiento y Cosecha
+                            </button>
+                        </h2>
+                        <div id="ayudaRendimiento" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Los datos de rendimiento se obtienen de los registros de cosecha:</p>
+                                <ul>
+                                    <li><strong>Rendimiento (tn/ha):</strong> Toneladas por hectárea registradas en la cosecha.</li>
+                                    <li><strong>Producción total:</strong> Rendimiento multiplicado por la superficie cosechada.</li>
+                                    <li><strong>Humedad de cosecha:</strong> Porcentaje de humedad registrado al momento de la cosecha.</li>
+                                    <li><strong>Comparativa histórica:</strong> Muestra la evolución del rendimiento a lo largo de las distintas campañas registradas, permitiendo visualizar tendencias.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaAlertas">
+                                <i class="ph ph-warning-circle me-2 text-primary"></i> Alertas Inteligentes
+                            </button>
+                        </h2>
+                        <div id="ayudaAlertas" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Las alertas se generan automáticamente cuando el sistema detecta condiciones que requieren atención:</p>
+                                <ul>
+                                    <li><strong>Alertas de suelo:</strong> Cuando un parámetro del suelo está fuera del rango óptimo (ej. pH muy ácido, fósforo bajo).</li>
+                                    <li><strong>Alertas climáticas:</strong> Cuando hay estrés hídrico, heladas, o períodos prolongados sin lluvia.</li>
+                                    <li><strong>Alertas de salud del cultivo:</strong> Basadas en la evolución del NDVI y la actividad registrada.</li>
+                                    <li><strong>Alertas de costos:</strong> Cuando los costos superan ciertos umbrales predefinidos.</li>
+                                </ul>
+                                <p>Cada alerta tiene una <strong>severidad</strong> (Alta, Media, Baja) que determina su prioridad y urgencia.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historial -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaHistorial">
+                                <i class="ph ph-clock-counter-clockwise me-2 text-primary"></i> Historial Multi-Campaña
+                            </button>
+                        </h2>
+                        <div id="ayudaHistorial" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>El historial muestra un resumen de cada campaña registrada para el campo:</p>
+                                <ul>
+                                    <li>Agrupa todas las actividades (labores) por campaña.</li>
+                                    <li>Muestra el cultivo principal, cantidad de labores, rendimiento y costo total de cada campaña.</li>
+                                    <li>Permite expandir cada campaña para ver más detalles.</li>
+                                    <li>Los datos se obtienen de los ciclos de cultivo registrados en el sistema.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparativa -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaComparativa">
+                                <i class="ph ph-arrows-left-right me-2 text-primary"></i> Comparativa entre Campos
+                            </button>
+                        </h2>
+                        <div id="ayudaComparativa" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>La pestaña Comparativa permite seleccionar un segundo campo y visualizar sus KPIs lado a lado:</p>
+                                <ul>
+                                    <li>Se comparan métricas clave: superficie, cultivo principal, costo total, costo por hectárea, rendimiento, rentabilidad, cantidad de labores y alertas.</li>
+                                    <li>El campo con mejor desempeño en cada métrica se resalta visualmente.</li>
+                                    <li>Se muestran los desgloses de costos de ambos campos para identificar diferencias.</li>
+                                    <li>Los datos se calculan con los mismos criterios que el informe principal, asegurando consistencia.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="ph ph-info me-2"></i>
+                    <strong>Nota:</strong> Todos los cálculos se realizan con la información registrada en el sistema. Para obtener resultados precisos, asegúrese de que todas las actividades, costos y registros climáticos estén correctamente cargados.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="ph ph-x me-1"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="~/js/views/reporteCampos.js" asp-append-version="true"></script>
 }

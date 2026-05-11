@@ -1,5 +1,4 @@
-﻿
-// ============================================================
+﻿// ============================================================
 // reporteCampos.js - Informe Integral del Campo
 // ============================================================
 
@@ -31,15 +30,32 @@ $(document).ready(function () {
 // Handle idCampo from URL query param (e.g., from "Ver Informe" button in Campos table)
 function autoCargarCampo(idCampo) {
     currentCampoId = idCampo;
+    var attempts = 0;
+    var maxAttempts = 20; // 20 * 300ms = 6 seconds max wait
+    
     // Wait for campos to load, then select
     var checkInterval = setInterval(function () {
+        attempts++;
         var select = $('#selectCampos');
+        
         if (select.find('option[value="' + idCampo + '"]').length > 0) {
             clearInterval(checkInterval);
             select.val(idCampo).trigger('change');
             setTimeout(function () {
                 generarReporte();
             }, 500);
+        } else if (attempts >= maxAttempts) {
+            // Timeout: campo not found after max attempts
+            clearInterval(checkInterval);
+            // Hide spinner and show error message
+            $('#reportLoading').html(`
+                <i class="ph ph-warning-circle display-1 text-warning mb-3"></i>
+                <h5 class="text-muted">Campo no encontrado</h5>
+                <p class="text-muted">El campo con ID ${idCampo} no existe o no está disponible.</p>
+                <button class="btn btn-primary" onclick="location.href='/Reporte/Campo'">
+                    <i class="ph ph-house me-1"></i> Volver al Reporte
+                </button>
+            `);
         }
     }, 300);
 }
@@ -187,8 +203,16 @@ function renderizarReporte() {
     renderizarAlertas(data.alertas);
     renderizarHistorial(data.historialMultiCampania);
 
+    // Load campos for comparativa dropdown
+    cargarCamposComparativa(data.resumenEjecutivo ? data.resumenEjecutivo.campo : null);
+
     // Activate first tab
     $('#reporteTabs button:first').tab('show');
+
+    // Setup comparativa tab listener (render on first click)
+    $('#comparativa-tab').off('click.comparativa').on('click.comparativa', function () {
+        renderizarComparativa();
+    });
 }
 
 // ============================================================
@@ -203,6 +227,27 @@ function renderizarResumenEjecutivo(r) {
         : r.estadoGeneral === 'Regular' ? '#ffc107'
         : '#dc3545';
 
+    // Build multi-crop display with active/inactive visual hint
+    var cultivosHtml = '';
+    if (r.cultivos && r.cultivos.length > 0) {
+        cultivosHtml = '<div class="d-flex flex-wrap gap-1 mt-1">';
+        $.each(r.cultivos, function (i, c) {
+            var isActive = c.isActivo === true;
+            var bgClass = isActive ? 'bg-success' : 'bg-secondary';
+            var textClass = isActive ? 'text-success' : 'text-secondary';
+            var iconClass = isActive ? 'ph-tree' : 'ph-tree-evergreen';
+            cultivosHtml += `<span class="badge ${bgClass} bg-opacity-10 border ${bgClass} border-opacity-25 ${textClass} px-2 py-1 d-inline-flex align-items-center gap-1" style="font-size:0.75rem;white-space:nowrap;">
+                <i class="ph ${iconClass}"></i>
+                ${c.nombre}${c.variedad ? ' (' + c.variedad + ')' : ''}
+                <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'} text-white ms-1" style="font-size:0.55rem;">${isActive ? 'Activo' : 'Inactivo'}</span>
+                <small class="text-muted" style="font-size:0.65rem;">${formatNum(c.superficieHa, 1)} ha</small>
+            </span>`;
+        });
+        cultivosHtml += '</div>';
+    } else {
+        cultivosHtml = '<span class="text-muted">Sin cultivos registrados</span>';
+    }
+
     var html = `
         <div class="row g-3">
             <div class="col-lg-8">
@@ -211,12 +256,12 @@ function renderizarResumenEjecutivo(r) {
                         <div class="kpi-card bg-primary bg-opacity-10 border border-primary border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-primary text-white">
-                                    <i class="ph ph-seedling"></i>
+                                    <i class="ph ph-tree"></i>
                                 </div>
                                 <div>
-                                    <small class="text-muted text-uppercase fw-semibold">Cultivo</small>
-                                    <h5 class="mb-0 fw-bold">${r.cultivoActual || 'N/A'}</h5>
-                                    <small class="text-muted">${r.variedad || ''}</small>
+                                    <small class="text-muted text-uppercase fw-semibold">Cultivos</small>
+                                    <h5 class="mb-0 fw-bold">${r.cultivos && r.cultivos.length > 0 ? r.cultivos.length : 'N/A'} <small>cultivo${r.cultivos && r.cultivos.length !== 1 ? 's' : ''}</small></h5>
+                                    ${cultivosHtml}
                                 </div>
                             </div>
                         </div>
@@ -295,9 +340,9 @@ function renderizarResumenEjecutivo(r) {
             </div>
             <div class="col-lg-4">
                 <div class="card border h-100">
-                    <div class="card-body text-center">
+                    <div class="card-body text-center d-flex flex-column">
                         <h6 class="fw-semibold mb-3">Scores del Lote</h6>
-                        <div class="row g-2">
+                        <div class="row g-2 flex-grow-1 align-items-center justify-content-center">
                             <div class="col-4">
                                 ${renderScoreRing(r.scoreProductividad, 'Productividad')}
                             </div>
@@ -308,10 +353,6 @@ function renderizarResumenEjecutivo(r) {
                                 ${renderScoreRing(r.scoreHumedad, 'Humedad')}
                             </div>
                         </div>
-                        ${r.coordenadasPoligono ? `
-                        <div class="mt-2">
-                            <small class="text-muted">Campo: ${r.campo}</small>
-                        </div>` : ''}
                     </div>
                 </div>
             </div>
@@ -338,7 +379,7 @@ function renderScoreRing(score, label) {
 }
 
 // ============================================================
-// 2. TIMELINE AGRONÓMICO
+// 2. TIMELINE AGRONÓMICO (Phosphor icons from backend DTO)
 // ============================================================
 
 function renderizarTimeline(timeline) {
@@ -349,10 +390,15 @@ function renderizarTimeline(timeline) {
 
     var html = '<div class="timeline">';
     $.each(timeline, function (i, evt) {
+        var iconClass = evt.icono || 'ph-activity';
+        // Ensure icon has ph prefix
+        if (iconClass.indexOf('ph-') !== 0) {
+            iconClass = 'ph-' + iconClass;
+        }
         html += `
             <div class="timeline-item">
                 <div class="timeline-icon" style="background: ${evt.color || '#6c757d'};">
-                    ${evt.icono || '📋'}
+                    <i class="ph ${iconClass}"></i>
                 </div>
                 <div class="timeline-content">
                     <div class="d-flex justify-content-between align-items-start">
@@ -362,9 +408,9 @@ function renderizarTimeline(timeline) {
                         </div>
                         <small class="text-muted text-nowrap ms-2">${formatDate(evt.fecha)}</small>
                     </div>
-                    ${evt.responsable ? `<small class="text-muted">👤 ${evt.responsable}</small>` : ''}
-                    ${evt.lote ? `<small class="text-muted ms-2">📌 ${evt.lote}</small>` : ''}
-                    ${evt.cicloCultivo ? `<small class="text-muted ms-2">🔄 ${evt.cicloCultivo}</small>` : ''}
+                    ${evt.responsable ? `<small class="text-muted"><i class="ph ph-user-circle me-1"></i>${evt.responsable}</small>` : ''}
+                    ${evt.lote ? `<small class="text-muted ms-2"><i class="ph ph-map-pin me-1"></i>${evt.lote}</small>` : ''}
+                    ${evt.cicloCultivo ? `<small class="text-muted ms-2"><i class="ph ph-arrows-clockwise me-1"></i>${evt.cicloCultivo}</small>` : ''}
                 </div>
             </div>
         `;
@@ -375,7 +421,7 @@ function renderizarTimeline(timeline) {
 }
 
 // ============================================================
-// 3. EVOLUCIÓN DEL CULTIVO
+// 3. EVOLUCIÓN DEL CULTIVO (NDVI curve)
 // ============================================================
 
 function renderizarEvolucion(evo) {
@@ -386,7 +432,7 @@ function renderizarEvolucion(evo) {
 
     var html = '';
 
-    // Comparativa
+    // Comparativa between campaigns
     if (evo.comparativa) {
         var cmp = evo.comparativa;
         html += `
@@ -413,10 +459,10 @@ function renderizarEvolucion(evo) {
         `;
     }
 
-    html += '<div class="row"><div class="col-12"><canvas id="chartEvolucion" height="300"></canvas></div></div>';
+    html += '<div class="row"><div class="col-12"><div class="chart-container"><canvas id="chartEvolucion"></canvas></div></div></div>';
     $('#evolucionContent').html(html);
 
-    // Render chart
+    // Render NDVI chart
     renderEvolucionChart(evo.evolucion);
 }
 
@@ -428,32 +474,55 @@ function renderEvolucionChart(datos) {
     if (charts.evolucion) charts.evolucion.destroy();
 
     var labels = datos.map(function (d) { return formatDate(d.fecha); });
-    var precip = datos.map(function (d) { return d.precipitacion || 0; });
+    var ndvi = datos.map(function (d) { return d.ndvi != null ? d.ndvi : null; });
+    var humedad = datos.map(function (d) { return d.humedad != null ? d.humedad : null; });
 
     charts.evolucion = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: labels,
             datasets: [
                 {
-                    label: 'Precipitación (mm)',
-                    data: precip,
-                    backgroundColor: 'rgba(23, 162, 184, 0.5)',
+                    label: 'NDVI',
+                    data: ndvi,
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgba(40, 167, 69, 1)',
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Humedad (%)',
+                    data: humedad,
                     borderColor: 'rgba(23, 162, 184, 1)',
-                    borderWidth: 1,
-                    order: 2
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: 'rgba(23, 162, 184, 1)',
+                    yAxisID: 'y1'
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
                         label: function (ctx) {
-                            return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1);
+                            if (ctx.dataset.label === 'NDVI') {
+                                return 'NDVI: ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(3) : '-');
+                            }
+                            return ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) + '%' : '-');
                         }
                     }
                 }
@@ -461,7 +530,18 @@ function renderEvolucionChart(datos) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'mm' }
+                    max: 1,
+                    title: { display: true, text: 'NDVI' },
+                    ticks: {
+                        callback: function (value) { return value.toFixed(2); }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    max: 100,
+                    position: 'right',
+                    grid: { display: false },
+                    title: { display: true, text: 'Humedad (%)' }
                 }
             }
         }
@@ -560,7 +640,7 @@ function renderizarClima(clima) {
 }
 
 // ============================================================
-// 5. ANÁLISIS DE SUELO
+// 5. ANÁLISIS DE SUELO (with advertencia instead of recomendacion)
 // ============================================================
 
 function renderizarSuelo(suelo) {
@@ -598,6 +678,7 @@ function renderizarSuelo(suelo) {
             : p.data.nivel === 'Alto' ? 'warning'
             : 'secondary';
         var pct = p.data.valor != null ? Math.min((p.data.valor / p.maxVal) * 100, 100) : 0;
+        var advertencia = p.data.advertencia || '';
         html += `
             <tr>
                 <td><strong>${p.label}</strong></td>
@@ -611,20 +692,21 @@ function renderizarSuelo(suelo) {
                         <small class="text-muted" style="min-width: 30px;">${pct.toFixed(0)}%</small>
                     </div>
                     <small class="text-muted d-block mt-1">${p.data.interpretacion || ''}</small>
+                    ${advertencia ? `<small class="d-block mt-1 text-warning"><i class="ph ph-warning me-1"></i>${advertencia}</small>` : ''}
                 </td>
             </tr>
         `;
     });
     html += '</tbody></table></div>';
 
-    // Recommendations
+    // Advertencias (warnings) instead of recomendaciones
     if (suelo.recomendaciones && suelo.recomendaciones.length > 0) {
         html += `
             <div class="mt-3">
-                <h6 class="fw-semibold mb-2"><i class="ph ph-lightbulb text-warning me-1"></i> Recomendaciones</h6>
+                <h6 class="fw-semibold mb-2"><i class="ph ph-warning-circle text-warning me-1"></i> Advertencias</h6>
                 <ul class="list-group">
                     ${suelo.recomendaciones.map(function (r) {
-                        return `<li class="list-group-item border-0 ps-0"><i class="ph ph-arrow-right text-primary me-1"></i>${r}</li>`;
+                        return `<li class="list-group-item border-0 ps-0"><i class="ph ph-arrow-right text-warning me-1"></i>${r}</li>`;
                     }).join('')}
                 </ul>
             </div>
@@ -711,7 +793,7 @@ function renderizarCostos(costos) {
             </div>
             <div class="col-md-6">
                 <h6 class="fw-semibold mb-3">Distribución</h6>
-                <canvas id="chartCostos" height="250"></canvas>
+                <div class="chart-container"><canvas id="chartCostos"></canvas></div>
             </div>
         </div>
     `;
@@ -816,7 +898,7 @@ function renderizarRendimiento(rend) {
             <h6 class="fw-semibold mb-3">Comparativa Histórica de Rendimiento</h6>
             <div class="row">
                 <div class="col-md-8">
-                    <canvas id="chartRendimiento" height="250"></canvas>
+                    <div class="chart-container"><canvas id="chartRendimiento"></canvas></div>
                 </div>
                 <div class="col-md-4">
                     <div class="table-responsive">
@@ -905,7 +987,7 @@ function renderizarAlertas(alertas) {
     var html = '<div class="row"><div class="col-12">';
     $.each(alertas, function (i, a) {
         var sevClass = a.severidad === 'Alta' ? 'alta' : a.severidad === 'Media' ? 'media' : 'baja';
-        var sevIcon = a.severidad === 'Alta' ? 'ph-warning-circle' : a.severidad === 'Media' ? 'ph-warning' : 'ph-info';
+        var sevIcon = a.icono || (a.severidad === 'Alta' ? 'ph-warning-circle' : a.severidad === 'Media' ? 'ph-warning' : 'ph-info');
         html += `
             <div class="alert-card alert-severity-${sevClass}">
                 <div class="d-flex gap-3">
@@ -985,7 +1067,351 @@ function toggleHistorial(el) {
 }
 
 // ============================================================
-// EXPORT PDF
+// 10. COMPARATIVA ENTRE CAMPOS
+// ============================================================
+
+function cargarCamposComparativa(campoActualNombre) {
+    $.ajax({
+        url: '/Campo/GetAll',
+        type: 'GET',
+        success: function (result) {
+            if (result.success) {
+                var select = $('#selectCampoComparativa');
+                select.empty().append('<option value="">Seleccione un campo...</option>');
+                $.each(result.listObject, function (index, campo) {
+                    // Skip the current campo (same as principal)
+                    if (campoActualNombre && campo.nombre === campoActualNombre) return;
+                    select.append($('<option>', {
+                        value: campo.id,
+                        text: campo.nombre
+                    }));
+                });
+                select.prop('disabled', false);
+            }
+        }
+    });
+}
+
+function renderizarComparativa() {
+    if (!reporteData) {
+        $('#comparativaContent').html('<p class="text-muted text-center py-4">Primero genere el reporte principal.</p>');
+        return;
+    }
+
+    var campoPrincipal = reporteData.resumenEjecutivo ? reporteData.resumenEjecutivo.campo : 'Campo actual';
+
+    var html = `
+        <div class="mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <i class="ph ph-map-pin me-1"></i> Campo Actual
+                    </label>
+                    <input type="text" class="form-control" value="${campoPrincipal}" readonly disabled>
+                </div>
+                <div class="col-md-6">
+                    <label for="selectCampoComparativa" class="form-label fw-semibold">
+                        <i class="ph ph-arrows-left-right me-1"></i> Campo a Comparar
+                    </label>
+                    <select class="form-select" id="selectCampoComparativa" disabled>
+                        <option value="">Seleccione un campo...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="comparativaResult">
+            <p class="text-muted text-center py-4">
+                <i class="ph ph-arrows-left-right display-6 d-block mb-2"></i>
+                Seleccione un segundo campo para comparar sus KPIs.
+            </p>
+        </div>
+    `;
+
+    $('#comparativaContent').html(html);
+
+    // Load campos
+    cargarCamposComparativa(campoPrincipal);
+
+    // Event: change comparativa campo
+    $('#selectCampoComparativa').on('change', function () {
+        var idCampoSecundario = parseInt($(this).val());
+        if (idCampoSecundario) {
+            cargarComparativa(idCampoSecundario);
+        } else {
+            $('#comparativaResult').html(`
+                <p class="text-muted text-center py-4">
+                    <i class="ph ph-arrows-left-right display-6 d-block mb-2"></i>
+                    Seleccione un segundo campo para comparar sus KPIs.
+                </p>
+            `);
+        }
+    });
+}
+
+function cargarComparativa(idCampoSecundario) {
+    var idCampoPrincipal = currentCampoId;
+    var idCampania = parseInt($('#selectCampania').val()) || null;
+
+    $('#comparativaResult').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-muted">Cargando datos comparativos...</p>
+        </div>
+    `);
+
+    $.ajax({
+        url: '/Reporte/GetComparativa',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            idCampoPrincipal: idCampoPrincipal,
+            idCampoSecundario: idCampoSecundario,
+            idCampania: idCampania
+        }),
+        success: function (result) {
+            if (result.success && result.object) {
+                renderizarComparativaResult(result.object);
+            } else {
+                $('#comparativaResult').html(`
+                    <div class="alert alert-warning">
+                        <i class="ph ph-warning me-1"></i> ${result.message || 'Error al cargar la comparativa'}
+                    </div>
+                `);
+            }
+        },
+        error: function () {
+            $('#comparativaResult').html(`
+                <div class="alert alert-danger">
+                    <i class="ph ph-warning-circle me-1"></i> Error al conectar con el servidor
+                </div>
+            `);
+        }
+    });
+}
+
+function renderizarComparativaResult(comp) {
+    if (!comp || !comp.campoPrincipal) {
+        $('#comparativaResult').html('<p class="text-muted text-center py-4">Sin datos de comparativa.</p>');
+        return;
+    }
+
+    var p = comp.campoPrincipal;
+    var s = comp.campoSecundario;
+    var hasSecundario = s && s.nombre;
+
+    var html = '';
+
+    // KPI Comparison Cards
+    var kpis = [
+        { label: 'Superficie (ha)', icon: 'ph-ruler', pVal: formatNum(p.superficieHa, 1), sVal: hasSecundario ? formatNum(s.superficieHa, 1) : '-',
+          pWinner: hasSecundario && p.superficieHa > s.superficieHa, sWinner: hasSecundario && s.superficieHa > p.superficieHa },
+        { label: 'Cultivo Principal', icon: 'ph-tree', pVal: p.cultivoPrincipal || 'N/A', sVal: hasSecundario ? (s.cultivoPrincipal || 'N/A') : '-',
+          pWinner: false, sWinner: false },
+        { label: 'Costo Total (ARS)', icon: 'ph-coins', pVal: formatMoney(p.costoTotalARS), sVal: hasSecundario ? formatMoney(s.costoTotalARS) : '-',
+          pWinner: hasSecundario && p.costoTotalARS < s.costoTotalARS, sWinner: hasSecundario && s.costoTotalARS < p.costoTotalARS },
+        { label: 'Costo x Ha (ARS)', icon: 'ph-currency-dollar', pVal: formatMoney(p.costoPorHaARS), sVal: hasSecundario ? formatMoney(s.costoPorHaARS) : '-',
+          pWinner: hasSecundario && p.costoPorHaARS < s.costoPorHaARS, sWinner: hasSecundario && s.costoPorHaARS < p.costoPorHaARS },
+        { label: 'Rendimiento (tn/ha)', icon: 'ph-trend-up', pVal: formatNum(p.rendimientoTonHa, 2) || '-', sVal: hasSecundario ? (formatNum(s.rendimientoTonHa, 2) || '-') : '-',
+          pWinner: hasSecundario && (p.rendimientoTonHa || 0) > (s.rendimientoTonHa || 0), sWinner: hasSecundario && (s.rendimientoTonHa || 0) > (p.rendimientoTonHa || 0) },
+        { label: 'Rentabilidad (%)', icon: 'ph-percent', pVal: p.rentabilidadProyectada != null ? p.rentabilidadProyectada + '%' : '-', sVal: hasSecundario ? (s.rentabilidadProyectada != null ? s.rentabilidadProyectada + '%' : '-') : '-',
+          pWinner: hasSecundario && (p.rentabilidadProyectada || 0) > (s.rentabilidadProyectada || 0), sWinner: hasSecundario && (s.rentabilidadProyectada || 0) > (p.rentabilidadProyectada || 0) },
+        { label: 'Labores', icon: 'ph-list-bullets', pVal: p.cantidadLabores, sVal: hasSecundario ? s.cantidadLabores : '-',
+          pWinner: false, sWinner: false },
+        { label: 'Alertas', icon: 'ph-warning-circle', pVal: p.cantidadAlertas, sVal: hasSecundario ? s.cantidadAlertas : '-',
+          pWinner: hasSecundario && p.cantidadAlertas < s.cantidadAlertas, sWinner: hasSecundario && s.cantidadAlertas < p.cantidadAlertas }
+    ];
+
+    // Estado general colors
+    var pEstadoColor = p.estadoGeneral === 'Excelente' ? '#28a745' : p.estadoGeneral === 'Bueno' ? '#17a2b8' : p.estadoGeneral === 'Regular' ? '#ffc107' : '#dc3545';
+    var sEstadoColor = s && s.estadoGeneral === 'Excelente' ? '#28a745' : s && s.estadoGeneral === 'Bueno' ? '#17a2b8' : s && s.estadoGeneral === 'Regular' ? '#ffc107' : '#dc3545';
+
+    html += `
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge bg-primary">${p.nombre}</span>
+            <i class="ph ph-arrows-left-right text-muted"></i>
+            ${hasSecundario ? `<span class="badge bg-secondary">${s.nombre}</span>` : '<span class="text-muted">(sin comparación)</span>'}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Métrica</th>
+                        <th style="width: 35%;" class="text-center text-primary">${p.nombre}</th>
+                        ${hasSecundario ? `<th style="width: 35%;" class="text-center text-secondary">${s.nombre}</th>` : ''}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${kpis.map(function (k) {
+                        var pClass = k.pWinner ? 'comparativa-ganador' : '';
+                        var sClass = k.sWinner ? 'comparativa-ganador' : '';
+                        return `<tr>
+                            <td><i class="ph ${k.icon} me-2 text-muted"></i>${k.label}</td>
+                            <td class="text-center fw-semibold ${pClass}">${k.pVal}</td>
+                            ${hasSecundario ? `<td class="text-center fw-semibold ${sClass}">${k.sVal}</td>` : ''}
+                        </tr>`;
+                    }).join('')}
+                    <tr>
+                        <td><i class="ph ph-shield-check me-2 text-muted"></i>Estado General</td>
+                        <td class="text-center fw-semibold"><span class="badge" style="background: ${pEstadoColor};">${p.estadoGeneral || 'N/A'}</span></td>
+                        ${hasSecundario ? `<td class="text-center fw-semibold"><span class="badge" style="background: ${sEstadoColor};">${s.estadoGeneral || 'N/A'}</span></td>` : ''}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // Cost breakdown comparison
+    if (hasSecundario) {
+        var costItems = [
+            { label: 'Siembra', pVal: p.desgloseCostos ? p.desgloseCostos.siembraARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.siembraARS : 0 },
+            { label: 'Fertilización', pVal: p.desgloseCostos ? p.desgloseCostos.fertilizacionARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.fertilizacionARS : 0 },
+            { label: 'Pulverización', pVal: p.desgloseCostos ? p.desgloseCostos.pulverizacionARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.pulverizacionARS : 0 },
+            { label: 'Riego', pVal: p.desgloseCostos ? p.desgloseCostos.riegoARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.riegoARS : 0 },
+            { label: 'Cosecha', pVal: p.desgloseCostos ? p.desgloseCostos.cosechaARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.cosechaARS : 0 },
+            { label: 'Monitoreo', pVal: p.desgloseCostos ? p.desgloseCostos.monitoreoARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.monitoreoARS : 0 },
+            { label: 'Análisis Suelo', pVal: p.desgloseCostos ? p.desgloseCostos.analisisSueloARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.analisisSueloARS : 0 },
+            { label: 'Otras Labores', pVal: p.desgloseCostos ? p.desgloseCostos.otrasLaboresARS : 0, sVal: s.desgloseCostos ? s.desgloseCostos.otrasLaboresARS : 0 }
+        ];
+
+        html += `
+            <h6 class="fw-semibold mt-4 mb-3"><i class="ph ph-coins me-1"></i> Comparativa de Costos (ARS)</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rubro</th>
+                            <th class="text-end text-primary">${p.nombre}</th>
+                            <th class="text-end text-secondary">${s.nombre}</th>
+                            <th class="text-end">Diferencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${costItems.map(function (item) {
+                            var diff = item.pVal - item.sVal;
+                            var diffCls = diff > 0 ? 'text-danger' : diff < 0 ? 'text-success' : '';
+                            var diffStr = diff === 0 ? '-' : (diff > 0 ? '+' : '') + formatMoney(diff);
+                            var pWinner = item.pVal < item.sVal;
+                            var sWinner = item.sVal < item.pVal;
+                            return `<tr>
+                                <td>${item.label}</td>
+                                <td class="text-end ${pWinner ? 'comparativa-ganador' : ''}">${formatMoney(item.pVal)}</td>
+                                <td class="text-end ${sWinner ? 'comparativa-ganador' : ''}">${formatMoney(item.sVal)}</td>
+                                <td class="text-end fw-semibold ${diffCls}">${diffStr}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // Rendimiento histórico comparison
+        if ((p.rendimientoHistorico && p.rendimientoHistorico.length > 0) ||
+            (s.rendimientoHistorico && s.rendimientoHistorico.length > 0)) {
+            html += `
+                <h6 class="fw-semibold mt-4 mb-3"><i class="ph ph-trend-up me-1"></i> Comparativa de Rendimiento Histórico</h6>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="chart-container"><canvas id="chartComparativaRendimiento" height="250"></canvas></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    $('#comparativaResult').html(html);
+
+    // Render rendimiento histórico chart if both have data
+    if (hasSecundario && s && s.rendimientoHistorico && s.rendimientoHistorico.length > 0) {
+        renderComparativaRendimientoChart(p, s);
+    }
+}
+
+function renderComparativaRendimientoChart(p, s) {
+    var ctx = document.getElementById('chartComparativaRendimiento');
+    if (!ctx) return;
+
+    // Merge all campaign labels from both campos
+    var allCampanias = [];
+    var pData = {};
+    var sData = {};
+
+    if (p.rendimientoHistorico) {
+        $.each(p.rendimientoHistorico, function (i, r) {
+            if (allCampanias.indexOf(r.campania) === -1) allCampanias.push(r.campania);
+            pData[r.campania] = r.rendimientoTonHa || 0;
+        });
+    }
+    if (s.rendimientoHistorico) {
+        $.each(s.rendimientoHistorico, function (i, r) {
+            if (allCampanias.indexOf(r.campania) === -1) allCampanias.push(r.campania);
+            sData[r.campania] = r.rendimientoTonHa || 0;
+        });
+    }
+
+    allCampanias.sort();
+
+    if (charts.comparativaRendimiento) charts.comparativaRendimiento.destroy();
+
+    charts.comparativaRendimiento = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: allCampanias,
+            datasets: [
+                {
+                    label: p.nombre,
+                    data: allCampanias.map(function (c) { return pData[c] || 0; }),
+                    backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: s.nombre,
+                    data: allCampanias.map(function (c) { return sData[c] || 0; }),
+                    backgroundColor: 'rgba(108, 117, 125, 0.6)',
+                    borderColor: 'rgba(108, 117, 125, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(2) + ' tn/ha';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'tn/ha' }
+                }
+            }
+        }
+    });
+}
+
+// ============================================================
+// HELP MODAL
+// ============================================================
+
+function mostrarAyudaReporte() {
+    var modal = new bootstrap.Modal(document.getElementById('ayudaModal'));
+    modal.show();
+}
+
+// ============================================================
+// EXPORT PDF (all tabs using html2canvas + jsPDF)
 // ============================================================
 
 function exportarPDF() {
@@ -994,9 +1420,171 @@ function exportarPDF() {
         return;
     }
 
-    // Use html2canvas or just window.print()
-    // For now, use print
-    window.print();
+    // Show a loading message
+    var btn = document.querySelector('button[onclick="exportarPDF()"]');
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Generando PDF...';
+    btn.disabled = true;
+
+    // Ensure all tabs are rendered (briefly show each to trigger any chart renders)
+    var tabs = document.querySelectorAll('#reporteTabs button');
+    var currentActive = document.querySelector('#reporteTabs button.active');
+
+    // We need html2canvas and jsPDF - check they're loaded
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        mostrarMensaje('Error al cargar las librerías de PDF. Intente nuevamente.', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        return;
+    }
+
+    // Helper to get a Promise that resolves with a canvas of an element
+    function captureElement(element) {
+        return html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowHeight: element.scrollHeight,
+            windowWidth: element.scrollWidth
+        });
+    }
+
+    // Build PDF: capture the header + each section
+    var { jsPDF } = jspdf;
+    var pdf = new jsPDF('p', 'mm', 'a4');
+    var pageWidth = pdf.internal.pageSize.getWidth();
+    var pageHeight = pdf.internal.pageSize.getHeight();
+
+    var yPos = 10;
+
+    // Add title
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 102, 204);
+    pdf.text('Informe Integral del Campo', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 8;
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(100);
+    pdf.text('Campo: ' + (reporteData.resumenEjecutivo ? reporteData.resumenEjecutivo.campo : ''), pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+
+    // 1. Capture Resumen Ejecutivo (always visible)
+    var resumenEl = document.getElementById('resumenEjecutivoContent');
+
+    if (!resumenEl) {
+        pdf.save('Informe_Campo.pdf');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        return;
+    }
+
+    captureElement(resumenEl).then(function (rCanvas) {
+        var rImgData = rCanvas.toDataURL('image/png');
+        var rImgWidth = pageWidth - 20;
+        var rImgHeight = (rCanvas.height * rImgWidth) / rCanvas.width;
+
+        if (rImgHeight + yPos > pageHeight - 10) {
+            pdf.addPage();
+            yPos = 10;
+        }
+
+        pdf.addImage(rImgData, 'PNG', 10, yPos, rImgWidth, rImgHeight);
+        yPos += rImgHeight + 10;
+
+        // 2. Temporarily show all hidden tab-panes for capture, then restore
+        var tabContents = document.querySelectorAll('.tab-pane');
+        var hiddenStates = [];
+
+        tabContents.forEach(function (tab) {
+            var isHidden = tab.classList.contains('fade') && !tab.classList.contains('show') && tab.style.display !== 'block';
+            hiddenStates.push({
+                element: tab,
+                originalDisplay: tab.style.display,
+                originalPosition: tab.style.position,
+                originalLeft: tab.style.left,
+                originalVisibility: tab.style.visibility,
+                wasHidden: isHidden
+            });
+            if (isHidden) {
+                tab.style.display = 'block';
+                tab.style.position = 'absolute';
+                tab.style.left = '-9999px';
+                tab.style.visibility = 'hidden';
+            }
+        });
+
+        // Force layout recalc and wait for charts
+        document.body.offsetHeight;
+        var waitTime = tabContents.length > 0 ? 300 : 0;
+
+        setTimeout(function () {
+            // Now capture each tab content
+            var tabPromises = [];
+            var tabNames = [];
+
+            tabContents.forEach(function (tab) {
+                var tabId = tab.id;
+                var tabName = tabId.replace('-content', '').replace('-', ' ');
+                tabName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+                tabNames.push(tabName);
+                tabPromises.push(captureElement(tab));
+            });
+
+            // Restore hidden states immediately after starting captures
+            hiddenStates.forEach(function (state) {
+                state.element.style.display = state.originalDisplay || '';
+                state.element.style.position = state.originalPosition || '';
+                state.element.style.left = state.originalLeft || '';
+                state.element.style.visibility = state.originalVisibility || '';
+            });
+
+            Promise.all(tabPromises).then(function (tabCanvases) {
+                for (var i = 0; i < tabCanvases.length; i++) {
+                    var tCanvas = tabCanvases[i];
+                    var tImgData = tCanvas.toDataURL('image/png');
+                    var tImgWidth = pageWidth - 20;
+                    var tImgHeight = (tCanvas.height * tImgWidth) / tCanvas.width;
+
+                    // Add page for each tab
+                    pdf.addPage();
+                    yPos = 10;
+
+                    // Tab title
+                    pdf.setFontSize(14);
+                    pdf.setTextColor(0, 102, 204);
+                    pdf.text(tabNames[i], pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 8;
+
+                    // Limit image height per page, split if needed
+                    var maxImgHeight = pageHeight - yPos - 10;
+                    if (tImgHeight > maxImgHeight) {
+                        var scale = maxImgHeight / tImgHeight;
+                        tImgWidth = tImgWidth * scale;
+                        tImgHeight = tImgHeight * scale;
+                    }
+
+                    pdf.addImage(tImgData, 'PNG', 10, yPos, tImgWidth, tImgHeight);
+                }
+
+                // Save the PDF
+                pdf.save('Informe_Campo_' + (reporteData.resumenEjecutivo ? reporteData.resumenEjecutivo.campo.replace(/\s+/g, '_') : 'reporte') + '.pdf');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                mostrarMensaje('PDF generado correctamente', 'success');
+            }).catch(function (err) {
+                console.error('Error capturing tab contents:', err);
+                mostrarMensaje('Error al generar el PDF: ' + err.message, 'error');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+        }, waitTime);
+    }).catch(function (err) {
+        console.error('Error generating PDF:', err);
+        mostrarMensaje('Error al generar el PDF: ' + err.message, 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
 }
 
 // ============================================================

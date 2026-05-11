@@ -64,6 +64,8 @@ namespace AgroForm.Business.Services
             {
                 var entity = await GetQuery()
                     .Include(c => c.Lotes)
+                        .ThenInclude(l => l.CicloCultivos)
+                            .ThenInclude(cc => cc.Campania)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == id);
 

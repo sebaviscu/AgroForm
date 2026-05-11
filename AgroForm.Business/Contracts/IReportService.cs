@@ -21,5 +21,13 @@ namespace AgroForm.Business.Contracts
         Task<OperationResult<ReporteCampoIntegralDto>> GetReporteCampoIntegralAsync(
             int idCampo,
             int? idCampania = null);
+
+        /// <summary>
+        /// Obtiene la comparativa entre dos campos para el tab Comparativa
+        /// </summary>
+        Task<OperationResult<ComparativaCamposDto>> GetComparativaCamposIntegralAsync(
+            int idCampoPrincipal,
+            int? idCampoSecundario,
+            int? idCampania = null);
     }
 }

@@ -70,8 +70,6 @@ namespace AgroForm.Business.Contracts
     {
         public string Campo { get; set; } = string.Empty;
         public string Lote { get; set; } = string.Empty;
-        public string? CultivoActual { get; set; }
-        public string? Variedad { get; set; }
         public decimal SuperficieHa { get; set; }
         public string? Campania { get; set; }
         public int? DiasDesdeSiembra { get; set; }
@@ -85,11 +83,28 @@ namespace AgroForm.Business.Contracts
         public decimal? Longitud { get; set; }
         public string? CoordenadasPoligono { get; set; }
 
+        // Multi-crop support: each lot can have different crops
+        public List<CultivoResumenDto> Cultivos { get; set; } = new();
+
         // Scores
         public int ScoreProductividad { get; set; }
         public int ScoreSaludCultivo { get; set; }
         public int ScoreHumedad { get; set; }
         public int ScoreRiesgo { get; set; }
+    }
+
+    /// <summary>
+    /// Resumen de un cultivo en un lote específico
+    /// </summary>
+    public class CultivoResumenDto
+    {
+        public string Lote { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string? Variedad { get; set; }
+        public decimal SuperficieHa { get; set; }
+        public int CantidadCiclos { get; set; }
+        public int CantidadInactivos { get; set; }
+        public bool IsActivo { get; set; }
     }
 
     /// <summary>
@@ -184,7 +199,7 @@ namespace AgroForm.Business.Contracts
         public string Unidad { get; set; } = string.Empty;
         public string Interpretacion { get; set; } = "Sin datos";
         public string Nivel { get; set; } = "Medio"; // Bajo, Medio, Alto
-        public string? Recomendacion { get; set; }
+        public string? Advertencia { get; set; }
     }
 
     /// <summary>
@@ -276,6 +291,44 @@ namespace AgroForm.Business.Contracts
     public class ReporteCampoRequest
     {
         public int IdCampo { get; set; }
+        public int? IdCampania { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para la comparativa entre dos campos (tab Comparativa)
+    /// </summary>
+    public class ComparativaCamposDto
+    {
+        public CampoComparativaDto CampoPrincipal { get; set; } = new();
+        public CampoComparativaDto? CampoSecundario { get; set; }
+    }
+
+    public class CampoComparativaDto
+    {
+        public int IdCampo { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public decimal SuperficieHa { get; set; }
+        public string? CultivoPrincipal { get; set; }
+        public decimal CostoTotalARS { get; set; }
+        public decimal CostoPorHaARS { get; set; }
+        public decimal? RendimientoTonHa { get; set; }
+        public decimal? RentabilidadProyectada { get; set; }
+        public int CantidadLabores { get; set; }
+        public int CantidadAlertas { get; set; }
+        public string EstadoGeneral { get; set; } = string.Empty;
+        // Desglose de costos por tipo de labor
+        public CostosDesglosadosDto DesgloseCostos { get; set; } = new();
+        // Rendimiento histórico por campaña
+        public List<DatoRendimientoHistorico> RendimientoHistorico { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Request para la comparativa entre campos
+    /// </summary>
+    public class ComparativaRequest
+    {
+        public int IdCampoPrincipal { get; set; }
+        public int? IdCampoSecundario { get; set; }
         public int? IdCampania { get; set; }
     }
 }

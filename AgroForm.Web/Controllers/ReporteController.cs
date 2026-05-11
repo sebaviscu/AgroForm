@@ -101,14 +101,14 @@ public class ReporteController : Controller
     }
 
     /// <summary>
-    /// Obtiene las campañas disponibles para un campo
+    /// Obtiene las campañas disponibles para un campo (desde GetHistorialByIdAsync para obtener TODAS)
     /// </summary>
     [HttpGet("GetCampaniasByCampo/{idCampo}")]
     public async Task<IActionResult> GetCampaniasByCampo(int idCampo)
     {
         try
         {
-            var campo = await _campoService.GetByIdWithDetailsAsync(idCampo);
+            var campo = await _campoService.GetHistorialByIdAsync(idCampo);
 
             if (!campo.Success || campo.Data == null)
             {
@@ -117,10 +117,11 @@ public class ReporteController : Controller
 
             var campanias = campo.Data.Lotes
                 .SelectMany(l => l.CicloCultivos)
+                .Where(cc => cc.Campania != null)
                 .Select(cc => new
                 {
                     Id = cc.IdCampania,
-                    Nombre = cc.Campania?.Nombre ?? "N/A"
+                    Nombre = cc.Campania!.Nombre ?? "N/A"
                 })
                 .Distinct()
                 .OrderByDescending(c => c.Nombre)
@@ -131,6 +132,41 @@ public class ReporteController : Controller
         catch (Exception ex)
         {
             return BadRequest(new { Success = false, Message = "Ha ocurrido un error al obtener las campañas" });
+        }
+    }
+
+    /// <summary>
+    /// Obtiene la comparativa integral entre dos campos
+    /// </summary>
+    [HttpPost("[action]")]
+    public async Task<IActionResult> GetComparativa([FromBody] ComparativaRequest request)
+    {
+        var gResponse = new GenericResponse<ComparativaCamposDto>();
+
+        try
+        {
+            var result = await _reportService.GetComparativaCamposIntegralAsync(
+                request.IdCampoPrincipal,
+                request.IdCampoSecundario,
+                request.IdCampania);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = result.Data;
+            gResponse.Message = "Comparativa generada correctamente";
+            return Ok(gResponse);
+        }
+        catch (Exception ex)
+        {
+            gResponse.Success = false;
+            gResponse.Message = "Ha ocurrido un error al generar la comparativa";
+            return BadRequest(gResponse);
         }
     }
 }
