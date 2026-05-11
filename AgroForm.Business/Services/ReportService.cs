@@ -1,4 +1,4 @@
-using AgroForm.Business.Contracts;
+﻿using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
@@ -466,7 +466,7 @@ namespace AgroForm.Business.Services
                 if (campo == null)
                     return OperationResult<ReporteCampoIntegralDto>.Failure("Campo no encontrado", "NOT_FOUND");
 
-                // Determinar campaña activa
+                // Determinar Campaña activa
                 int? idCampaniaEfectiva = idCampania ?? _userContext.IdCampaña;
 
                 // Obtener todos los lotes del campo
@@ -872,7 +872,7 @@ namespace AgroForm.Business.Services
                 }
             }
 
-            // Procesar ciclos activos primero, luego históricos
+            // Procesar ciclos activos primero, luego histÃ³ricos
             var ciclosOrdenados = activosCiclos
                 .OrderByDescending(cc => cc.FechaInicio)
                 .ToList();
@@ -1016,7 +1016,7 @@ namespace AgroForm.Business.Services
                 .Where(r => r.Fecha >= ultimos30Dias)
                 .Sum(r => r.Milimetros);
 
-            // Días sin lluvia
+            // días sin lluvia
             var ultimaLluvia = lluvias
                 .OrderByDescending(r => r.Fecha)
                 .FirstOrDefault();
@@ -1027,10 +1027,10 @@ namespace AgroForm.Business.Services
             // Heladas (granizo)
             analisis.CantidadHeladas = registrosClima.Count(r => r.TipoClima == TipoClima.Granizo);
 
-            // Balance hídrico
+            // Balance hÃ­drico
             if (analisis.LluviaAcumulada < 20)
             {
-                analisis.BalanceHidrico = "Déficit hídrico";
+                analisis.BalanceHidrico = "DÃ©ficit hÃ­drico";
                 analisis.EstresHidrico = "Alto";
             }
             else if (analisis.LluviaAcumulada < 50)
@@ -1045,11 +1045,11 @@ namespace AgroForm.Business.Services
             }
             else
             {
-                analisis.BalanceHidrico = "Exceso hídrico";
+                analisis.BalanceHidrico = "Exceso hÃ­drico";
                 analisis.EstresHidrico = "Alto";
             }
 
-            // Registros climáticos detallados
+            // Registros climÃ¡ticos detallados
             analisis.Registros = registrosClima
                 .OrderByDescending(r => r.Fecha)
                 .Take(90)
@@ -1068,7 +1068,7 @@ namespace AgroForm.Business.Services
         {
             var analisis = new AnalisisSueloDto();
 
-            // Obtener el último análisis de suelo
+            // Obtener el Ãºltimo anÃ¡lisis de suelo
             var ultimoAnalisis = activosCiclos
                 .SelectMany(cc => cc.AnalisisSuelos)
                 .OrderByDescending(a => a.Fecha)
@@ -1081,50 +1081,50 @@ namespace AgroForm.Business.Services
             analisis.ProfundidadCm = ultimoAnalisis.ProfundidadCm;
             analisis.Textura = ultimoAnalisis.Textura;
 
-            // Interpretar cada parámetro - solo advertir, no recomendar aplicar
+            // Interpretar cada parÃ¡metro - solo advertir, no recomendar aplicar
             analisis.PH = InterpretarParametro("pH", ultimoAnalisis.PH, "",
-                v => v < 5.5m ? ("Ácido", "Bajo", "pH bajo - monitorear condiciones del suelo")
-                    : v <= 7.0m ? ("Óptimo", "Óptimo", "pH en rango óptimo")
+                v => v < 5.5m ? ("Ãcido", "Bajo", "pH bajo - monitorear condiciones del suelo")
+                    : v <= 7.0m ? ("Ã“ptimo", "Ã“ptimo", "pH en rango Ã³ptimo")
                     : ("Alcalino", "Alto", "pH elevado - monitorear disponibilidad de nutrientes"));
 
             analisis.MateriaOrganica = InterpretarParametro("MO", ultimoAnalisis.MateriaOrganica, "%",
-                v => v < 2m ? ("Bajo", "Bajo", "Materia orgánica baja - monitorear fertilidad del suelo")
-                    : v <= 5m ? ("Medio", "Medio", "Nivel adecuado de materia orgánica")
-                    : ("Alto", "Alto", "Nivel óptimo de materia orgánica"));
+                v => v < 2m ? ("Bajo", "Bajo", "Materia orgÃ¡nica baja - monitorear fertilidad del suelo")
+                    : v <= 5m ? ("Medio", "Medio", "Nivel adecuado de materia orgÃ¡nica")
+                    : ("Alto", "Alto", "Nivel Ã³ptimo de materia orgÃ¡nica"));
 
             analisis.Nitrogeno = InterpretarParametro("N", ultimoAnalisis.Nitrogeno, "ppm",
-                v => v < 15m ? ("Bajo", "Bajo", "Nitrógeno bajo - monitorear desarrollo del cultivo")
-                    : v <= 30m ? ("Óptimo", "Óptimo", "Nivel de nitrógeno adecuado")
-                    : ("Alto", "Alto", "Exceso de nitrógeno - monitorear posible impacto ambiental"));
+                v => v < 15m ? ("Bajo", "Bajo", "NitrÃ³geno bajo - monitorear desarrollo del cultivo")
+                    : v <= 30m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de nitrÃ³geno adecuado")
+                    : ("Alto", "Alto", "Exceso de nitrÃ³geno - monitorear posible impacto ambiental"));
 
             analisis.Fosforo = InterpretarParametro("P", ultimoAnalisis.Fosforo, "ppm",
-                v => v < 10m ? ("Bajo", "Bajo", "Fósforo bajo - monitorear disponibilidad para el cultivo")
-                    : v <= 20m ? ("Óptimo", "Óptimo", "Nivel de fósforo adecuado")
-                    : ("Alto", "Alto", "Nivel elevado de fósforo - monitorear"));
+                v => v < 10m ? ("Bajo", "Bajo", "FÃ³sforo bajo - monitorear disponibilidad para el cultivo")
+                    : v <= 20m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de fÃ³sforo adecuado")
+                    : ("Alto", "Alto", "Nivel elevado de fÃ³sforo - monitorear"));
 
             analisis.Potasio = InterpretarParametro("K", ultimoAnalisis.Potasio, "meq/100g",
                 v => v < 0.3m ? ("Bajo", "Bajo", "Potasio bajo - monitorear")
-                    : v <= 0.7m ? ("Óptimo", "Óptimo", "Nivel de potasio adecuado")
+                    : v <= 0.7m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de potasio adecuado")
                     : ("Alto", "Alto", "Nivel elevado de potasio - verificar balance con otros nutrientes"));
 
             analisis.ConductividadElectrica = InterpretarParametro("CE", ultimoAnalisis.ConductividadElectrica, "dS/m",
                 v => v < 0.5m ? ("Muy baja", "Bajo", "Salinidad muy baja - monitorear disponibilidad de nutrientes")
-                    : v <= 1.5m ? ("Normal", "Óptimo", "Salinidad adecuada")
+                    : v <= 1.5m ? ("Normal", "Ã“ptimo", "Salinidad adecuada")
                     : ("Alta", "Alto", "Salinidad elevada - monitorear impacto en el cultivo"));
 
             analisis.CIC = InterpretarParametro("CIC", ultimoAnalisis.CIC, "meq/100g",
-                v => v < 10m ? ("Baja", "Bajo", "CIC baja - monitorear retención de nutrientes")
+                v => v < 10m ? ("Baja", "Bajo", "CIC baja - monitorear retenciÃ³n de nutrientes")
                     : v <= 25m ? ("Media", "Medio", "CIC adecuada")
-                    : ("Alta", "Alto", "CIC alta - buena retención de nutrientes"));
+                    : ("Alta", "Alto", "CIC alta - buena retenciÃ³n de nutrientes"));
 
-            // Generar advertencias generales (solo para parámetros bajos)
+            // Generar advertencias generales (solo para parÃ¡metros bajos)
             var todosParametros = new[] {
                 (analisis.PH, "pH"),
-                (analisis.MateriaOrganica, "Materia Orgánica"),
-                (analisis.Nitrogeno, "Nitrógeno"),
-                (analisis.Fosforo, "Fósforo"),
+                (analisis.MateriaOrganica, "Materia OrgÃ¡nica"),
+                (analisis.Nitrogeno, "NitrÃ³geno"),
+                (analisis.Fosforo, "FÃ³sforo"),
                 (analisis.Potasio, "Potasio"),
-                (analisis.ConductividadElectrica, "Conductividad Eléctrica"),
+                (analisis.ConductividadElectrica, "Conductividad ElÃ©ctrica"),
                 (analisis.CIC, "CIC")
             };
 
@@ -1226,7 +1226,7 @@ namespace AgroForm.Business.Services
                      + desglose.RiegoUSD + desglose.CosechaUSD + desglose.MonitoreoUSD
                      + desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.SiloBolsasUSD;
 
-            // Agregar gastos generales si coinciden con la campaña
+            // Agregar gastos generales si coinciden con la Campaña
             var gastosFiltrados = idCampaniaEfectiva.HasValue
                 ? gastos.Where(g => g.IdCampania == idCampaniaEfectiva.Value).ToList()
                 : gastos;
@@ -1254,7 +1254,7 @@ namespace AgroForm.Business.Services
             if (ultimaCosecha?.RendimientoTonHa.HasValue == true && superficieTotal > 0)
             {
                 var produccionTotal = ultimaCosecha.RendimientoTonHa.Value * superficieTotal;
-                // Precio estimado de referencia (esto debería venir de una config)
+                // Precio estimado de referencia (esto deberÃ­a venir de una config)
                 const decimal precioReferenciaARS = 250000; // $ARS por tonelada
                 const decimal precioReferenciaUSD = 250;    // USD por tonelada
 
@@ -1277,7 +1277,7 @@ namespace AgroForm.Business.Services
         {
             var rendimiento = new RendimientoCosechaDto();
 
-            // Última cosecha del ciclo activo
+            // Ãšltima cosecha del ciclo activo
             var ultimaCosecha = activosCiclos
                 .SelectMany(cc => cc.Cosechas)
                 .OrderByDescending(c => c.Fecha)
@@ -1290,7 +1290,7 @@ namespace AgroForm.Business.Services
                 rendimiento.SuperficieCosechadaHa = ultimaCosecha.SuperficieCosechadaHa;
                 rendimiento.FechaCosecha = ultimaCosecha.Fecha;
 
-                // Producción total
+                // producción total
                 var supCosechada = ultimaCosecha.SuperficieCosechadaHa ?? 0;
                 if (ultimaCosecha.RendimientoTonHa.HasValue && supCosechada > 0)
                     rendimiento.ProduccionTotalTon = Math.Round(ultimaCosecha.RendimientoTonHa.Value * supCosechada, 2);
@@ -1298,7 +1298,7 @@ namespace AgroForm.Business.Services
                     rendimiento.ProduccionTotalTon = ultimaCosecha.RendimientoTonHa;
             }
 
-            // Histórico de rendimientos
+            // HistÃ³rico de rendimientos
             var cosechasPorCampania = todosCiclos
                 .SelectMany(cc => cc.Cosechas.Select(c => new
                 {
@@ -1340,21 +1340,21 @@ namespace AgroForm.Business.Services
                     Severidad = clima.DiasSinLluvia.Value > 14 ? "Alta" : "Media",
                     Mensaje = $"{clima.DiasSinLluvia} días sin precipitaciones significativas (>5mm)",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar necesidad de riego complementario. Monitorear estrés hídrico en el cultivo.",
+                    Recomendacion = "Evaluar necesidad de riego complementario. Monitorear estrÃ©s hÃ­drico en el cultivo.",
                     Icono = "ph-warning-circle"
                 });
             }
 
-            // 2. Alerta de exceso hídrico
+            // 2. Alerta de exceso hÃ­drico
             if (clima.LluviaAcumulada.HasValue && clima.LluviaAcumulada.Value > 100)
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Exceso hídrico",
+                    Tipo = "Exceso hÃ­drico",
                     Severidad = "Alta",
                     Mensaje = $"Lluvia acumulada de {clima.LluviaAcumulada.Value}mm en los últimos 30 días",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Verificar drenaje del lote. Monitorear aparición de enfermedades fúngicas.",
+                    Recomendacion = "Verificar drenaje del lote. Monitorear apariciÃ³n de enfermedades fÃºngicas.",
                     Icono = "ph-warning"
                 });
             }
@@ -1364,11 +1364,11 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "NDVI crítico",
+                    Tipo = "NDVI crÃ­tico",
                     Severidad = "Alta",
                     Mensaje = $"NDVI estimado en {resumen.NDVIPromedio.Value}, indica baja vitalidad del cultivo",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar causa: déficit hídrico, plaga, enfermedad o deficiencia nutricional.",
+                    Recomendacion = "Evaluar causa: dÃ©ficit hÃ­drico, plaga, enfermedad o deficiencia nutricional.",
                     Icono = "ph-flask"
                 });
             }
@@ -1382,7 +1382,7 @@ namespace AgroForm.Business.Services
                     Severidad = "Alta",
                     Mensaje = $"Se registraron {clima.CantidadHeladas} eventos de granizo/helada",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar daños en el cultivo. Considerar seguros agrícolas para próxima campaña.",
+                    Recomendacion = "Evaluar daÃ±os en el cultivo. Considerar seguros agrÃ­colas para prÃ³xima Campaña.",
                     Icono = "ph-snowflake"
                 });
             }
@@ -1401,7 +1401,7 @@ namespace AgroForm.Business.Services
                     {
                         Tipo = "Bajo rendimiento",
                         Severidad = "Media",
-                        Mensaje = $"Rendimiento actual ({rendimiento.RendimientoTonHa} tn/ha) está por debajo del 70% del histórico ({promedioHistorico:N2} tn/ha)",
+                        Mensaje = $"Rendimiento actual ({rendimiento.RendimientoTonHa} tn/ha) está por debajo del 70% del histÃ³rico ({promedioHistorico:N2} tn/ha)",
                         Fecha = DateTime.UtcNow,
                         Recomendacion = "Analizar causas del bajo rendimiento: calidad de semilla, manejo, clima o suelo.",
                         Icono = "ph-trend-down"
@@ -1409,12 +1409,12 @@ namespace AgroForm.Business.Services
                 }
             }
 
-            // 6. Alerta de parámetros de suelo
+            // 6. Alerta de parÃ¡metros de suelo
             if (suelo.PH?.Nivel == "Bajo")
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Suelo ácido",
+                    Tipo = "Suelo Ã¡cido",
                     Severidad = "Media",
                     Mensaje = $"pH del suelo en {suelo.PH.Valor:N1} - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
@@ -1427,9 +1427,9 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Deficiencia de Nitrógeno",
+                    Tipo = "Deficiencia de NitrÃ³geno",
                     Severidad = "Media",
-                    Mensaje = $"Nivel de Nitrógeno: {suelo.Nitrogeno.Valor:N0} ppm - Nivel bajo",
+                    Mensaje = $"Nivel de NitrÃ³geno: {suelo.Nitrogeno.Valor:N0} ppm - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
                     Recomendacion = suelo.Nitrogeno.Advertencia,
                     Icono = "ph-flask"
@@ -1440,9 +1440,9 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Deficiencia de Fósforo",
+                    Tipo = "Deficiencia de FÃ³sforo",
                     Severidad = "Media",
-                    Mensaje = $"Nivel de Fósforo: {suelo.Fosforo.Valor:N0} ppm - Nivel bajo",
+                    Mensaje = $"Nivel de FÃ³sforo: {suelo.Fosforo.Valor:N0} ppm - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
                     Recomendacion = suelo.Fosforo.Advertencia,
                     Icono = "ph-flask"
@@ -1544,7 +1544,7 @@ namespace AgroForm.Business.Services
         }
 
         // ============================================================
-        // MÉTODOS EXISTENTES DE CÁLCULO DE COSTOS
+        // MÃ‰TODOS EXISTENTES DE CÃLCULO DE COSTOS
         // ============================================================
 
         private decimal ObtenerCostosARS(Lote lote, List<CicloCultivo>? ciclos = null)
@@ -1590,5 +1590,515 @@ namespace AgroForm.Business.Services
 
             return total;
         }
+
+        // ============================================================
+        // NUEVO: Reporte de Rendimiento de Cosecha
+        // ============================================================
+
+        public async Task<OperationResult<RendimientoCosechaReporteDto>> GetRendimientoCosechaAsync(
+            int? idCampania = null,
+            int? idCampo = null,
+            int? idLote = null,
+            int? idCultivo = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            string ordenarPor = "RendimientoTonHa",
+            string ordenDireccion = "desc",
+            int pagina = 1,
+            int tamanoPagina = 20)
+        {
+            try
+            {
+                // 1. Query base de Cosecha con includes
+                var query = _unitOfWork.Repository<Cosecha>().Query()
+                    .Include(c => c.Lote)
+                        .ThenInclude(l => l.Campo)
+                    .Include(c => c.CicloCultivo)
+                        .ThenInclude(cc => cc.Cultivo)
+                    .Include(c => c.CicloCultivo)
+                        .ThenInclude(cc => cc.Campania)
+                    .Include(c => c.Moneda)
+                    .Where(c => c.IdLicencia == _userContext.IdLicencia)
+                    .AsQueryable();
+
+                // 2. Aplicar filtros
+                if (idCampania.HasValue)
+                    query = query.Where(c => c.IdCampania == idCampania.Value);
+                else if (_userContext.IdCampaña.HasValue)
+                    query = query.Where(c => c.IdCampania == _userContext.IdCampaña.Value);
+
+                if (idCampo.HasValue)
+                    query = query.Where(c => c.Lote != null && c.Lote.IdCampo == idCampo.Value);
+
+                if (idLote.HasValue)
+                    query = query.Where(c => c.IdLote == idLote.Value);
+
+                if (idCultivo.HasValue)
+                    query = query.Where(c => c.IdCultivo == idCultivo.Value);
+
+                if (fechaDesde.HasValue)
+                    query = query.Where(c => c.Fecha >= fechaDesde.Value);
+
+                if (fechaHasta.HasValue)
+                    query = query.Where(c => c.Fecha <= fechaHasta.Value);
+
+                // 3. Obtener datos para cálculos agregados (sin paginaciÃ³n)
+                var todasLasCosechas = await query.ToListAsync();
+
+                if (todasLasCosechas.Count == 0)
+                {
+                    return OperationResult<RendimientoCosechaReporteDto>.SuccessResult(
+                        new RendimientoCosechaReporteDto());
+                }
+
+                // 4. Calcular KPIs
+                var kpis = new RendimientoCosechaKpiDto();
+
+                // Rendimiento promedio
+                var conRendimiento = todasLasCosechas.Where(c => c.RendimientoTonHa.HasValue).ToList();
+                kpis.TotalLotes = todasLasCosechas.Select(c => c.IdLote).Distinct().Count();
+                kpis.LotesConRendimiento = conRendimiento.Select(c => c.IdLote).Distinct().Count();
+
+                if (conRendimiento.Any())
+                {
+                    kpis.RendimientoPromedioTonHa = Math.Round(conRendimiento.Average(c => c.RendimientoTonHa!.Value), 2);
+
+                    // Mejor rendimiento
+                    var mejor = conRendimiento.OrderByDescending(c => c.RendimientoTonHa).First();
+                    kpis.RendimientoMaximoTonHa = mejor.RendimientoTonHa;
+                    kpis.LoteMejorRendimiento = mejor.Lote?.Nombre;
+
+                    // Peor rendimiento
+                    var peor = conRendimiento.OrderBy(c => c.RendimientoTonHa).First();
+                    kpis.RendimientoMinimoTonHa = peor.RendimientoTonHa;
+                    kpis.LotePeorRendimiento = peor.Lote?.Nombre;
+                }
+
+                // producción total
+                kpis.ProduccionTotalTon = Math.Round(
+                    conRendimiento.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2);
+
+                // Superficie total cosechada
+                kpis.SuperficieTotalCosechadaHa = Math.Round(
+                    todasLasCosechas.Sum(c => c.SuperficieCosechadaHa ?? 0), 2);
+
+                // Humedad promedio
+                var conHumedad = todasLasCosechas.Where(c => c.HumedadGrano.HasValue).ToList();
+                if (conHumedad.Any())
+                    kpis.HumedadPromedio = Math.Round(conHumedad.Average(c => c.HumedadGrano!.Value), 1);
+
+                // Costo promedio por hectÃ¡rea
+                var conCosto = todasLasCosechas.Where(c => c.CostoARS.HasValue && c.SuperficieCosechadaHa.HasValue && c.SuperficieCosechadaHa > 0).ToList();
+                if (conCosto.Any())
+                    kpis.CostoPromedioPorHa = Math.Round(
+                        conCosto.Sum(c => c.CostoARS!.Value) / conCosto.Sum(c => c.SuperficieCosechadaHa!.Value), 2);
+
+                // VariaciÃ³n vs Campaña anterior
+                var campañas = todasLasCosechas
+                    .Where(c => c.CicloCultivo?.Campania != null && c.RendimientoTonHa.HasValue)
+                    .GroupBy(c => c.CicloCultivo.Campania!.Nombre ?? "N/A")
+                    .Select(g => new { Campania = g.Key, Promedio = g.Average(c => c.RendimientoTonHa!.Value) })
+                    .OrderByDescending(g => g.Campania)
+                    .ToList();
+
+                if (campañas.Count >= 2)
+                {
+                    kpis.CampaniaActual = campañas[0].Campania;
+                    kpis.CampaniaAnterior = campañas[1].Campania;
+                    if (campañas[1].Promedio > 0)
+                    {
+                        kpis.VariacionVsCampaniaAnterior = Math.Round(
+                            ((campañas[0].Promedio - campañas[1].Promedio) / campañas[1].Promedio) * 100, 1);
+                    }
+                }
+                else if (campañas.Count == 1)
+                {
+                    kpis.CampaniaActual = campañas[0].Campania;
+                }
+
+                // Moneda por defecto
+                kpis.Moneda = "ARS";
+
+                // 5. Construir datos de lotes para la tabla (con paginaciÃ³n y ordenamiento)
+                var datosLotesQuery = todasLasCosechas.Select(c => new DatoRendimientoLoteDto
+                {
+                    IdCosecha = c.Id,
+                    IdLote = c.IdLote,
+                    Lote = c.Lote?.Nombre ?? "N/A",
+                    Campo = c.Lote?.Campo?.Nombre ?? "N/A",
+                    Cultivo = c.CicloCultivo?.Cultivo?.Nombre,
+                    Campania = c.CicloCultivo?.Campania?.Nombre,
+                    RendimientoTonHa = c.RendimientoTonHa,
+                    ProduccionTotalTon = c.RendimientoTonHa.HasValue && c.SuperficieCosechadaHa.HasValue
+                        ? Math.Round(c.RendimientoTonHa.Value * c.SuperficieCosechadaHa.Value, 2)
+                        : null,
+                    SuperficieCosechadaHa = c.SuperficieCosechadaHa,
+                    HumedadGrano = c.HumedadGrano,
+                    FechaCosecha = c.Fecha,
+                    Costo = c.Costo,
+                    CostoARS = c.CostoARS,
+                    CostoUSD = c.CostoUSD,
+                    Moneda = c.Moneda?.Nombre
+                }).AsQueryable();
+
+                // Ordenamiento
+                datosLotesQuery = ordenDireccion.ToLower() == "asc"
+                    ? datosLotesQuery.OrderBy(d => OrdenarPorPropiedad(d, ordenarPor))
+                    : datosLotesQuery.OrderByDescending(d => OrdenarPorPropiedad(d, ordenarPor));
+
+                var datosLotesList = datosLotesQuery.ToList();
+
+                // Asignar ranking
+                for (int i = 0; i < datosLotesList.Count; i++)
+                {
+                    datosLotesList[i].RankingRendimiento = i + 1;
+                }
+
+                // PaginaciÃ³n
+                var totalRegistros = datosLotesList.Count;
+                var totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
+                pagina = Math.Max(1, Math.Min(pagina, Math.Max(1, totalPaginas)));
+
+                var datosLotesPaginados = datosLotesList
+                    .Skip((pagina - 1) * tamanoPagina)
+                    .Take(tamanoPagina)
+                    .ToList();
+
+                // Asignar tendencia (comparaciÃ³n con promedio general)
+                var promedioGeneral = kpis.RendimientoPromedioTonHa ?? 0;
+                foreach (var d in datosLotesPaginados)
+                {
+                    if (d.RendimientoTonHa.HasValue && promedioGeneral > 0)
+                    {
+                        var diff = (d.RendimientoTonHa.Value - promedioGeneral) / promedioGeneral;
+                        d.Tendencia = diff > 0.1m ? "subiendo" : diff < -0.1m ? "bajando" : "estable";
+                    }
+                    else
+                    {
+                        d.Tendencia = "estable";
+                    }
+                }
+
+                // 6. Ranking de lotes (top 10)
+                var rankingLotes = datosLotesList
+                    .Where(d => d.RendimientoTonHa.HasValue)
+                    .OrderByDescending(d => d.RendimientoTonHa)
+                    .Take(10)
+                    .Select((d, idx) => new RankingLoteDto
+                    {
+                        Posicion = idx + 1,
+                        Lote = d.Lote,
+                        Campo = d.Campo,
+                        Cultivo = d.Cultivo,
+                        RendimientoTonHa = d.RendimientoTonHa!.Value,
+                        Campania = d.Campania
+                    })
+                    .ToList();
+
+                // 7. Rendimiento por cultivo (para gráfico de torta)
+                var rendimientoPorCultivo = todasLasCosechas
+                    .Where(c => c.CicloCultivo?.Cultivo?.Nombre != null && c.RendimientoTonHa.HasValue && c.SuperficieCosechadaHa.HasValue)
+                    .GroupBy(c => c.CicloCultivo.Cultivo!.Nombre!)
+                    .Select(g => new DatoRendimientoPorCultivo
+                    {
+                        Cultivo = g.Key,
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        CantidadLotes = g.Select(c => c.IdLote).Distinct().Count(),
+                        Color = ObtenerColorCultivo(g.Key)
+                    })
+                    .OrderByDescending(d => d.RendimientoPromedioTonHa)
+                    .ToList();
+
+                // 8. Rendimiento por Campaña (para gráfico de barras)
+                var rendimientoPorCampania = todasLasCosechas
+                    .Where(c => c.CicloCultivo?.Campania?.Nombre != null && c.RendimientoTonHa.HasValue)
+                    .GroupBy(c => c.CicloCultivo.Campania!.Nombre!)
+                    .Select(g => new DatoRendimientoPorCampania
+                    {
+                        Campania = g.Key,
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        CantidadCosechas = g.Count()
+                    })
+                    .OrderBy(d => d.Campania)
+                    .ToList();
+
+                // 9. Rendimiento por campo (para gráfico de barras horizontal)
+                var rendimientoPorCampo = todasLasCosechas
+                    .Where(c => c.Lote?.Campo?.Nombre != null && c.RendimientoTonHa.HasValue)
+                    .GroupBy(c => c.Lote!.Campo!.Nombre!)
+                    .Select(g => new DatoRendimientoPorCampo
+                    {
+                        Campo = g.Key,
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        CantidadLotes = g.Select(c => c.IdLote).Distinct().Count()
+                    })
+                    .OrderByDescending(d => d.RendimientoPromedioTonHa)
+                    .ToList();
+
+                // 10. Evolución histórica (para gráfico de líneas: rendimiento + humedad)
+                var evolucion = todasLasCosechas
+                    .Where(c => c.RendimientoTonHa.HasValue && c.CicloCultivo?.Campania?.Nombre != null)
+                    .GroupBy(c => new { Campania = c.CicloCultivo.Campania!.Nombre!, Cultivo = c.CicloCultivo.Cultivo?.Nombre ?? "N/A" })
+                    .Select(g => new DatoEvolucionRendimiento
+                    {
+                        Periodo = $"{g.Key.Campania} - {g.Key.Cultivo}",
+                        Campania = g.Key.Campania,
+                        Cultivo = g.Key.Cultivo,
+                        RendimientoTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
+                        HumedadPromedio = g.Where(c => c.HumedadGrano.HasValue).Any()
+                            ? Math.Round(g.Where(c => c.HumedadGrano.HasValue).Average(c => c.HumedadGrano!.Value), 1)
+                            : null,
+                        SuperficieHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2)
+                    })
+                    .OrderBy(d => d.Campania)
+                    .ThenBy(d => d.Cultivo)
+                    .ToList();
+
+                // 11. Indicadores inteligentes
+                var indicadores = GenerarIndicadoresInteligentes(kpis, conRendimiento, promedioGeneral);
+
+                // 12. Armar reporte final
+                var reporte = new RendimientoCosechaReporteDto
+                {
+                    Kpis = kpis,
+                    DatosLotes = datosLotesPaginados,
+                    RankingLotes = rankingLotes,
+                    RendimientoPorCultivo = rendimientoPorCultivo,
+                    RendimientoPorCampania = rendimientoPorCampania,
+                    RendimientoPorCampo = rendimientoPorCampo,
+                    EvolucionRendimiento = evolucion,
+                    Indicadores = indicadores,
+                    Paginacion = new PaginacionDto
+                    {
+                        PaginaActual = pagina,
+                        TamanoPagina = tamanoPagina,
+                        TotalRegistros = totalRegistros,
+                        TotalPaginas = totalPaginas
+                    }
+                };
+
+                return OperationResult<RendimientoCosechaReporteDto>.SuccessResult(reporte);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar reporte de rendimiento de cosecha");
+                return OperationResult<RendimientoCosechaReporteDto>.Failure(
+                    $"Error al generar reporte de rendimiento: {ex.Message}", "DATABASE_ERROR");
+            }
+        }
+
+        /// <summary>
+        /// Ordena por propiedad usando expresión switch
+        /// </summary>
+        private static object OrdenarPorPropiedad(DatoRendimientoLoteDto dto, string propiedad)
+        {
+            return propiedad switch
+            {
+                "Lote" => dto.Lote,
+                "Campo" => dto.Campo,
+                "Cultivo" => (object?)dto.Cultivo ?? "",
+                "Campania" => (object?)dto.Campania ?? "",
+                "RendimientoTonHa" => (object?)dto.RendimientoTonHa ?? 0m,
+                "ProduccionTotalTon" => (object?)dto.ProduccionTotalTon ?? 0m,
+                "SuperficieCosechadaHa" => (object?)dto.SuperficieCosechadaHa ?? 0m,
+                "HumedadGrano" => (object?)dto.HumedadGrano ?? 0m,
+                "FechaCosecha" => (object?)dto.FechaCosecha ?? DateTime.MinValue,
+                "CostoARS" => (object?)dto.CostoARS ?? 0m,
+                "CostoUSD" => (object?)dto.CostoUSD ?? 0m,
+                _ => (object?)dto.RendimientoTonHa ?? 0m
+            };
+        }
+
+        /// <summary>
+        /// Genera indicadores inteligentes basados en los KPIs calculados
+        /// </summary>
+        private static List<IndicadorInteligenteDto> GenerarIndicadoresInteligentes(
+            RendimientoCosechaKpiDto kpis,
+            List<Cosecha> conRendimiento,
+            decimal promedioGeneral)
+        {
+            var indicadores = new List<IndicadorInteligenteDto>();
+
+            // 1. Rendimiento vs promedio general
+            if (kpis.RendimientoPromedioTonHa.HasValue && promedioGeneral > 0)
+            {
+                var ratio = kpis.RendimientoPromedioTonHa.Value / promedioGeneral;
+                if (ratio > 1.2m)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Rendimiento superior",
+                        Severidad = "Alta",
+                        Titulo = "Rendimiento Superior",
+                        Mensaje = $"El rendimiento promedio ({kpis.RendimientoPromedioTonHa} tn/ha) supera en {((ratio - 1) * 100):N0}% el promedio general ({promedioGeneral:N2} tn/ha)",
+                        Recomendacion = "Documentar prácticas de manejo exitosas para replicarlas en otros lotes.",
+                        Icono = "ph-trend-up",
+                        Color = "#28a745",
+                        Valor = kpis.RendimientoPromedioTonHa,
+                        Umbral = promedioGeneral
+                    });
+                }
+                else if (ratio < 0.8m)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Rendimiento inferior",
+                        Severidad = "Alta",
+                        Titulo = "⚠️ Rendimiento Inferior",
+                        Mensaje = $"El rendimiento promedio ({kpis.RendimientoPromedioTonHa} tn/ha) está por debajo del 80% del promedio general ({promedioGeneral:N2} tn/ha)",
+                        Recomendacion = "Evaluar factores limitantes: calidad de semilla, fecha de siembra, manejo de nutrientes, control de plagas.",
+                        Icono = "ph-trend-down",
+                        Color = "#dc3545",
+                        Valor = kpis.RendimientoPromedioTonHa,
+                        Umbral = promedioGeneral
+                    });
+                }
+            }
+
+            // 2. Humedad fuera de rango
+            if (kpis.HumedadPromedio.HasValue)
+            {
+                if (kpis.HumedadPromedio > 18)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Humedad elevada",
+                        Severidad = "Media",
+                        Titulo = "💧 Humedad elevada en Grano",
+                        Mensaje = $"La humedad promedio del grano es {kpis.HumedadPromedio}%, superior al recomendado (<14%)",
+                        Recomendacion = "Considerar secado artificial o ajustar momento de cosecha para evitar descuentos por humedad.",
+                        Icono = "ph-drop",
+                        Color = "#ffc107",
+                        Valor = kpis.HumedadPromedio,
+                        Umbral = 14
+                    });
+                }
+            }
+
+            // 3. Variación vs Campaña anterior
+            if (kpis.VariacionVsCampaniaAnterior.HasValue)
+            {
+                if (kpis.VariacionVsCampaniaAnterior < -10)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "caída interanual",
+                        Severidad = "Alta",
+                        Titulo = "⚠️ caída Interanual Significativa",
+                        Mensaje = $"El rendimiento cayó {Math.Abs(kpis.VariacionVsCampaniaAnterior.Value):N1}% respecto a {kpis.CampaniaAnterior}",
+                        Recomendacion = "Analizar condiciones climáticas y de manejo que difirieron entre campañas.",
+                        Icono = "ph-chart-line-down",
+                        Color = "#dc3545",
+                        Valor = kpis.VariacionVsCampaniaAnterior,
+                        Umbral = -10
+                    });
+                }
+                else if (kpis.VariacionVsCampaniaAnterior > 15)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Mejora interanual",
+                        Severidad = "Baja",
+                        Titulo = "📈 Mejora Interanual Significativa",
+                        Mensaje = $"El rendimiento aumentó {kpis.VariacionVsCampaniaAnterior:N1}% respecto a {kpis.CampaniaAnterior}",
+                        Recomendacion = "Identificar y mantener las prácticas que contribuyeron a esta mejora.",
+                        Icono = "ph-chart-line-up",
+                        Color = "#28a745",
+                        Valor = kpis.VariacionVsCampaniaAnterior,
+                        Umbral = 15
+                    });
+                }
+            }
+
+            // 4. Baja superficie cosechada
+            if (kpis.SuperficieTotalCosechadaHa.HasValue && kpis.SuperficieTotalCosechadaHa < 10)
+            {
+                indicadores.Add(new IndicadorInteligenteDto
+                {
+                    Tipo = "Superficie reducida",
+                    Severidad = "Baja",
+                    Titulo = "🗺️ Superficie Cosechada Reducida",
+                    Mensaje = $"La superficie total cosechada es de solo {kpis.SuperficieTotalCosechadaHa:N1} ha",
+                    Recomendacion = "Verificar si hay lotes sin cosechar o si los datos están completos.",
+                    Icono = "ph-map-pin",
+                    Color = "#6c757d",
+                    Valor = kpis.SuperficieTotalCosechadaHa,
+                    Umbral = 10
+                });
+            }
+
+            // 5. Brecha entre mejor y peor lote
+            if (kpis.RendimientoMaximoTonHa.HasValue && kpis.RendimientoMinimoTonHa.HasValue
+                && kpis.RendimientoMaximoTonHa > 0 && kpis.RendimientoMinimoTonHa > 0)
+            {
+                var brecha = ((kpis.RendimientoMaximoTonHa.Value - kpis.RendimientoMinimoTonHa.Value) / kpis.RendimientoMaximoTonHa.Value) * 100;
+                if (brecha > 50)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Brecha alta entre lotes",
+                        Severidad = "Media",
+                        Titulo = "📊 Alta Brecha entre Lotes",
+                        Mensaje = $"Diferencia del {brecha:N0}% entre el mejor lote ({kpis.LoteMejorRendimiento}: {kpis.RendimientoMaximoTonHa} tn/ha) y el peor ({kpis.LotePeorRendimiento}: {kpis.RendimientoMinimoTonHa} tn/ha)",
+                        Recomendacion = "Investigar diferencias de suelo, manejo o historia entre estos lotes para homogenizar la producción.",
+                        Icono = "ph-git-diff",
+                        Color = "#ffc107",
+                        Valor = Math.Round(brecha, 1),
+                        Umbral = 50
+                    });
+                }
+            }
+
+            // 6. Baja cobertura de datos (pocos lotes con rendimiento registrado)
+            if (kpis.TotalLotes > 0 && kpis.LotesConRendimiento < kpis.TotalLotes)
+            {
+                var pctCobertura = (decimal)kpis.LotesConRendimiento / kpis.TotalLotes * 100;
+                if (pctCobertura < 60)
+                {
+                    indicadores.Add(new IndicadorInteligenteDto
+                    {
+                        Tipo = "Baja cobertura de datos",
+                        Severidad = "Media",
+                        Titulo = "📊 Baja Cobertura de Datos",
+                        Mensaje = $"Solo {kpis.LotesConRendimiento} de {kpis.TotalLotes} lotes ({pctCobertura:N0}%) tienen rendimiento registrado",
+                        Recomendacion = "Completar los registros de cosecha para tener una visión más precisa del rendimiento global.",
+                        Icono = "ph-database",
+                        Color = "#ffc107",
+                        Valor = Math.Round(pctCobertura, 1),
+                        Umbral = 60
+                    });
+                }
+            }
+
+            return indicadores;
+        }
+
+        /// <summary>
+        /// Asigna un color consistente para cada cultivo
+        /// </summary>
+        private static string ObtenerColorCultivo(string cultivo)
+        {
+            return cultivo.ToLower() switch
+            {
+                "soja" => "#4CAF50",
+                "maíz" or "maiz" => "#FF9800",
+                "trigo" => "#2196F3",
+                "girasol" => "#FFC107",
+                "sorgo" => "#9C27B0",
+                "cebada" => "#00BCD4",
+                "avena" => "#795548",
+                "colza" => "#607D8B",
+                "alpiste" => "#8BC34A",
+                "centeno" => "#E91E63",
+                _ => "#4CAF50"
+            };
+        }
     }
 }
+

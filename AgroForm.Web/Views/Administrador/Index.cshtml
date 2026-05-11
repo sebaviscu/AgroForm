@@ -15,180 +15,13 @@
     
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-theme.css" asp-append-version="true" />
 
     @* <link rel="icon" href="~/images/favicon.ico" type="image/x-icon" /> *@
+<style>
 
-    <style>
-        /* Variables de tema */
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-tertiary: #e9ecef;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --text-muted: #adb5bd;
-            --border-color: #dee2e6;
-            --card-bg: #ffffff;
-            --card-header-bg: #f8f9fa;
-            --table-bg: #ffffff;
-            --table-hover: #f5f5f5;
-            --table-striped: #f8f9fa;
-            --form-bg: #ffffff;
-            --modal-bg: #ffffff;
-            --nav-bg: #f8f9fa;
-            --btn-close-filter: none;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1f1f1f;
-            --bg-tertiary: #2d2d2d;
-            --text-primary: #ffffff;
-            --text-secondary: #e5e5e5;
-            --text-muted: #a0a0a0;
-            --border-color: #404040;
-            --card-bg: #1f1f1f;
-            --card-header-bg: #2d2d2d;
-            --table-bg: #1f1f1f;
-            --table-hover: #2d2d2d;
-            --table-striped: #252525;
-            --form-bg: #2d2d2d;
-            --modal-bg: #1f1f1f;
-            --nav-bg: #2d2d2d;
-            --btn-close-filter: invert(1);
-        }
-
-        /* Tema aplicado */
-        body {
-            background-color: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
-            transition: all 0.3s ease;
-        }
-        
-        .container-fluid {
-            background-color: var(--bg-primary) !important;
-        }
-        
-        .card {
-            background-color: var(--card-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-            transition: all 0.3s ease;
-        }
-        
-        .card-header {
-            background-color: var(--card-header-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .nav-tabs .nav-link {
-            background-color: var(--nav-bg) !important;
-            color: var(--text-secondary) !important;
-            border-color: var(--border-color) !important;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-tabs .nav-link.active {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .table {
-            background-color: var(--table-bg) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .table-striped > tbody > tr:nth-of-type(odd) > td,
-        .table-striped > tbody > tr:nth-of-type(odd) > th {
-            background-color: var(--table-striped) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .table-hover > tbody > tr:hover > td,
-        .table-hover > tbody > tr:hover > th {
-            background-color: var(--table-hover) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .table thead th {
-            background-color: var(--bg-tertiary) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .table td, .table th {
-            border-color: var(--border-color) !important;
-        }
-        
-        .form-control {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            background-color: var(--form-bg) !important;
-            border-color: #0d6efd !important;
-            color: var(--text-primary) !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-        }
-        
-        .form-select {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .form-label {
-            color: var(--text-secondary) !important;
-        }
-        
-        .modal-content {
-            background-color: var(--modal-bg) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .modal-header {
-            background-color: var(--card-header-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .h1, .h2, .h3, .h4, .h5, .h6 {
-            color: var(--text-primary) !important;
-        }
-        
-        .text-muted {
-            color: var(--text-muted) !important;
-        }
-        
-        .input-group-text {
-            background-color: var(--bg-secondary) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .form-check-input {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .form-check-label {
-            color: var(--text-primary) !important;
-        }
-        
-        .btn-close {
-            filter: var(--btn-close-filter);
-        }
-        
-        hr {
-            border-color: var(--border-color) !important;
-        }
-        
-        .small {
-            color: var(--text-muted) !important;
-        }
+        /* ===== Admin-specific styles ===== */
 
         /* Switch de tema */
         .theme-switch {
@@ -197,11 +30,11 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: var(--card-bg);
+            background: var(--surface);
             padding: 10px;
             border-radius: 50px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
         }
 
         .theme-switch-label {
@@ -210,7 +43,7 @@
             cursor: pointer;
             margin: 0;
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
 
         .theme-switch-input {
@@ -247,128 +80,16 @@
             transform: translateX(26px);
         }
 
-        /* DataTables */
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_processing {
-            color: var(--text-primary) !important;
+        /* Fix para visualización de colores en tabla de cultivos */
+        .cultivo-color-box {
+            background-color: transparent !important;
+            color: inherit !important;
         }
         
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            background-color: var(--bg-secondary) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: #ffffff !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background-color: var(--bg-tertiary) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-
-        /* Ajustes finos para modo oscuro (Bootstrap + DataTables) */
-        [data-theme="dark"] .table-light {
-            --bs-table-bg: var(--bg-tertiary);
-            --bs-table-color: var(--text-primary);
-            --bs-table-border-color: var(--border-color);
-        }
-
-        [data-theme="dark"] .table thead th,
-        [data-theme="dark"] .table thead td {
-            background-color: var(--bg-tertiary) !important;
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] .dataTables_wrapper .dataTables_filter input,
-        [data-theme="dark"] .dataTables_wrapper .dataTables_length select {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button {
-            border-radius: 6px;
-        }
-
-        [data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
-        [data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-            opacity: 0.45;
-            cursor: not-allowed !important;
-        }
-
-        [data-theme="dark"] .modal-backdrop.show {
-            opacity: 0.75;
-        }
-
-        [data-theme="dark"] .btn-outline-danger,
-        [data-theme="dark"] .btn-outline-primary,
-        [data-theme="dark"] .btn-outline-success,
-        [data-theme="dark"] .btn-outline-info,
-        [data-theme="dark"] .btn-outline-secondary {
-            border-color: rgba(255,255,255,0.25) !important;
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] .btn-outline-danger:hover,
-        [data-theme="dark"] .btn-outline-primary:hover,
-        [data-theme="dark"] .btn-outline-success:hover,
-        [data-theme="dark"] .btn-outline-info:hover,
-        [data-theme="dark"] .btn-outline-secondary:hover {
-            border-color: rgba(255,255,255,0.35) !important;
-        }
-
-        [data-theme="dark"] .dropdown-menu {
-            background-color: var(--modal-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] .dropdown-item {
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] .dropdown-item:hover,
-        [data-theme="dark"] .dropdown-item:focus {
-            background-color: var(--bg-tertiary) !important;
-        }
-        
-        /* Select2 */
-        .select2-container--bootstrap-5 .select2-selection {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .select2-dropdown {
-            background-color: var(--modal-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-        
-        .select2-results__options {
-            background-color: var(--modal-bg) !important;
-        }
-        
-        .select2-results__option {
-            background-color: var(--modal-bg) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .select2-results__option--highlighted {
-            background-color: #0d6efd !important;
-            color: #ffffff !important;
-        }
-        
-        .select2-search__field {
-            background-color: var(--form-bg) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
+        .cultivo-color-display {
+            background-color: var(--cultivo-color, #ccc) !important;
+            border: 1px solid var(--border) !important;
+            color: transparent !important;
         }
     </style>
 
@@ -410,7 +131,7 @@
                     <button class="nav-link active" id="licencias-tab" data-bs-toggle="tab"
                             data-bs-target="#licencias" type="button" role="tab"
                             aria-controls="licencias" aria-selected="true">
-                        <i class="ph ph-license me-2"></i>Licencias
+                        <i class="ph ph-hash-straight me-2"></i>Licencias
                     </button>
                 </li>
 
@@ -583,7 +304,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalLicenciaLabel">
-                    <i class="ph ph-license me-2"></i>Registrar Licencia
+                    <i class="ph ph-hash-straight me-2"></i>Registrar Licencia
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1035,49 +756,7 @@
 
     <script src="~/js/views/administradorLicencias.js" asp-append-version="true"></script>
     <script src="~/js/views/administradorCategorias.js" asp-append-version="true"></script>
-
-    <script>
-        // Manejo del tema
-        $(document).ready(function() {
-            const themeSwitch = document.getElementById('themeSwitch');
-            const body = document.body;
-            
-            // Cargar tema guardado (por defecto dark)
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            if (savedTheme === 'dark') {
-                body.setAttribute('data-theme', 'dark');
-                themeSwitch.checked = true;
-            } else {
-                body.removeAttribute('data-theme');
-                themeSwitch.checked = false;
-            }
-            
-            // Manejar cambio de tema
-            themeSwitch.addEventListener('change', function() {
-                if (this.checked) {
-                    body.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    body.removeAttribute('data-theme');
-                    localStorage.setItem('theme', 'light');
-                }
-                
-                // Refrescar DataTables para aplicar nuevo tema
-                if (typeof tableCultivos !== 'undefined') {
-                    tableCultivos.draw();
-                }
-                if (typeof tableVariedades !== 'undefined') {
-                    tableVariedades.draw();
-                }
-                if (typeof tableLicencias !== 'undefined') {
-                    tableLicencias.draw();
-                }
-                if (typeof tableCatalogos !== 'undefined') {
-                    tableCatalogos.draw();
-                }
-            });
-        });
-    </script>
+    <script src="~/js/dark-theme.js" asp-append-version="true"></script>
 
 </body>
 </html>

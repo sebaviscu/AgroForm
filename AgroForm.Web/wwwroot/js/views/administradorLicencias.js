@@ -191,14 +191,14 @@ function abrirModalLicencia(id, accion) {
 
     switch (accion) {
         case 'editar':
-            titulo.html('<i class="ph ph-license me-2"></i>Editar Licencia');
+            titulo.html('<i class="ph ph-hash-straight me-2"></i>Editar Licencia');
             btnGuardar.html('<i class="ph ph-check-circle me-1"></i> Actualizar');
             // Ocultar sección de usuario en edición
             $('#usuarioSection').hide();
             cargarDatosLicencia(id);
             break;
         case 'crear':
-            titulo.html('<i class="ph ph-license me-2"></i>Nueva Licencia');
+            titulo.html('<i class="ph ph-hash-straight me-2"></i>Nueva Licencia');
             btnGuardar.html('<i class="ph ph-check-circle me-1"></i> Guardar');
             // Mostrar sección de usuario en creación
             $('#usuarioSection').show();

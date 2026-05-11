@@ -29,5 +29,19 @@ namespace AgroForm.Business.Contracts
             int idCampoPrincipal,
             int? idCampoSecundario,
             int? idCampania = null);
+        /// <summary>
+        /// Obtiene el reporte de rendimiento de cosecha con KPIs, tabla, rankings, gráficos e indicadores.
+        /// </summary>
+        Task<OperationResult<RendimientoCosechaReporteDto>> GetRendimientoCosechaAsync(
+            int? idCampania = null,
+            int? idCampo = null,
+            int? idLote = null,
+            int? idCultivo = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            string ordenarPor = "RendimientoTonHa",
+            string ordenDireccion = "desc",
+            int pagina = 1,
+            int tamanoPagina = 20);
     }
 }

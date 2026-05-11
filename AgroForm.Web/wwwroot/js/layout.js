@@ -1,18 +1,8 @@
 // ===== FUNCIONES GLOBALES DEL LAYOUT =====
 
-// Inicialización del tema y configuración de moneda para la vista de usuario
+// Inicialización de configuración de moneda para la vista de usuario
 $(document).ready(function () {
-    const themeSwitch = document.getElementById('themeSwitchUser');
-    if (!themeSwitch) return;
-
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-    themeSwitch.checked = savedTheme === 'dark';
-
-    themeSwitch.addEventListener('change', function () {
-        setTheme(this.checked ? 'dark' : 'light');
-    });
-
+    // El manejo del tema ahora está centralizado en dark-theme.js (DarkTheme)
     // Cargar configuración de moneda al abrir el modal
     $('#configModal').on('show.bs.modal', function () {
         cargarConfiguracionMonedaModal();
@@ -89,17 +79,6 @@ function abrirModalConfiguracion(event) {
     event.preventDefault();
     const modal = new bootstrap.Modal(document.getElementById('configModal'));
     modal.show();
-}
-
-// Funciones de tema (ya existentes)
-function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-}
-
-function setTheme(theme) {
-    applyTheme(theme);
-    localStorage.setItem('theme', theme);
 }
 
 // ===== FUNCIONES DE SIMULACIÓN =====

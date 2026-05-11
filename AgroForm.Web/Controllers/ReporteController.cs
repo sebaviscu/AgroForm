@@ -12,15 +12,21 @@ public class ReporteController : Controller
     private readonly ICierreCampaniaService _cierreCampaniaService;
     private readonly ICampoService _campoService;
     private readonly IReportService _reportService;
+    private readonly ICampaniaService _campaniaService;
+    private readonly ICultivoService _cultivoService;
 
     public ReporteController(
         ICierreCampaniaService cierreCampaniaService,
         ICampoService campoService,
-        IReportService reportService)
+        IReportService reportService,
+        ICampaniaService campaniaService,
+        ICultivoService cultivoService)
     {
         _cierreCampaniaService = cierreCampaniaService;
         _campoService = campoService;
         _reportService = reportService;
+        _campaniaService = campaniaService;
+        _cultivoService = cultivoService;
     }
 
     [HttpGet("[action]")]
@@ -267,6 +273,87 @@ public class ReporteController : Controller
         {
             gResponse.Success = false;
             gResponse.Message = "Ha ocurrido un error al generar la comparativa";
+            return BadRequest(gResponse);
+        }
+    }
+
+    // ============================================================
+    // Reporte de Rendimiento de Cosecha
+    // ============================================================
+
+    /// <summary>
+    /// Vista principal del reporte de rendimiento de cosecha
+    /// </summary>
+    [HttpGet("[action]")]
+    public async Task<IActionResult> Cosecha()
+    {
+        try
+        {
+            // Obtener datos para los filtros
+            var camposResult = await _campoService.GetAllAsync();
+            var campaniasResult = await _campaniaService.GetAllAsync();
+            var cultivosResult = await _cultivoService.GetAllAsync();
+
+            var viewModel = new RendimientoCosechaVM
+            {
+                Campos = camposResult.Success
+                    ? camposResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre }).ToList()
+                    : new List<FiltroItem>(),
+                Campanias = campaniasResult.Success
+                    ? campaniasResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre ?? "N/A" }).ToList()
+                    : new List<FiltroItem>(),
+                Cultivos = cultivosResult.Success
+                    ? cultivosResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre ?? "Sin nombre" }).ToList()
+                    : new List<FiltroItem>()
+            };
+
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            // En caso de error, retornar vista con datos vacíos
+            return View(new RendimientoCosechaVM());
+        }
+    }
+
+    /// <summary>
+    /// Obtiene los datos del reporte de rendimiento de cosecha vía AJAX
+    /// </summary>
+    [HttpPost("GetRendimientoCosechaData")]
+    public async Task<IActionResult> GetRendimientoCosechaData([FromBody] RendimientoCosechaRequest request)
+    {
+        var gResponse = new GenericResponse<RendimientoCosechaReporteDto>();
+
+        try
+        {
+            var result = await _reportService.GetRendimientoCosechaAsync(
+                request.IdCampania,
+                request.IdCampo,
+                request.IdLote,
+                request.IdCultivo,
+                request.FechaDesde,
+                request.FechaHasta,
+                request.OrdenarPor,
+                request.OrdenDireccion,
+                request.Pagina,
+                request.TamanoPagina);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = result.Data;
+            gResponse.Message = "Reporte de rendimiento generado correctamente";
+            return Ok(gResponse);
+        }
+        catch (Exception ex)
+        {
+            gResponse.Success = false;
+            gResponse.Message = "Ha ocurrido un error al generar el reporte de rendimiento";
             return BadRequest(gResponse);
         }
     }

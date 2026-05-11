@@ -1,0 +1,517 @@
+@model RendimientoCosechaVM
+@{
+    ViewData["Title"] = "Rendimiento de Cosecha";
+}
+
+<style>
+    /* ===== Fix Bootstrap tab-pane stacking ===== */
+    .tab-content {
+        position: relative;
+    }
+    .tab-content > .tab-pane {
+        display: none !important;
+        position: relative;
+        width: 100%;
+    }
+    .tab-content > .tab-pane.active {
+        display: block !important;
+    }
+    .tab-content > .tab-pane.active.show {
+        display: block !important;
+    }
+
+    /* ===== KPI Cards ===== */
+    .kpi-card {
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    .kpi-trend-up { color: #28a745; }
+    .kpi-trend-down { color: #dc3545; }
+    .kpi-trend-stable { color: #ffc107; }
+
+    /* ===== Tab Custom ===== */
+    .nav-tabs-custom {
+        border-bottom: 2px solid var(--bs-border-color);
+        gap: 4px;
+    }
+    .nav-tabs-custom .nav-link {
+        border: none;
+        border-radius: 8px 8px 0 0;
+        padding: 10px 18px;
+        font-weight: 500;
+        color: var(--bs-secondary-color);
+        transition: all 0.2s;
+    }
+    .nav-tabs-custom .nav-link:hover {
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-body-color);
+    }
+    .nav-tabs-custom .nav-link.active {
+        color: var(--bs-nav-tabs-link-active-color);
+        background: var(--bs-nav-tabs-link-active-bg);
+        border-bottom: 2px solid var(--bs-primary);
+        margin-bottom: -2px;
+    }
+    .nav-tabs-custom .nav-link i {
+        margin-right: 6px;
+    }
+
+    /* ===== Ranking Badges ===== */
+    .ranking-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA000);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .ranking-2 {
+        background: linear-gradient(135deg, #C0C0C0, #9E9E9E);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .ranking-3 {
+        background: linear-gradient(135deg, #CD7F32, #8D6E63);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .ranking-default {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 13px;
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+    }
+
+    /* ===== Table ===== */
+    .table-cosecha th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+    }
+    .table-cosecha th:hover {
+        color: var(--bs-primary);
+    }
+    .table-cosecha th .sort-icon {
+        margin-left: 4px;
+        opacity: 0.4;
+    }
+    .table-cosecha th.active .sort-icon {
+        opacity: 1;
+        color: var(--bs-primary);
+    }
+    .table-cosecha td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    .trend-up { color: #28a745; }
+    .trend-down { color: #dc3545; }
+    .trend-stable { color: #ffc107; }
+
+    /* ===== Pagination ===== */
+    .pagination-custom {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+    }
+    .pagination-custom .btn-page {
+        min-width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-card-bg);
+        color: var(--bs-body-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .pagination-custom .btn-page:hover {
+        background: var(--bs-tertiary-bg);
+    }
+    .pagination-custom .btn-page.active {
+        background: var(--bs-primary);
+        color: #fff;
+        border-color: var(--bs-primary);
+    }
+    .pagination-custom .btn-page:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .pagination-info {
+        font-size: 0.85rem;
+        color: var(--bs-secondary-color);
+    }
+
+    /* ===== Indicator Cards ===== */
+    .indicator-card {
+        border-radius: 12px;
+        padding: 16px;
+        border-left: 4px solid;
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    .indicator-card:hover {
+        transform: translateY(-2px);
+    }
+    .indicator-card .indicator-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .indicator-severity-alta { border-left-color: #dc3545; }
+    .indicator-severity-media { border-left-color: #ffc107; }
+    .indicator-severity-baja { border-left-color: #17a2b8; }
+
+    /* ===== Chart containers ===== */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    .chart-container-sm {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+
+    /* ===== Loading ===== */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 20px;
+    }
+
+    /* ===== Responsive ===== */
+    @@media (max-width: 768px) {
+        .kpi-card { padding: 14px; }
+        .kpi-icon { width: 40px; height: 40px; font-size: 20px; }
+        .nav-tabs-custom .nav-link { padding: 8px 12px; font-size: 0.85rem; }
+        .chart-container { height: 220px; }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">
+                <i class="ph ph-tractor me-2"></i>Rendimiento de Cosecha
+            </h4>
+            <p class="text-muted mb-0 small">Análisis detallado de rendimientos por lote, campaña y cultivo</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm me-2" onclick="exportarExcel()" title="Exportar a Excel">
+                <i class="ph ph-file-xls me-1"></i>Excel
+            </button>
+            <button class="btn btn-outline-secondary btn-sm me-2" onclick="exportarPDF()" title="Exportar a PDF">
+                <i class="ph ph-file-pdf me-1"></i>PDF
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#ayudaModal" title="Ayuda">
+                <i class="ph ph-question"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Campaña</label>
+                    <select id="filtroCampania" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Campo</label>
+                    <select id="filtroCampo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Lote</label>
+                    <select id="filtroLote" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Cultivo</label>
+                    <select id="filtroCultivo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Desde</label>
+                    <input type="date" id="filtroFechaDesde" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Hasta</label>
+                    <input type="date" id="filtroFechaHasta" class="form-control form-control-sm" />
+                </div>
+                <div class="col-12 mt-2">
+                    <button class="btn btn-primary btn-sm" onclick="cargarDatos()">
+                        <i class="ph ph-magnifying-glass me-1"></i>Generar Reporte
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="limpiarFiltros()">
+                        <i class="ph ph-x-circle me-1"></i>Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-container" style="display:none;">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-muted">Generando reporte de rendimiento...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="loading-container" style="display:none;">
+        <i class="ph ph-database display-1 text-muted mb-3"></i>
+        <h5 class="text-muted">Sin datos disponibles</h5>
+        <p class="text-muted small">No se encontraron registros de cosecha para los filtros seleccionados.</p>
+    </div>
+
+    <!-- Report Data -->
+    <div id="reportData" style="display:none;">
+        <!-- KPI Cards -->
+        <div id="kpiContainer" class="row g-3 mb-4"></div>
+
+        <!-- Tabs -->
+        <div class="card">
+            <div class="card-header p-0">
+                <ul class="nav nav-tabs-custom px-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabResumen" type="button">
+                            <i class="ph ph-chart-bar"></i>Resumen
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabTabla" type="button">
+                            <i class="ph ph-table"></i>Datos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGraficos" type="button">
+                            <i class="ph ph-barricade"></i>Gráficos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabEvolucion" type="button">
+                            <i class="ph ph-trend-up"></i>Evolución
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabIndicadores" type="button">
+                            <i class="ph ph-lightbulb"></i>Indicadores
+                            <span id="indicadorCount" class="badge bg-warning ms-1">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Tab: Resumen -->
+                    <div class="tab-pane fade show active" id="tabResumen">
+                        <div id="resumenContainer"></div>
+                    </div>
+                    <!-- Tab: Tabla de Datos -->
+                    <div class="tab-pane fade" id="tabTabla">
+                        <div id="tablaContainer"></div>
+                        <div id="paginacionContainer"></div>
+                    </div>
+                    <!-- Tab: Gráficos -->
+                    <div class="tab-pane fade" id="tabGraficos">
+                        <div id="graficosContainer"></div>
+                    </div>
+                    <!-- Tab: Evolución -->
+                    <div class="tab-pane fade" id="tabEvolucion">
+                        <div id="evolucionContainer"></div>
+                    </div>
+                    <!-- Tab: Indicadores -->
+                    <div class="tab-pane fade" id="tabIndicadores">
+                        <div id="indicadoresContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="ayudaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ph ph-question me-2"></i>Ayuda: Reporte de Rendimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="ayudaAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaFiltros">
+                                Filtros
+                            </button>
+                        </h2>
+                        <div id="ayudaFiltros" class="accordion-collapse collapse show" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Utiliza los filtros para acotar los datos del reporte:</p>
+                                <ul>
+                                    <li><strong>Campaña</strong>: Selecciona una campaña específica o "Todas" para ver el histórico completo.</li>
+                                    <li><strong>Campo / Lote</strong>: Filtra por campo o lote específico.</li>
+                                    <li><strong>Cultivo</strong>: Filtra por tipo de cultivo (Soja, Maíz, Trigo, etc.).</li>
+                                    <li><strong>Fecha</strong>: Rango de fechas de cosecha.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaKPI">
+                                KPIs
+                            </button>
+                        </h2>
+                        <div id="ayudaKPI" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Rendimiento Promedio</strong>: Media de rendimiento en tn/ha de todos los lotes.</li>
+                                    <li><strong>Mejor/Peor Lote</strong>: Lotes con mayor y menor rendimiento.</li>
+                                    <li><strong>Producción Total</strong>: Suma de producción en toneladas.</li>
+                                    <li><strong>Superficie Cosechada</strong>: Total de hectáreas cosechadas.</li>
+                                    <li><strong>Humedad Promedio</strong>: Humedad del grano al momento de cosecha.</li>
+                                    <li><strong>Variación vs Campaña Anterior</strong>: Cambio porcentual del rendimiento promedio.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaTablas">
+                                Tablas y Rankings
+                            </button>
+                        </h2>
+                        <div id="ayudaTablas" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>La tabla de datos permite ordenar por cualquier columna haciendo clic en el encabezado. Los rankings muestran el top 10 de lotes por rendimiento.</p>
+                                <p>Puedes exportar los datos a Excel o PDF usando los botones de la barra superior.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaGraficos">
+                                Gráficos
+                            </button>
+                        </h2>
+                        <div id="ayudaGraficos" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Rendimiento por Cultivo</strong>: Distribución del rendimiento promedio por tipo de cultivo (torta).</li>
+                                    <li><strong>Rendimiento por Campaña</strong>: Evolución del rendimiento promedio por campaña (barras).</li>
+                                    <li><strong>Rendimiento por Campo</strong>: Comparativa de rendimiento entre campos (barras).</li>
+                                    <li><strong>Evolución Histórica</strong>: Línea de rendimiento y humedad a través de las campañas.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaIndicadores">
+                                Indicadores Inteligentes
+                            </button>
+                        </h2>
+                        <div id="ayudaIndicadores" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                <p>Los indicadores inteligentes analizan automáticamente los datos y generan alertas y recomendaciones basadas en:</p>
+                                <ul>
+                                    <li>Rendimiento vs promedio general</li>
+                                    <li>Humedad del grano fuera de rango</li>
+                                    <li>Variación interanual significativa</li>
+                                    <li>Brecha entre mejor y peor lote</li>
+                                    <li>Cobertura de datos registrados</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pass server-side ViewModel data to JavaScript -->
+<script>
+    window.rendimientoCosechaModel = {
+        campanias: @Html.Raw(Json.Serialize(Model?.Campanias?.Select(c => new { id = c.Id, nombre = c.Nombre }))),
+        campos: @Html.Raw(Json.Serialize(Model?.Campos?.Select(c => new { id = c.Id, nombre = c.Nombre }))),
+        cultivos: @Html.Raw(Json.Serialize(Model?.Cultivos?.Select(c => new { id = c.Id, nombre = c.Nombre })))
+    };
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="~/js/views/reporteCosecha.js" asp-append-version="true"></script>
+}

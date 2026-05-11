@@ -26,8 +26,8 @@ function inicializarDataTableCategorias() {
                 data: 'color',
                 render: function(data) {
                     if (!data) return '<span class="text-muted">-</span>';
-                    return `<div class="d-flex align-items-center">
-                        <div style="width: 20px; height: 20px; background-color: ${data}; border: 1px solid #dee2e6; border-radius: 3px; margin-right: 8px;"></div>
+                    return `<div class="d-flex align-items-center cultivo-color-box">
+                        <div class="cultivo-color-display" style="--cultivo-color: ${data}; width: 20px; height: 20px; border-radius: 3px; margin-right: 8px;"></div>
                         <span>${data}</span>
                     </div>`;
                 }

@@ -344,4 +344,179 @@ namespace AgroForm.Business.Contracts
         public int? IdLote { get; set; }
         public int? IdCultivo { get; set; }
     }
+
+    // ============================================================
+    // DTOs para el Reporte de Rendimiento de Cosecha
+    // ============================================================
+
+    /// <summary>
+    /// Request para el reporte de rendimiento de cosecha
+    /// </summary>
+    public class RendimientoCosechaRequest
+    {
+        public int? IdCampania { get; set; }
+        public int? IdCampo { get; set; }
+        public int? IdLote { get; set; }
+        public int? IdCultivo { get; set; }
+        public DateTime? FechaDesde { get; set; }
+        public DateTime? FechaHasta { get; set; }
+        public string OrdenarPor { get; set; } = "RendimientoTonHa";
+        public string OrdenDireccion { get; set; } = "desc";
+        public int Pagina { get; set; } = 1;
+        public int TamanoPagina { get; set; } = 20;
+    }
+
+    /// <summary>
+    /// DTO principal del reporte de rendimiento de cosecha
+    /// </summary>
+    public class RendimientoCosechaReporteDto
+    {
+        public RendimientoCosechaKpiDto Kpis { get; set; } = new();
+        public List<DatoRendimientoLoteDto> DatosLotes { get; set; } = new();
+        public List<RankingLoteDto> RankingLotes { get; set; } = new();
+        public List<DatoRendimientoPorCultivo> RendimientoPorCultivo { get; set; } = new();
+        public List<DatoRendimientoPorCampania> RendimientoPorCampania { get; set; } = new();
+        public List<DatoRendimientoPorCampo> RendimientoPorCampo { get; set; } = new();
+        public List<DatoEvolucionRendimiento> EvolucionRendimiento { get; set; } = new();
+        public List<IndicadorInteligenteDto> Indicadores { get; set; } = new();
+        public PaginacionDto Paginacion { get; set; } = new();
+    }
+
+    /// <summary>
+    /// KPIs principales del reporte de rendimiento
+    /// </summary>
+    public class RendimientoCosechaKpiDto
+    {
+        public decimal? RendimientoPromedioTonHa { get; set; }
+        public decimal? RendimientoMaximoTonHa { get; set; }
+        public string? LoteMejorRendimiento { get; set; }
+        public decimal? RendimientoMinimoTonHa { get; set; }
+        public string? LotePeorRendimiento { get; set; }
+        public decimal? ProduccionTotalTon { get; set; }
+        public decimal? SuperficieTotalCosechadaHa { get; set; }
+        public decimal? HumedadPromedio { get; set; }
+        public decimal? VariacionVsCampaniaAnterior { get; set; }
+        public string? CampaniaAnterior { get; set; }
+        public string? CampaniaActual { get; set; }
+        public int TotalLotes { get; set; }
+        public int LotesConRendimiento { get; set; }
+        public decimal? CostoPromedioPorHa { get; set; }
+        public string Moneda { get; set; } = "ARS";
+    }
+
+    /// <summary>
+    /// Dato de rendimiento por lote (para la tabla principal)
+    /// </summary>
+    public class DatoRendimientoLoteDto
+    {
+        public int IdCosecha { get; set; }
+        public int IdLote { get; set; }
+        public string Lote { get; set; } = string.Empty;
+        public string Campo { get; set; } = string.Empty;
+        public string? Cultivo { get; set; }
+        public string? Campania { get; set; }
+        public decimal? RendimientoTonHa { get; set; }
+        public decimal? ProduccionTotalTon { get; set; }
+        public decimal? SuperficieCosechadaHa { get; set; }
+        public decimal? HumedadGrano { get; set; }
+        public DateTime? FechaCosecha { get; set; }
+        public decimal? Costo { get; set; }
+        public decimal? CostoARS { get; set; }
+        public decimal? CostoUSD { get; set; }
+        public string? Moneda { get; set; }
+        public int RankingRendimiento { get; set; }
+        public string? Tendencia { get; set; } // "subiendo", "estable", "bajando"
+    }
+
+    /// <summary>
+    /// Ranking de lotes por rendimiento
+    /// </summary>
+    public class RankingLoteDto
+    {
+        public int Posicion { get; set; }
+        public string Lote { get; set; } = string.Empty;
+        public string Campo { get; set; } = string.Empty;
+        public string? Cultivo { get; set; }
+        public decimal RendimientoTonHa { get; set; }
+        public string? Campania { get; set; }
+    }
+
+    /// <summary>
+    /// Rendimiento agregado por cultivo
+    /// </summary>
+    public class DatoRendimientoPorCultivo
+    {
+        public string Cultivo { get; set; } = string.Empty;
+        public decimal RendimientoPromedioTonHa { get; set; }
+        public decimal? SuperficieTotalHa { get; set; }
+        public decimal? ProduccionTotalTon { get; set; }
+        public int CantidadLotes { get; set; }
+        public string Color { get; set; } = "#4CAF50";
+    }
+
+    /// <summary>
+    /// Rendimiento agregado por campaña
+    /// </summary>
+    public class DatoRendimientoPorCampania
+    {
+        public string Campania { get; set; } = string.Empty;
+        public decimal RendimientoPromedioTonHa { get; set; }
+        public decimal? SuperficieTotalHa { get; set; }
+        public decimal? ProduccionTotalTon { get; set; }
+        public int CantidadCosechas { get; set; }
+    }
+
+    /// <summary>
+    /// Rendimiento agregado por campo
+    /// </summary>
+    public class DatoRendimientoPorCampo
+    {
+        public string Campo { get; set; } = string.Empty;
+        public decimal RendimientoPromedioTonHa { get; set; }
+        public decimal? SuperficieTotalHa { get; set; }
+        public decimal? ProduccionTotalTon { get; set; }
+        public int CantidadLotes { get; set; }
+    }
+
+    /// <summary>
+    /// Dato para la evolución histórica del rendimiento (gráfico de líneas)
+    /// </summary>
+    public class DatoEvolucionRendimiento
+    {
+        public string Periodo { get; set; } = string.Empty; // "2023/24 - Soja"
+        public string? Campania { get; set; }
+        public string? Cultivo { get; set; }
+        public decimal RendimientoTonHa { get; set; }
+        public decimal? HumedadPromedio { get; set; }
+        public decimal? SuperficieHa { get; set; }
+    }
+
+    /// <summary>
+    /// Indicador inteligente con alertas y recomendaciones
+    /// </summary>
+    public class IndicadorInteligenteDto
+    {
+        public string Tipo { get; set; } = string.Empty;
+        public string Severidad { get; set; } = "Media"; // Baja, Media, Alta
+        public string Titulo { get; set; } = string.Empty;
+        public string Mensaje { get; set; } = string.Empty;
+        public string? Recomendacion { get; set; }
+        public string Icono { get; set; } = "ph-info";
+        public string Color { get; set; } = "#6c757d";
+        public decimal? Valor { get; set; }
+        public decimal? Umbral { get; set; }
+    }
+
+    /// <summary>
+    /// Información de paginación
+    /// </summary>
+    public class PaginacionDto
+    {
+        public int PaginaActual { get; set; } = 1;
+        public int TamanoPagina { get; set; } = 20;
+        public int TotalRegistros { get; set; }
+        public int TotalPaginas { get; set; }
+        public bool TieneAnterior => PaginaActual > 1;
+        public bool TieneSiguiente => PaginaActual < TotalPaginas;
+    }
 }

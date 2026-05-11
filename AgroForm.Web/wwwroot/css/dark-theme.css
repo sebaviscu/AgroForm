@@ -1,0 +1,606 @@
+/* ==========================================================================
+   dark-theme.css — Centralized Dark Mode Styles
+   ==========================================================================
+   All [data-theme="dark"] rules are consolidated here.
+   Variables are defined in site.css :root / [data-theme="dark"].
+   This file must be loaded AFTER site.css.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. BASE LAYOUT
+   ========================================================================== */
+[data-theme="dark"] .navbar {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+
+[data-theme="dark"] .main-content,
+[data-theme="dark"] body {
+    color: var(--text);
+    background: var(--app-bg);
+}
+
+/* ==========================================================================
+   2. CARDS, MODALS, DROPDOWNS
+   ========================================================================== */
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .card.bg-light,
+[data-theme="dark"] .card.bg-white,
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-white {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .modal-header {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .card-footer,
+[data-theme="dark"] .modal-footer {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dropdown-item i {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover i,
+[data-theme="dark"] .dropdown-item:focus i {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-top-color: var(--border) !important;
+}
+
+/* ==========================================================================
+   3. TEXT COLORS
+   ========================================================================== */
+[data-theme="dark"] .text-dark {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text);
+}
+
+/* ==========================================================================
+   4. FORM CONTROLS
+   ========================================================================== */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .input-group-text {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%);
+}
+
+/* ==========================================================================
+   5. TABLES
+   ========================================================================== */
+[data-theme="dark"] .table {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table thead th,
+[data-theme="dark"] .table thead td {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table-light {
+    --bs-table-bg: var(--surface-2) !important;
+    --bs-table-color: var(--text) !important;
+    --bs-table-border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .table-light th,
+[data-theme="dark"] .table-light td {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .table-light thead th {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: rgba(255,255,255,0.03);
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] #tbodyResumenGastos,
+[data-theme="dark"] #tbodyResumenGastos tr,
+[data-theme="dark"] #tbodyResumenGastos td {
+    background: transparent !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] #tablaResumenGastos {
+    background: transparent !important;
+}
+
+[data-theme="dark"] #tablaResumenGastos .table-primary {
+    --bs-table-bg: rgba(13, 110, 253, 0.18);
+    --bs-table-color: var(--text);
+    --bs-table-border-color: var(--border);
+}
+
+/* ==========================================================================
+   6. DATATABLES
+   ========================================================================== */
+[data-theme="dark"] .dataTables_wrapper .dataTables_length,
+[data-theme="dark"] .dataTables_wrapper .dataTables_filter,
+[data-theme="dark"] .dataTables_wrapper .dataTables_info,
+[data-theme="dark"] .dataTables_wrapper .dataTables_processing {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_filter input,
+[data-theme="dark"] .dataTables_wrapper .dataTables_length select {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 6px;
+    margin: 0 2px;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: var(--text-muted) !important;
+    opacity: 0.45;
+    cursor: not-allowed !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .ellipsis {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .modal-backdrop.show {
+    opacity: 0.75;
+}
+
+/* ==========================================================================
+   7. OUTLINE BUTTONS (Admin Panel)
+   ========================================================================== */
+[data-theme="dark"] .btn-outline-danger,
+[data-theme="dark"] .btn-outline-primary,
+[data-theme="dark"] .btn-outline-success,
+[data-theme="dark"] .btn-outline-info,
+[data-theme="dark"] .btn-outline-secondary {
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover,
+[data-theme="dark"] .btn-outline-primary:hover,
+[data-theme="dark"] .btn-outline-success:hover,
+[data-theme="dark"] .btn-outline-info:hover,
+[data-theme="dark"] .btn-outline-secondary:hover {
+    border-color: rgba(255,255,255,0.35) !important;
+}
+
+/* ==========================================================================
+   8. STAT CARDS (Home Dashboard)
+   ========================================================================== */
+[data-theme="dark"] .stat-card {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+    border-left-color: #20c997;
+}
+
+[data-theme="dark"] .stat-number {
+    color: #20c997;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   9. REPORT: CAMPO VIEW
+   ========================================================================== */
+[data-theme="dark"] .alert-card {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text);
+}
+
+[data-theme="dark"] .alert-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .kpi-card {
+    color: var(--text);
+}
+
+[data-theme="dark"] .kpi-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .kpi-card small {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .kpi-card h5 {
+    color: var(--text);
+}
+
+[data-theme="dark"] .timeline-content {
+    background: var(--surface) !important;
+    color: var(--text);
+}
+
+[data-theme="dark"] .score-ring-inner {
+    background: var(--surface) !important;
+    color: var(--text);
+}
+
+[data-theme="dark"] .timeline::before {
+    background: var(--border) !important;
+}
+
+[data-theme="dark"] .soil-bar {
+    background: var(--border) !important;
+}
+
+[data-theme="dark"] .comparativa-ganador {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+}
+
+[data-theme="dark"] .history-campaign-header:hover {
+    background: rgba(13, 110, 253, 0.1) !important;
+}
+
+[data-theme="dark"] .chart-container canvas {
+    filter: brightness(0.9);
+}
+
+[data-theme="dark"] #reportLoading {
+    color: var(--text);
+}
+
+[data-theme="dark"] #reportLoading .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] #reportLoading i.ph {
+    color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   10. REPORT: COSECHA VIEW
+   ========================================================================== */
+[data-theme="dark"] .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .indicator-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid;
+}
+
+/* ==========================================================================
+   11. CAMPOS / ACTIVIDADES COMPONENT
+   ========================================================================== */
+[data-theme="dark"] .campo-header {
+    border-bottom-color: var(--bs-primary) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .campo-header h5,
+[data-theme="dark"] .campo-header h1,
+[data-theme="dark"] .campo-header h2,
+[data-theme="dark"] .campo-header h3,
+[data-theme="dark"] .campo-header h4,
+[data-theme="dark"] .campo-header h6 {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .campo-header .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   14. ACTIVIDADES TABLE SPECIFIC FIXES
+   ========================================================================== */
+[data-theme="dark"] .table .campo-header,
+[data-theme="dark"] .campo-header.d-flex {
+    color: var(--text) !important;
+    background: transparent !important;
+}
+
+[data-theme="dark"] .table .campo-header h5,
+[data-theme="dark"] .table .campo-header h1,
+[data-theme="dark"] .table .campo-header h2,
+[data-theme="dark"] .table .campo-header h3,
+[data-theme="dark"] .table .campo-header h4,
+[data-theme="dark"] .table .campo-header h6 {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table .campo-header .text-muted,
+[data-theme="dark"] .campo-header.d-flex .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Fix para hover de filas con fondo blanco */
+[data-theme="dark"] .table tbody tr:hover {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table tbody tr:hover td {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+/* Fix para grilla de tabla blanca */
+[data-theme="dark"] .table {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+/* Fix para texto en blanco en algunas filas */
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(even) {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .table-striped tbody tr td {
+    background-color: transparent !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .campo-section {
+    border-bottom-color: var(--border) !important;
+}
+
+[data-theme="dark"] .lote-item {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .lote-item:hover {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+/* Fix para fondo de .lotes-list */
+[data-theme="dark"] .lotes-list {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .lotes-list .lote-item {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .lotes-list .lote-item:hover {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .ciclo-header {
+    background-color: rgba(40, 167, 69, 0.12) !important;
+    border-left-color: var(--bs-success) !important;
+}
+
+[data-theme="dark"] .actividad-item {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .actividad-item:hover {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+
+/* ==========================================================================
+   12. SELECT2
+   ========================================================================== */
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-selection,
+[data-theme="dark"] .select2-container--default .select2-selection--single,
+[data-theme="dark"] .select2-container--default .select2-selection--multiple {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-dropdown {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+}
+
+[data-theme="dark"] .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-results__option {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-results__option--highlighted,
+[data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .select2-search__field {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--text-muted) transparent transparent transparent !important;
+}
+
+/* ==========================================================================
+   13. CHOICES.JS
+   ========================================================================== */
+[data-theme="dark"] .choices__inner {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__input {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__input--cloned {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__list--dropdown {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+}
+
+[data-theme="dark"] .choices__list--dropdown .choices__item--selectable {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: rgba(13, 110, 253, 0.15) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1;
+}
+
+[data-theme="dark"] .choices__item--choice {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices[data-type*="select-one"] .choices__button {
+    filter: invert(1);
+}
+
+[data-theme="dark"] .choices__list--single .choices__item {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__list--multiple .choices__item {
+    background-color: var(--surface-2) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .choices__list--multiple .choices__item .choices__button {
+    filter: invert(1);
+}
