@@ -244,7 +244,7 @@ function guardarEntidad(baseUrl, idField, formId, table, modalSelector) {
             if(res.success) {
                 $(modalSelector).modal('hide');
                 table.ajax.reload();
-                mostrarExito('Guardado correctamente');
+                mostrarMensaje('Guardado correctamente');
             } else {
                 mostrarError(res.message || 'Error al guardar');
             }

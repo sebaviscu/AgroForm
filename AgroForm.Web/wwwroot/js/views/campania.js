@@ -828,7 +828,6 @@ function iniciarCampania(id, nombre) {
                     cerrarAlertas();
                     if (response.success) {
                         mostrarExito(response.message || 'Campaña iniciada correctamente');
-                        table.ajax.reload();
                         window.location.reload();
                     } else {
                         mostrarError(response.message || 'Error al iniciar campaña');

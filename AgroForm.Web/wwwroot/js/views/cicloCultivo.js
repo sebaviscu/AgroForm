@@ -149,7 +149,7 @@ function abrirModalCrearCiclo() {
             success: function (result) {
                 if (result.success) {
                     $('#modalCrearCicloGestion').modal('hide');
-                    mostrarExito('Ciclo creado correctamente');
+                    mostrarMensaje('Ciclo creado correctamente');
                     setTimeout(function () {
                         location.reload();
                     }, 500);
@@ -240,7 +240,7 @@ function cerrarCicloGestion(id, row) {
         },
         success: function (result) {
             if (result.success) {
-                mostrarExito('Ciclo cerrado correctamente');
+                mostrarMensaje('Ciclo cerrado correctamente');
                 setTimeout(function () {
                     location.reload();
                 }, 500);

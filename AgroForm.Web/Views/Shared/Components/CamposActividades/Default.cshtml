@@ -185,8 +185,8 @@
             });
 
             $.each(ciclosOrdenados, function (index, ciclo) {
-                var isCerrado = ciclo.nombre.indexOf('(Cerrado)') > -1;
-                var displayNombre = isCerrado ? ciclo.nombre.replace(' (Cerrado)', '') : ciclo.nombre;
+                var isCerrado = ciclo.nombre.indexOf('(Finalizado)') > -1;
+                var displayNombre = isCerrado ? ciclo.nombre.replace(' (Finalizado)', '') : ciclo.nombre;
 
                 var $cicloDiv = $('<div>', {
                     class: 'ciclo-group mb-2'
@@ -197,7 +197,7 @@
                 }).html(
                     '<small class="fw-semibold me-2">' + displayNombre + '</small>' +
                     (isCerrado
-                        ? '<span class="badge bg-secondary" style="font-size:0.65rem;">Cerrado</span>'
+                        ? '<span class="badge bg-secondary" style="font-size:0.65rem;">Finalizado</span>'
                         : '<span class="badge bg-success" style="font-size:0.65rem;">Activo</span>')
                 );
 

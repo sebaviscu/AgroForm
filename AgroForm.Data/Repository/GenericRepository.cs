@@ -58,7 +58,29 @@ namespace AgroForm.Data.Repository
 
         public async Task<bool> DeleteAsync(TEntity entidad)
         {
-            _context.Remove(entidad);
+            var entry = _context.Entry(entidad);
+            if (entry.State == EntityState.Detached)
+            {
+                // Check if a different instance with the same key is already tracked
+                // This avoids InvalidOperationException when InMemory has a tracked instance
+                // with the same key value
+                var existingEntry = _context.ChangeTracker.Entries<TEntity>()
+                    .FirstOrDefault(e => e.State != EntityState.Detached && e.Entity != entidad);
+
+                if (existingEntry != null)
+                {
+                    _context.Remove(existingEntry.Entity);
+                }
+                else
+                {
+                    _context.Attach(entidad);
+                    _context.Remove(entidad);
+                }
+            }
+            else
+            {
+                _context.Remove(entidad);
+            }
             return await Task.FromResult(true);
         }
         public async Task<TEntity?> GetByIdAsync(object id)

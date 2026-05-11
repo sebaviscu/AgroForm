@@ -249,6 +249,16 @@ namespace AgroForm.Web.Controllers
             {
                 var user = ValidarAutorizacion(new[] { Roles.Administrador });
 
+                // Validación de seguridad: verificar que los datos requeridos estén presentes
+                if (model.Fecha == default || 
+                    model.LotesIds == null || model.LotesIds.Count == 0 ||
+                    model.TipoIdActividad == 0)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = "Complete todos los campos requeridos antes de guardar";
+                    return BadRequest(gResponse);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);

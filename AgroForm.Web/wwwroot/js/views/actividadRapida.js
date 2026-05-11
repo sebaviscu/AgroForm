@@ -478,30 +478,83 @@ $(document).ready(function () {
         $('#IdLote').prop('disabled', false);
         $('#observacionesContainer').addClass('d-none');
         $('#tipoidActividad').trigger('change.select2');
+        
+        // Inicialmente deshabilitar botón guardar hasta que se completen los campos requeridos
+        $('#btnGuardarLabor').prop('disabled', true);
     });
+
+    // Eventos para validar campos en tiempo real
+    $('#fecha').on('change', function() {
+        validarCamposRequeridos();
+    });
+
+    $('#IdLote').on('change', function() {
+        validarCamposRequeridos();
+    });
+
+    $('#tipoidActividad').on('change', function() {
+        validarCamposRequeridos();
+    });
+
+    $('#idCicloCultivo').on('change', function() {
+        validarCamposRequeridos();
+    });
+
+    // Función para validar campos requeridos y habilitar/deshabilitar botón guardar
+    function validarCamposRequeridos() {
+        var fechaVal = $('#fecha').val();
+        var lotesVal = loteSelect.val();
+        var tipoActividadVal = tipoActividadSelect.val();
+        var cicloVal = $('#idCicloCultivo').val();
+        
+        var isValid = true;
+        
+        // Validar fecha
+        if (!fechaVal) {
+            $('#fecha').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#fecha').removeClass('is-invalid');
+        }
+        
+        // Validar lote
+        if (!lotesVal || lotesVal.length === 0) {
+            loteSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            isValid = false;
+        } else {
+            loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        }
+        
+        // Validar tipo de actividad
+        if (!tipoActividadVal) {
+            tipoActividadSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            isValid = false;
+        } else {
+            tipoActividadSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        }
+        
+        // Validar ciclo (si es requerido para el tipo de actividad)
+        if (cicloVal === null || cicloVal === '') {
+            $('#idCicloCultivo').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#idCicloCultivo').removeClass('is-invalid');
+        }
+        
+        // Habilitar/deshabilitar botón guardar
+        $('#btnGuardarLabor').prop('disabled', !isValid);
+        
+        return isValid;
+    }
 
     // Validación del formulario
     form.on('submit', function (e) {
         e.preventDefault();
 
-        var fechaVal = $('#fecha').val();
-        var lotesVal = loteSelect.val();
-
-        if (!fechaVal) {
-            $('#fecha').addClass('is-invalid');
-            e.stopPropagation();
+        // Validar campos requeridos antes de enviar
+        if (!validarCamposRequeridos()) {
+            mostrarMensaje('Complete todos los campos requeridos antes de guardar', 'error');
             return;
-        } else {
-            $('#fecha').removeClass('is-invalid');
-        }
-
-        if (!lotesVal || lotesVal.length === 0) {
-            loteSelect.next('.select2-container').find('.select2-selection').addClass('is-invalid');
-            mostrarMensaje('Debe seleccionar al menos un lote', 'error');
-            e.stopPropagation();
-            return;
-        } else {
-            loteSelect.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
         }
 
         var tipoActividadNombre = tipoActividadSelect.find('option:selected').data('tipo-actividad');
@@ -639,6 +692,18 @@ $(document).ready(function () {
         camposEspecificosContainer.empty();
         cicloSeleccionadoCultivoId = null;
         $('#observacionesContainer').addClass('d-none');
+
+        // Limpiar estado de validación
+        $('#fecha').removeClass('is-invalid');
+        $('#IdLote').next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        $('#tipoidActividad').next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        $('#idCicloCultivo').removeClass('is-invalid');
+        
+        // Limpiar completamente el elemento info-cosecha para evitar datos residuales
+        $('#info-cosecha').text('');
+        
+        // Resetear botón guardar a estado deshabilitado
+        $('#btnGuardarLabor').prop('disabled', true);
 
         if (tipoActividadSelect.hasClass('select2-hidden-accessible')) {
             tipoActividadSelect.select2('destroy');
@@ -913,7 +978,7 @@ $(document).ready(function () {
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function (result) {
                 if (result.success && result.object) {
-                    mostrarExito('Ciclo creado correctamente');
+                    mostrarMensaje('Ciclo creado correctamente');
                     // Restaurar botón
                     btn.html(originalText).prop('disabled', false);
                     // Ocultar inline y mostrar botón +
@@ -1032,7 +1097,7 @@ function cargarCiclosPorLote(idLote, seleccionarId) {
                         label += ' [Activo]';
                         tieneActivo = true;
                     } else {
-                        label += ' [Cerrado]';
+                        label += ' [Finalizado]';
                     }
                     select.append($('<option>', {
                         value: ciclo.id,
@@ -1085,7 +1150,7 @@ function cerrarCiclo(idCicloCultivo) {
         headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
         success: function (result) {
             if (result.success) {
-                mostrarExito('Ciclo cerrado correctamente');
+                mostrarMensaje('Ciclo cerrado correctamente');
                 var loteId = parseInt($('#IdLote').val());
                 if (loteId) {
                     cargarCiclosPorLote(loteId);

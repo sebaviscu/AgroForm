@@ -334,9 +334,9 @@ namespace AgroForm.Tests.Services
             };
             await AddTestDataAsync(ciclo);
 
-            // Detach all tracked entities to avoid EF tracking conflicts
+            // Clear change tracker to avoid EF tracking conflicts
             // when the service calls UpdateAsync (which does AsNoTracking get + _context.Update)
-            await ClearDatabaseAsync();
+            DbContext.ChangeTracker.Clear();
 
             // Create a NEW entity instance with modified values (detached from context)
             var cicloActualizado = new CicloCultivo
@@ -408,9 +408,9 @@ namespace AgroForm.Tests.Services
             };
             await AddTestDataAsync(ciclo);
 
-            // Detach tracked entities to avoid EF tracking conflict
+            // Clear change tracker to avoid EF tracking conflict
             // when DeleteAsync does AsNoTracking get + _context.Remove
-            await ClearDatabaseAsync();
+            DbContext.ChangeTracker.Clear();
 
             // Act
             var result = await _cicloCultivoService.DeleteAsync(1);
@@ -528,9 +528,9 @@ namespace AgroForm.Tests.Services
             };
             await AddTestDataAsync(ciclo);
 
-            // Detach tracked entities to avoid EF tracking conflict
+            // Clear change tracker to avoid EF tracking conflict
             // when CerrarCicloAsync does GetAsync (AsNoTracking) then UpdateAsync
-            await ClearDatabaseAsync();
+            DbContext.ChangeTracker.Clear();
 
             // Act
             var result = await _cicloCultivoService.CerrarCicloAsync(1);

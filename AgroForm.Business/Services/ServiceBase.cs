@@ -88,6 +88,13 @@ namespace AgroForm.Business.Services
                 if (entity == null)
                     return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
 
+                // Multi-tenancy: verificar que la entidad pertenezca a la licencia actual
+                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                {
+                    if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
+                        return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
+                }
+
                 return OperationResult<T>.SuccessResult(entity);
             }
             catch (Exception ex)
@@ -176,6 +183,10 @@ namespace AgroForm.Business.Services
                 if (original == null)
                     return OperationResult<T>.Failure("El registro que intenta actualizar no existe.", "NOT_FOUND");
 
+                // Preservar campos [NonUpdatable] del registro original
+                entity.RegistrationUser = original.RegistrationUser;
+                entity.RegistrationDate = original.RegistrationDate;
+
                 if (entity is EntityBaseWithLicencia entidadConLicencia)
                     entidadConLicencia.IdLicencia = _userContext.IdLicencia;
 
@@ -225,10 +236,19 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var entity = await _repository.GetAsync(x => x.Id == id);
+                // Use GetByIdAsync (FindAsync - tracked) instead of GetAsync (AsNoTracking)
+                // to avoid IdentityMap tracking conflicts with InMemory provider
+                var entity = await _repository.GetByIdAsync(id);
 
                 if (entity == null)
                     return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
+
+                // Multi-tenancy: verificar que la entidad pertenezca a la licencia actual
+                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                {
+                    if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
+                        return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
+                }
 
                 await _repository.DeleteAsync(entity);
                 int result = await _unitOfWork.SaveAsync();

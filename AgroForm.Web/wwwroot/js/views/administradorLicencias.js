@@ -558,7 +558,7 @@ function agregarPago() {
         },
         success: function (response) {
             if (response.success) {
-                mostrarExito(response.message || 'Pago agregado correctamente');
+                mostrarMensaje(response.message || 'Pago agregado correctamente');
                 $('#formPagoLicencia')[0].reset();
                 $('#formPagoLicencia').removeClass('was-validated');
 
@@ -599,7 +599,7 @@ function eliminarPago(idPago) {
                     cerrarAlertas();
 
                     if (response.success) {
-                        mostrarExito(response.message || 'Pago eliminado correctamente');
+                        mostrarMensaje(response.message || 'Pago eliminado correctamente');
 
                         // Recargar los datos de la licencia para actualizar la tabla
                         const idLicencia = $('#idLicenciaPago').val();
@@ -902,7 +902,7 @@ function guardarCatalogo() {
         },
         success: function (response) {
             if (response.success) {
-                mostrarExito(response.message || (datos.Id ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente'));
+                mostrarMensaje(response.message || (datos.Id ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente'));
                 $('#modalCatalogo').modal('hide');
                 tableCatalogos.ajax.reload();
             } else {
@@ -938,7 +938,7 @@ function eliminarCatalogo(id) {
                     cerrarAlertas();
 
                     if (response.success) {
-                        mostrarExito(response.message || 'Catálogo eliminado correctamente');
+                        mostrarMensaje(response.message || 'Catálogo eliminado correctamente');
                         tableCatalogos.ajax.reload();
                     } else {
                         mostrarError(response.message || 'Error al eliminar el catálogo');

@@ -70,13 +70,12 @@
         $sidebar.toggleClass('active');
         $content.toggleClass('active');
 
-        // Ocultar/mostrar logo text cuando está colapsado
+        // Ocultar/mostrar solo texto del logo cuando está colapsado
         if ($sidebar.hasClass('active')) {
             $sidebarLogoText.hide();
-            $sidebarLogoIcon.hide();
+            // NO ocultar el icono del logo
         } else {
             $sidebarLogoText.show();
-            $sidebarLogoIcon.show();
         }
     }
 

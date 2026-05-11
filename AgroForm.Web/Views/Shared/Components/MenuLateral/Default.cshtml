@@ -15,28 +15,48 @@
         border-top: 1px solid rgba(255,255,255,0.1);
     }
 
-    #sidebar.collapsed .sidebar-footer span {
+    /* Ocultar solo el texto del usuario en el footer cuando sidebar está colapsado */
+    #sidebar.active .sidebar-footer .sidebar-link > span {
         display: none !important;
     }
 
-    #sidebar.collapsed .sidebar-footer .dropdown-menu {
-        left: 60px !important;
+    /* ===== DROPDOWN DEL PERFIL - Posicionamiento global =====
+       Usamos position:fixed para ambos estados (abierto/colapsado) porque:
+       - El footer está al final de la pantalla → dropdown abierto se va debajo del viewport
+       - overflow:hidden del sidebar lo recorta
+       - Con fixed se posiciona sobre el contenido siempre visible */
+    .sidebar-footer .dropdown-menu {
+        position: fixed !important;
+        bottom: 10px !important;
+        top: auto !important;
+        transform: none !important;
+        z-index: 99999 !important;
+        width: 220px !important;
+        min-width: 220px !important;
     }
-</style>
+
+    /* Sidebar expandido: dropdown pegado a la derecha del sidebar */
+    .sidebar-footer .dropdown-menu {
+        left: calc(var(--sidebar-width) - 10px) !important;
+    }
+
+    /* Sidebar colapsado: dropdown a la derecha del sidebar angosto */
+    #sidebar.active .sidebar-footer .dropdown-menu {
+        left: calc(var(--sidebar-width-collapsed) + 5px) !important;
+    }
+
+    </style>
 
 <nav id="sidebar" class="sidebar bg-dark">
 
     <div class="sidebar-header bg-primary">
-        <div class="d-flex align-items-center justify-content-between p-3">
+        <div class="d-flex align-items-center justify-content-between p-2">
             <h4 class="text-white mb-0">
-                <i class="ph ph-farm me-2 sidebar-logo-icon"></i>
+                <img src="/images/logo.png" alt="AgroLab" class="me-2 sidebar-logo-icon" style="width: 53px; height: 53px; object-fit: contain;">
                 <span class="sidebar-logo-text">AgroLab</span>
             </h4>
             <button type="button" id="sidebarClose" class="btn btn-light sidebar-close d-lg-none">
                 <i class="ph ph-x"></i>
-            </button>
-            <button type="button" id="sidebarCollapse" class="btn btn-light sidebar-toggle d-none d-lg-block">
-                <i class="ph ph-list"></i>
             </button>
         </div>
     </div>
@@ -154,7 +174,7 @@
         <div class="dropdown w-100">
 
             <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center p-0 w-100 sidebar-link m-2"
-                    type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    type="button" id="userDropdown" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
 
                 <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
                      style="width: 36px; height: 36px;">

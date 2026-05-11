@@ -319,8 +319,9 @@ namespace AgroForm.Tests.Services
             // Act
             var result = await _campaniaService.DeleteAsync(1);
 
-            // Assert - NOTA: El DeleteAsync base no valida licencia, solo verifica existencia por ID
-            Assert.True(result.Success); // El sistema actual permite eliminar entidades de cualquier licencia si existe el ID
+            // Assert - DeleteAsync ahora valida licencia, por lo que no debe encontrar un registro de otra licencia
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
         }
 
         [Fact]
@@ -394,9 +395,10 @@ namespace AgroForm.Tests.Services
             // Assert
             Assert.NotNull(query);
             
-            // Verificar que el query incluye todas las campañas (GetQuery() base no filtra por licencia)
+            // Verificar que el query incluye solo las campañas de la licencia actual (GetQuery() ahora filtra por licencia)
             var resultados = await query.ToListAsync();
-            Assert.Equal(2, resultados.Count); // Ambas campañas (licencia 1 y 2)
+            Assert.Single(resultados); // Solo campaña de licencia 1
+            Assert.Equal(1, resultados[0].IdLicencia);
         }
 
         [Fact]
@@ -680,8 +682,11 @@ namespace AgroForm.Tests.Services
             var result = await _campaniaService.IniciarCampania(2);
 
             // Assert
+            // The method first checks if there's already an EnCurso campaign (step 3),
+            // and since campaniaEnCurso (Id=1) is EnCurso for the same license,
+            // it returns CAMPAIGN_ALREADY_IN_PROGRESS before reaching the resource conflict check.
             Assert.False(result.Success);
-            Assert.Equal("RESOURCE_CONFLICT", result.ErrorCode);
+            Assert.Equal("CAMPAIGN_ALREADY_IN_PROGRESS", result.ErrorCode);
         }
 
         // --- Tests para GetCurrent ---

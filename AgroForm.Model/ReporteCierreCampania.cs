@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AgroForm.Model
 {
-    public class ReporteCierreCampania : EntityBaseWithLicencia
+    public class ReporteCierreCampania : EntityBaseWithLicencia, IEntityBaseWithCampania
     {
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;

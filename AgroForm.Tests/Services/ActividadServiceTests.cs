@@ -25,7 +25,7 @@ namespace AgroForm.Tests.Services
         public async Task GetLaboresByAsync_DebeRetornarListaVacia_CuandoNoHayActividades()
         {
             // Act
-            var result = await _actividadService.GetLaboresByAsync();
+            var result = await _actividadService.GetLaboresByAsyncLegacy();
 
             // Assert
             Assert.True(result.Success);
@@ -70,7 +70,7 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(siembra);
 
             // Act
-            var result = await _actividadService.GetLaboresByAsync();
+            var result = await _actividadService.GetLaboresByAsyncLegacy();
 
             // Assert
             Assert.True(result.Success);
@@ -222,7 +222,7 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(siembraCampania2);
 
             // Act
-            var result = await _actividadService.GetLaboresByAsync(idCampania: 1);
+            var result = await _actividadService.GetLaboresByAsyncLegacy(idCampania: 1);
 
             // Assert
             Assert.True(result.Success);
@@ -287,7 +287,7 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(siembraLote2);
 
             // Act
-            var result = await _actividadService.GetLaboresByAsync(idLote: 1);
+            var result = await _actividadService.GetLaboresByAsyncLegacy(idLote: 1);
 
             // Assert
             Assert.True(result.Success);
@@ -372,7 +372,7 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(siembra3);
 
             // Act
-            var result = await _actividadService.GetLaboresByAsync(idsLotes: new List<int> { 1, 3 });
+            var result = await _actividadService.GetLaboresByAsyncLegacy(idsLotes: new List<int> { 1, 3 });
 
             // Assert
             Assert.True(result.Success);

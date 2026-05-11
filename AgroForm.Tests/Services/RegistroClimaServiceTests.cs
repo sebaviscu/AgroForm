@@ -115,8 +115,18 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(registro1);
             await AddTestDataAsync(registroOtraLicencia);
 
+            // DEBUG
+            var allFromDb = await DbContext.Set<RegistroClima>().ToListAsync();
+            System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",
+                $"DEBUG DbSet().ToListAsync() Count={allFromDb.Count}{Environment.NewLine}");
+            var queryFromDb = await DbContext.Set<RegistroClima>().AsQueryable().Where(e => EF.Property<int>(e, "IdLicencia") == 1).ToListAsync();
+            System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",
+                $"DEBUG DbSet().Where(IdLicencia==1) Count={queryFromDb.Count}{Environment.NewLine}");
+
             // Act
             var result = await _registroClimaService.GetAllWithDetailsAsync();
+            System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",
+                $"DEBUG RegistroClima GetAllWithDetails: Success={result.Success}, DataCount={result.Data?.Count}, ErrorCode={result.ErrorCode}, ErrorMessage={result.ErrorMessage}{Environment.NewLine}");
 
             // Assert
             Assert.True(result.Success);
@@ -307,9 +317,9 @@ namespace AgroForm.Tests.Services
         public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
         {
             // Arrange
-            var registroMismaLicencia = new RegistroClima 
-            { 
-                Id = 1, 
+            var registroMismaLicencia = new RegistroClima
+            {
+                Id = 1,
                 Fecha = DateTime.Now.AddDays(-1),
                 Milimetros = 0,
                 TipoClima = EnumClass.TipoClima.Lluvia,
@@ -318,9 +328,9 @@ namespace AgroForm.Tests.Services
                 IdLicencia = 1,
                 IdCampania = 1
             };
-            var registroOtraLicencia = new RegistroClima 
-            { 
-                Id = 2, 
+            var registroOtraLicencia = new RegistroClima
+            {
+                Id = 2,
                 Fecha = DateTime.Now,
                 Milimetros = 0,
                 TipoClima = EnumClass.TipoClima.Lluvia,
@@ -333,6 +343,8 @@ namespace AgroForm.Tests.Services
 
             // Act
             var result = await _registroClimaService.DeleteAsync(1);
+            System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",
+                $"DEBUG RegistroClima DeleteAsync: Success={result.Success}, ErrorCode={result.ErrorCode}, ErrorMessage={result.ErrorMessage}{Environment.NewLine}");
 
             // Assert
             Assert.True(result.Success);

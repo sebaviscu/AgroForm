@@ -67,9 +67,7 @@ function eliminarClima(id) {
                     if (response.success) {
                         mostrarExito(response.message);
 
-                        setTimeout(function () {
-                            window.location.reload();
-                        }, 500);
+                        window.location.reload();
                     } else {
                         mostrarError(response.message || 'Error al eliminar registro de clima');
                     }

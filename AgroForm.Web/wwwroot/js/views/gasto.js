@@ -441,7 +441,7 @@ function eliminarGasto(id) {
                 success: function (response) {
                     cerrarAlertas();
                     if (response.success) {
-                        mostrarExito(response.message);
+                        mostrarMensaje(response.message);
                         // Recargar tabla principal y cuadros superiores
                         table.ajax.reload(null, false);
                         recargarCuadrosSuperiores(); // Recargar solo los cuadros

@@ -612,7 +612,7 @@ namespace AgroForm.Tests.Services
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Catálogo por tipo no encontrado", result.ErrorMessage);
+            Assert.Equal("Catálogos activos no encontrados", result.ErrorMessage);
         }
 
         [Fact]

@@ -798,8 +798,11 @@ namespace AgroForm.Data.DBContext
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        entry.Entity.RegistrationDate = TimeHelper.GetArgentinaTime();
-                        entry.Entity.RegistrationUser = _userContext.UserName;
+                        // Solo establecer valores por defecto si no fueron explícitamente asignados
+                        if (entry.Entity.RegistrationDate == null)
+                            entry.Entity.RegistrationDate = TimeHelper.GetArgentinaTime();
+                        if (string.IsNullOrEmpty(entry.Entity.RegistrationUser))
+                            entry.Entity.RegistrationUser = _userContext.UserName;
                         break;
                     case EntityState.Modified:
                         entry.Entity.ModificationDate = TimeHelper.GetArgentinaTime();

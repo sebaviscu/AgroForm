@@ -270,7 +270,7 @@ function guardarCampo() {
         },
         success: function (response) {
             if (response.success) {
-                mostrarExito(response.message || (datos.Id ? 'Campo actualizado correctamente' : 'Campo creado correctamente'));
+                mostrarMensaje(response.message || (datos.Id ? 'Campo actualizado correctamente' : 'Campo creado correctamente'));
                 $('#modalCampo').modal('hide');
                 table.ajax.reload();
             } else {

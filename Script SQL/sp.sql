@@ -43,7 +43,7 @@ BEGIN
         campo.Nombre AS Campo,
         CAST(CASE WHEN s.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT) AS EsDolar,
         s.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Siembras s
     INNER JOIN Lotes l ON l.Id = s.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -83,7 +83,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN r.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         r.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Riegos r
     INNER JOIN Lotes l ON l.Id = r.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -123,7 +123,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN f.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         f.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Fertilizaciones f
     INNER JOIN Lotes l ON l.Id = f.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -166,7 +166,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN p.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         p.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Pulverizaciones p
     INNER JOIN Lotes l ON l.Id = p.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -206,7 +206,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN m.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         m.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Monitoreos m
     INNER JOIN Lotes l ON l.Id = m.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -249,7 +249,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN cs.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         cs.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM Cosechas cs
     INNER JOIN Lotes l ON l.Id = cs.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -309,7 +309,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN a.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         a.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM AnalisisSuelos a
     INNER JOIN Lotes l ON l.Id = a.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -348,7 +348,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN o.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         o.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM OtrasLabores o
     INNER JOIN Lotes l ON l.Id = o.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
@@ -390,7 +390,7 @@ BEGIN
         campo.Nombre,
         CAST(CASE WHEN sb.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
         sb.IdCicloCultivo,
-        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Finalizado)' END) AS CicloCultivoNombre
     FROM SiloBolsas sb
     INNER JOIN Lotes l ON l.Id = sb.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo

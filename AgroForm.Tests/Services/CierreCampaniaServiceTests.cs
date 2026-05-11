@@ -306,6 +306,8 @@ namespace AgroForm.Tests.Services
 
             // Act
             var result = await _cierreCampaniaService.DeleteAsync(1);
+            System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",
+                $"DEBUG CierreCampania DeleteAsync: Success={result.Success}, ErrorCode={result.ErrorCode}, ErrorMessage={result.ErrorMessage}{Environment.NewLine}");
 
             // Assert
             Assert.True(result.Success);
