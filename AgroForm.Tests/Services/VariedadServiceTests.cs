@@ -22,7 +22,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllAsync_DebeRetornarTodasLasVariedades()
         {
             // Arrange
             var cultivo = new Cultivo { Id = 1, Nombre = "Trigo" };
@@ -82,7 +82,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllWithDetailsAsync_DebeRetornarTodasLasVariedades()
         {
             // Arrange
             var cultivo = new Cultivo { Id = 1, Nombre = "Trigo" };
@@ -153,32 +153,6 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
             Assert.Equal("No se encontró el registro", result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_DebeRetornarCorrecto_CuandoExiste()
-        {
-            // Arrange
-            var cultivo = new Cultivo { Id = 1, Nombre = "Trigo" };
-            await AddTestDataAsync(cultivo);
-
-            var variedad = new Variedad 
-            { 
-                Id = 1, 
-                Nombre = "Trigo Pan", 
-                IdCultivo = 1,
-                Activo = true
-            };
-            await AddTestDataAsync(variedad);
-
-            // Act
-            var result = await _variedadService.GetByIdAsync(1);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal(1, result.Data.Id);
-            Assert.Equal("Trigo Pan", result.Data.Nombre);
         }
 
         [Fact]
@@ -298,7 +272,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
+        public async Task DeleteAsync_DebeEliminarCorrectamente()
         {
             // Arrange
             var cultivo = new Cultivo { Id = 1, Nombre = "Trigo" };

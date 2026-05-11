@@ -70,17 +70,10 @@ namespace AgroForm.Tests.Services
         [Fact]
         public async Task GetAllAsync_DebeRetornarVacio_CuandoNoHayDatos()
         {
-            // Debug: Mostrar valores del usuario de prueba
-            Console.WriteLine($"TestUserAuth - IdLicencia: {TestUserAuth.IdLicencia}, IdCampaña: {TestUserAuth.IdCampaña}, IdRol: {TestUserAuth.IdRol}, Moneda: {TestUserAuth.Moneda}");
-            
             // Act
             var result = await _gastoService.GetAllAsync();
 
             // Assert
-            if (!result.Success)
-            {
-                Console.WriteLine($"Error: {result.ErrorCode} - {result.ErrorMessage}");
-            }
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Empty(result.Data);
@@ -295,19 +288,19 @@ namespace AgroForm.Tests.Services
         public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
         {
             // Arrange
-            var gastoMismaLicencia = new Gasto 
-            { 
-                Id = 1, 
-                TipoGasto = EnumClass.TipoGastoEnum.Otros, 
+            var gastoMismaLicencia = new Gasto
+            {
+                Id = 1,
+                TipoGasto = EnumClass.TipoGastoEnum.Otros,
                 Observacion = "Descripción",
                 Costo = 100,
                 IdLicencia = 1,
                 IdCampania = 1
             };
-            var gastoOtraLicencia = new Gasto 
-            { 
-                Id = 2, 
-                TipoGasto = EnumClass.TipoGastoEnum.Otros, 
+            var gastoOtraLicencia = new Gasto
+            {
+                Id = 2,
+                TipoGasto = EnumClass.TipoGastoEnum.Otros,
                 Observacion = "Descripción",
                 Costo = 200,
                 IdLicencia = 2,
@@ -316,16 +309,16 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(gastoMismaLicencia);
             await AddTestDataAsync(gastoOtraLicencia);
 
-            // Act - Intentar eliminar un registro que debería existir
+            // Act
             var result = await _gastoService.DeleteAsync(1);
 
-            // Assert - Verificar que el método se ejecuta (puede fallar por problemas de contexto, pero no debería ser AUTHENTICATION_ERROR)
-            if (!result.Success)
-            {
-                // Si falla, asegurarse que no sea por error de autenticación
-                Assert.NotEqual("AUTHENTICATION_ERROR", result.ErrorCode);
-                Assert.NotEqual("NOT_FOUND", result.ErrorCode); // El registro debería existir
-            }
+            // Assert
+            Assert.True(result.Success);
+            
+            // Verificar que solo se eliminó el de la licencia correcta
+            var gastoRestante = await DbContext.Gastos.FindAsync(2);
+            Assert.NotNull(gastoRestante); // El de otra licencia todavía existe
+            Assert.Equal(2, gastoRestante.IdLicencia);
         }
 
         [Fact]

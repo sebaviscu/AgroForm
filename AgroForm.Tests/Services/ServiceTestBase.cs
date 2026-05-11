@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,8 +18,6 @@ namespace AgroForm.Tests.Services
     {
         protected ServiceProvider ServiceProvider { get; private set; }
         protected AppDbContext DbContext { get; private set; }
-        protected Mock<ILogger<ActividadService>> LoggerMock { get; private set; }
-        protected Mock<IHttpContextAccessor> HttpContextAccessorMock { get; private set; }
         protected UserAuth TestUserAuth { get; private set; } = new UserAuth
         {
             UserName = "testuser",
@@ -31,12 +28,18 @@ namespace AgroForm.Tests.Services
             Moneda = AgroForm.Model.EnumClass.Monedas.Peso
         };
 
+        /// <summary>
+        /// Automatically generates a unique database name per test class
+        /// to prevent data leakage between test classes when using InMemory database.
+        /// </summary>
+        protected virtual string DatabaseName => GetType().Name;
+
         protected ServiceTestBase()
         {
             var services = new ServiceCollection();
 
             // Usar el mismo nombre de base de datos para todos los contextos
-            var databaseName = "AgroFormTestDb";
+            var databaseName = DatabaseName;
 
             // Configurar DbContext en memoria
             services.AddDbContext<AppDbContext>(options =>
@@ -78,6 +81,16 @@ namespace AgroForm.Tests.Services
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+            // Registrar mocks para dependencias externas
+            var pdfServiceMock = new Mock<IPdfService>();
+            pdfServiceMock.Setup(x => x.GenerarPdfCierreCampaniaAsync(It.IsAny<ReporteCierreCampania>()))
+                .ReturnsAsync((ReporteCierreCampania r) =>
+                {
+                    // Return a simple success with a valid PDF header byte array
+                    return OperationResult<byte[]>.SuccessResult(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x00 });
+                });
+            services.AddScoped<IPdfService>(_ => pdfServiceMock.Object);
+
             // Registrar todos los servicios
             services.AddScoped<IActividadService, ActividadService>();
             services.AddScoped<IAjusteService, AjusteService>();
@@ -95,6 +108,8 @@ namespace AgroForm.Tests.Services
             services.AddScoped<ITipoActividadService, TipoActividadService>();
             services.AddScoped<IUsuarioService, UsuarioService>();
             services.AddScoped<IVariedadService, VariedadService>();
+            services.AddScoped<ICicloCultivoService, CicloCultivoService>();
+            services.AddScoped<IReportService, ReportService>();
 
             ServiceProvider = services.BuildServiceProvider();
             DbContext = ServiceProvider.GetRequiredService<AppDbContext>();
@@ -113,6 +128,8 @@ namespace AgroForm.Tests.Services
         {
             await DbContext.Set<T>().AddAsync(entity);
             await DbContext.SaveChangesAsync();
+            // Detach to prevent tracking conflicts when services use AsNoTracking + _context.Update
+            DbContext.Entry(entity).State = EntityState.Detached;
         }
 
         protected async Task ClearDatabaseAsync()

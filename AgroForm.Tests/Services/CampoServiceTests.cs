@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AgroForm.Business.Services;
 using AgroForm.Business.Contracts;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using Xunit;
 
 namespace AgroForm.Tests.Services
@@ -397,6 +398,88 @@ namespace AgroForm.Tests.Services
             var resultados = await query.ToListAsync();
             Assert.Single(resultados); // Solo el de licencia 1
             Assert.Equal(1, resultados[0].IdLicencia);
+        }
+
+        // --- Tests para GetHistorialByIdAsync ---
+
+        [Fact]
+        public async Task GetHistorialByIdAsync_DebeRetornarCampoConLotesYCiclos_CuandoExiste()
+        {
+            // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campo);
+
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña 2024",
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campania);
+
+            var cultivo = new Cultivo
+            {
+                Id = 1,
+                Nombre = "Soja",
+                Activo = true
+            };
+            await AddTestDataAsync(cultivo);
+
+            var lote = new Lote
+            {
+                Id = 1,
+                Nombre = "Lote Test",
+                SuperficieHectareas = 100,
+                IdLicencia = 1,
+                IdCampania = 1,
+                IdCampo = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(lote);
+
+            var ciclo = new CicloCultivo
+            {
+                Id = 1,
+                IdLote = 1,
+                IdCampania = 1,
+                IdCultivo = 1,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                Epoca = EnumClass.EpocaSiembra.primera,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(ciclo);
+
+            // Act
+            var result = await _campoService.GetHistorialByIdAsync(1);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(1, result.Data.Id);
+            Assert.Single(result.Data.Lotes);
+            Assert.Single(result.Data.Lotes.First().CicloCultivos);
+        }
+
+        [Fact]
+        public async Task GetHistorialByIdAsync_DebeRetornarNotFound_CuandoIdInvalido()
+        {
+            // Act
+            var result = await _campoService.GetHistorialByIdAsync(999);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
         }
     }
 }

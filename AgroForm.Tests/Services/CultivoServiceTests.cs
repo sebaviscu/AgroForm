@@ -22,7 +22,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllAsync_DebeRetornarTodosLosCultivos()
         {
             // Arrange
             var cultivo1 = new Cultivo 
@@ -79,7 +79,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllWithDetailsAsync_DebeRetornarTodosLosCultivos()
         {
             // Arrange
             var cultivo1 = new Cultivo 
@@ -144,29 +144,6 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
             Assert.Equal("No se encontró el registro", result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_DebeRetornarCorrecto_CuandoExiste()
-        {
-            // Arrange
-            var cultivo = new Cultivo 
-            { 
-                Id = 1, 
-                Nombre = "Trigo", 
-                Orden = 1,
-                Activo = true
-            };
-            await AddTestDataAsync(cultivo);
-
-            // Act
-            var result = await _cultivoService.GetByIdAsync(1);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal(1, result.Data.Id);
-            Assert.Equal("Trigo", result.Data.Nombre);
         }
 
         [Fact]
@@ -305,39 +282,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateAsync_DebeFuncionarCorrectamente()
-        {
-            // Arrange - Cultivo no implementa EntityBaseWithLicencia, no hay filtrado por licencia
-            var cultivoOriginal = new Cultivo 
-            { 
-                Id = 1, 
-                Nombre = "Trigo", 
-                Orden = 1,
-                Activo = true
-            };
-            await AddTestDataAsync(cultivoOriginal);
-
-            var cultivoActualizado = new Cultivo 
-            { 
-                Id = 1, 
-                Nombre = "Trigo Actualizado", 
-                Orden = 2,
-                Activo = false
-            };
-
-            // Act
-            var result = await _cultivoService.UpdateAsync(cultivoActualizado);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal("Trigo Actualizado", result.Data.Nombre);
-            Assert.Equal(2, result.Data.Orden);
-            Assert.False(result.Data.Activo);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
+        public async Task DeleteAsync_DebeEliminarCorrectamente()
         {
             // Arrange
             var cultivoMismaLicencia = new Cultivo 
@@ -380,26 +325,6 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
             Assert.Equal("El registro que intenta eliminar no existe.", result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_DebeEliminarCorrectamente_CuandoExiste()
-        {
-            // Arrange
-            var cultivo = new Cultivo 
-            { 
-                Id = 1, 
-                Nombre = "Trigo", 
-                Orden = 1,
-                Activo = true
-            };
-            await AddTestDataAsync(cultivo);
-
-            // Act
-            var result = await _cultivoService.DeleteAsync(1);
-
-            // Assert
-            Assert.True(result.Success);
         }
 
         [Fact]

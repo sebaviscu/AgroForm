@@ -156,50 +156,8 @@ namespace AgroForm.Tests.Services
 
             await AddTestDataAsync(siembra);
 
-            // Verificar que el servicio tenga el UserAuth configurado
-            var httpContextAccessor = HttpContextAccessorMock.Object;
-            var httpContext = httpContextAccessor.HttpContext;
-            if (httpContext?.User?.Identity?.IsAuthenticated == true)
-            {
-                Console.WriteLine("Usuario autenticado correctamente en el mock");
-            }
-            else
-            {
-                Console.WriteLine("ERROR: Usuario no autenticado en el mock");
-            }
-
-            // Verificar que los datos se guardaron correctamente
-            var contextFactory = GetService<Microsoft.EntityFrameworkCore.IDbContextFactory<AppDbContext>>();
-            await using var context = await contextFactory.CreateDbContextAsync();
-            var siembrasEnDb = await context.Set<Siembra>()
-                .Include(s => s.Cultivo)
-                .Include(s => s.Campania)
-                .ToListAsync();
-            
-            // Mostrar información de depuración
-            Console.WriteLine($"Siembras en DB: {siembrasEnDb.Count}");
-            if (siembrasEnDb.Any())
-            {
-                var s = siembrasEnDb.First();
-                Console.WriteLine($"Primera siembra - IdLicencia: {s.IdLicencia}, IdCampania: {s.IdCampania}, IdCultivo: {s.IdCultivo}");
-            }
-            
             // Act
             var result = await _actividadService.GetSiembrasAsync();
-
-            // Depuración
-            if (!result.Success)
-            {
-                Console.WriteLine($"Error en GetSiembrasAsync: {result.ErrorMessage}");
-            }
-            else
-            {
-                Console.WriteLine($"Cantidad de siembras retornadas: {result.Data?.Count ?? 0}");
-                if (result.Data != null && result.Data.Any())
-                {
-                    Console.WriteLine($"Primera siembra - IdLicencia: {result.Data.First().IdLicencia}, IdCampania: {result.Data.First().IdCampania}");
-                }
-            }
 
             // Assert
             Assert.True(result.Success);
@@ -271,6 +229,260 @@ namespace AgroForm.Tests.Services
             Assert.NotNull(result.Data);
             Assert.Single(result.Data);
             Assert.Equal("Campaña 2024", result.Data.First().Campania);
+        }
+
+        [Fact]
+        public async Task GetLaboresByAsync_DebeFiltrarPorLote_CuandoSeEspecificaIdLote()
+        {
+            // Arrange
+            var campania = new Campania { Id = 1, Nombre = "Campaña 2024", IdLicencia = 1 };
+            var campo = new Campo { Id = 1, Nombre = "Campo Test", IdLicencia = 1 };
+            var lote1 = new Lote { Id = 1, Nombre = "Lote 1", IdCampo = 1, Campo = campo };
+            var lote2 = new Lote { Id = 2, Nombre = "Lote 2", IdCampo = 1, Campo = campo };
+            var cultivo = new Cultivo { Id = 1, Nombre = "Soja" };
+            var tipoActividad = new TipoActividad { Id = 1, Nombre = "Siembra", Icono = "seeding", ColorIcono = "green" };
+
+            await AddTestDataAsync(campania);
+            await AddTestDataAsync(campo);
+            await AddTestDataAsync(lote1);
+            await AddTestDataAsync(lote2);
+            await AddTestDataAsync(cultivo);
+            await AddTestDataAsync(tipoActividad);
+
+            var siembraLote1 = new Siembra
+            {
+                Id = 1,
+                IdCampania = 1,
+                IdLote = 1,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 100,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote1,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            var siembraLote2 = new Siembra
+            {
+                Id = 2,
+                IdCampania = 1,
+                IdLote = 2,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 200,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote2,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            await AddTestDataAsync(siembraLote1);
+            await AddTestDataAsync(siembraLote2);
+
+            // Act
+            var result = await _actividadService.GetLaboresByAsync(idLote: 1);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Single(result.Data);
+            Assert.Equal("Lote 1", result.Data.First().Lote);
+        }
+
+        [Fact]
+        public async Task GetLaboresByAsync_DebeFiltrarPorMultiplesLotes_CuandoSeEspecificanIdsLotes()
+        {
+            // Arrange
+            var campania = new Campania { Id = 1, Nombre = "Campaña 2024", IdLicencia = 1 };
+            var campo = new Campo { Id = 1, Nombre = "Campo Test", IdLicencia = 1 };
+            var lote1 = new Lote { Id = 1, Nombre = "Lote 1", IdCampo = 1, Campo = campo };
+            var lote2 = new Lote { Id = 2, Nombre = "Lote 2", IdCampo = 1, Campo = campo };
+            var lote3 = new Lote { Id = 3, Nombre = "Lote 3", IdCampo = 1, Campo = campo };
+            var cultivo = new Cultivo { Id = 1, Nombre = "Soja" };
+            var tipoActividad = new TipoActividad { Id = 1, Nombre = "Siembra", Icono = "seeding", ColorIcono = "green" };
+
+            await AddTestDataAsync(campania);
+            await AddTestDataAsync(campo);
+            await AddTestDataAsync(lote1);
+            await AddTestDataAsync(lote2);
+            await AddTestDataAsync(lote3);
+            await AddTestDataAsync(cultivo);
+            await AddTestDataAsync(tipoActividad);
+
+            var siembra1 = new Siembra
+            {
+                Id = 1,
+                IdCampania = 1,
+                IdLote = 1,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 100,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote1,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            var siembra2 = new Siembra
+            {
+                Id = 2,
+                IdCampania = 1,
+                IdLote = 2,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 200,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote2,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            var siembra3 = new Siembra
+            {
+                Id = 3,
+                IdCampania = 1,
+                IdLote = 3,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 300,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote3,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            await AddTestDataAsync(siembra1);
+            await AddTestDataAsync(siembra2);
+            await AddTestDataAsync(siembra3);
+
+            // Act
+            var result = await _actividadService.GetLaboresByAsync(idsLotes: new List<int> { 1, 3 });
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(2, result.Data.Count);
+            Assert.Contains(result.Data, l => l.Lote == "Lote 1");
+            Assert.Contains(result.Data, l => l.Lote == "Lote 3");
+        }
+
+        [Fact]
+        public async Task UpdateActividadAsync_DebeActualizarActividad_CuandoExiste()
+        {
+            // Arrange
+            var campania = new Campania { Id = 1, Nombre = "Campaña 2024", IdLicencia = 1 };
+            var campo = new Campo { Id = 1, Nombre = "Campo Test", IdLicencia = 1 };
+            var lote = new Lote { Id = 1, Nombre = "Lote Test", IdCampo = 1, Campo = campo };
+            var cultivo = new Cultivo { Id = 1, Nombre = "Soja" };
+            var tipoActividad = new TipoActividad { Id = 1, Nombre = "Siembra", Icono = "seeding", ColorIcono = "green" };
+
+            await AddTestDataAsync(campania);
+            await AddTestDataAsync(campo);
+            await AddTestDataAsync(lote);
+            await AddTestDataAsync(cultivo);
+            await AddTestDataAsync(tipoActividad);
+
+            var siembra = new Siembra
+            {
+                Id = 1,
+                IdCampania = 1,
+                IdLote = 1,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 100,
+                DensidadSemillaKgHa = 80,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+            await AddTestDataAsync(siembra);
+
+            var siembraActualizada = new Siembra
+            {
+                Id = 1,
+                IdCampania = 1,
+                IdLote = 1,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 150, // Valor actualizado
+                DensidadSemillaKgHa = 90, // Valor actualizado
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+
+            // Act
+            var result = await _actividadService.UpdateActividadAsync(siembraActualizada);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            var siembraResult = result.Data as Siembra;
+            Assert.NotNull(siembraResult);
+            Assert.Equal(150, siembraResult.SuperficieHa);
+            Assert.Equal(90, siembraResult.DensidadSemillaKgHa);
+        }
+
+        [Fact]
+        public async Task DeteleActividadAsync_DebeEliminarActividad_CuandoExiste()
+        {
+            // Arrange
+            var campania = new Campania { Id = 1, Nombre = "Campaña 2024", IdLicencia = 1 };
+            var campo = new Campo { Id = 1, Nombre = "Campo Test", IdLicencia = 1 };
+            var lote = new Lote { Id = 1, Nombre = "Lote Test", IdCampo = 1, Campo = campo };
+            var cultivo = new Cultivo { Id = 1, Nombre = "Soja" };
+            var tipoActividad = new TipoActividad { Id = 1, Nombre = "Siembra", Icono = "seeding", ColorIcono = "green" };
+
+            await AddTestDataAsync(campania);
+            await AddTestDataAsync(campo);
+            await AddTestDataAsync(lote);
+            await AddTestDataAsync(cultivo);
+            await AddTestDataAsync(tipoActividad);
+
+            var siembra = new Siembra
+            {
+                Id = 1,
+                IdCampania = 1,
+                IdLote = 1,
+                IdCultivo = 1,
+                IdTipoActividad = 1,
+                Fecha = DateTime.Now,
+                SuperficieHa = 100,
+                Cultivo = cultivo,
+                Campania = campania,
+                Lote = lote,
+                TipoActividad = tipoActividad,
+                RegistrationUser = TestUserAuth.UserName,
+                RegistrationDate = TimeHelper.GetArgentinaTime()
+            };
+            await AddTestDataAsync(siembra);
+
+            // Act
+            await _actividadService.DeteleActividadAsync(1, TipoActividadEnum.Siembra);
+
+            // Assert
+            var siembrasRestantes = await DbContext.Set<Siembra>().ToListAsync();
+            Assert.Empty(siembrasRestantes);
         }
     }
 }

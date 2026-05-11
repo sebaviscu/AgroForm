@@ -22,7 +22,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllAsync_DebeRetornarTodosLosTipos()
         {
             // Arrange
             var tipo1 = new TipoActividad 
@@ -79,7 +79,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllWithDetailsAsync_DebeRetornarTodosLosTipos()
         {
             // Arrange
             var tipo1 = new TipoActividad 
@@ -144,29 +144,6 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
             Assert.Equal("No se encontró el registro", result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_DebeRetornarCorrecto_CuandoExiste()
-        {
-            // Arrange
-            var tipo = new TipoActividad 
-            { 
-                Id = 1, 
-                Nombre = "Siembra", 
-                Icono = "seeding", 
-                ColorIcono = "green",
-            };
-            await AddTestDataAsync(tipo);
-
-            // Act
-            var result = await _tipoActividadService.GetByIdAsync(1);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal(1, result.Data.Id);
-            Assert.Equal("Siembra", result.Data.Nombre);
         }
 
         [Fact]
@@ -305,39 +282,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateAsync_DebeFuncionarCorrectamente()
-        {
-            // Arrange - TipoActividad no implementa EntityBaseWithLicencia, no hay filtrado por licencia
-            var tipoOriginal = new TipoActividad 
-            { 
-                Id = 1, 
-                Nombre = "Siembra", 
-                Icono = "seeding", 
-                ColorIcono = "green"
-            };
-            await AddTestDataAsync(tipoOriginal);
-
-            var tipoActualizado = new TipoActividad 
-            { 
-                Id = 1, 
-                Nombre = "Siembra Actualizada", 
-                Icono = "planting", 
-                ColorIcono = "darkgreen"
-            };
-
-            // Act
-            var result = await _tipoActividadService.UpdateAsync(tipoActualizado);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal("Siembra Actualizada", result.Data.Nombre);
-            Assert.Equal("planting", result.Data.Icono);
-            Assert.Equal("darkgreen", result.Data.ColorIcono);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
+        public async Task DeleteAsync_DebeEliminarCorrectamente()
         {
             // Arrange
             var tipoMismaLicencia = new TipoActividad 

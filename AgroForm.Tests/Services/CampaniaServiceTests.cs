@@ -685,5 +685,138 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("RESOURCE_CONFLICT", result.ErrorCode);
         }
+
+        // --- Tests para GetCurrent ---
+
+        [Fact]
+        public async Task GetCurrent_DebeRetornarCampaniaActual_CuandoExiste()
+        {
+            // Arrange
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña Actual",
+                EstadosCampania = EnumClass.EstadosCamapaña.EnCurso,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.GetCurrent();
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(1, result.Data.Id);
+            Assert.Equal("Campaña Actual", result.Data.Nombre);
+        }
+
+        [Fact]
+        public async Task GetCurrent_DebeRetornarNotFound_CuandoNoHayCampaniaActual()
+        {
+            // Arrange - No hay campañas en la base de datos
+
+            // Act
+            var result = await _campaniaService.GetCurrent();
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
+        }
+
+        // --- Tests para GetCurrentByLicencia ---
+
+        [Fact]
+        public async Task GetCurrentByLicencia_DebeRetornarCampania_CuandoLicenciaValida()
+        {
+            // Arrange
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña Licencia 1",
+                EstadosCampania = EnumClass.EstadosCamapaña.EnCurso,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.GetCurrentByLicencia(1);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(1, result.Data.IdLicencia);
+        }
+
+        [Fact]
+        public async Task GetCurrentByLicencia_DebeRetornarNotFound_CuandoNoHayCampania()
+        {
+            // Act
+            var result = await _campaniaService.GetCurrentByLicencia(1);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
+        }
+
+        [Fact]
+        public async Task GetCurrentByLicencia_DebeRetornarBadRequest_CuandoIdLicenciaEsNull()
+        {
+            // Act
+            var result = await _campaniaService.GetCurrentByLicencia(null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("BAD_REQUEST", result.ErrorCode);
+        }
+
+        // --- Tests para FinalizarCampaña ---
+
+        [Fact]
+        public async Task FinalizarCampania_DebeCambiarEstadoAFinalizada()
+        {
+            // Arrange
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña a Finalizar",
+                EstadosCampania = EnumClass.EstadosCamapaña.EnCurso,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.FinalizarCampaña(1);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.True(result.Data);
+
+            // Verificar que el estado cambió
+            var campaniaActualizada = await DbContext.Campanias.FindAsync(1);
+            Assert.NotNull(campaniaActualizada);
+            Assert.Equal(EnumClass.EstadosCamapaña.Finalizada, campaniaActualizada.EstadosCampania);
+            Assert.NotNull(campaniaActualizada.FechaFin);
+        }
+
+        [Fact]
+        public async Task FinalizarCampania_DebeRetornarNotFound_CuandoIdInvalido()
+        {
+            // Act
+            var result = await _campaniaService.FinalizarCampaña(999);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
+        }
     }
 }

@@ -90,60 +90,6 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task TestBasico_DebeVerificarAutenticacion()
-        {
-            // Arrange - Agregar un lote simple
-            var lote = new Lote 
-            { 
-                Id = 1, 
-                Nombre = "Lote Test", 
-                SuperficieHectareas = 100,
-                IdLicencia = 1,
-                IdCampo = 1
-            };
-            await AddTestDataAsync(lote);
-
-            // Act
-            var result = await _loteService.GetAllAsync();
-
-            // Assert
-            Console.WriteLine($"TestBasico - Success: {result.Success}, Data.Count: {result.Data?.Count ?? 0}");
-            if (!result.Success)
-            {
-                Console.WriteLine($"Error: {result.ErrorCode} - {result.ErrorMessage}");
-            }
-        }
-
-        [Fact]
-        public async Task TestContexto_DebeVerificarDatosEnContextoDelServicio()
-        {
-            // Arrange - Agregar un lote directamente usando el contexto del servicio
-            var contextFactory = GetService<IDbContextFactory<AppDbContext>>();
-            await using var context = await contextFactory.CreateDbContextAsync();
-            
-            var lote = new Lote 
-            { 
-                Id = 1, 
-                Nombre = "Lote Directo", 
-                SuperficieHectareas = 100,
-                IdLicencia = 1,
-                IdCampo = 1
-            };
-            await context.Set<Lote>().AddAsync(lote);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await _loteService.GetAllAsync();
-
-            // Assert
-            Console.WriteLine($"TestContexto - Success: {result.Success}, Data.Count: {result.Data?.Count ?? 0}");
-            if (!result.Success)
-            {
-                Console.WriteLine($"Error: {result.ErrorCode} - {result.ErrorMessage}");
-            }
-        }
-
-        [Fact]
         public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
         {
             // Arrange - Crear datos relacionados

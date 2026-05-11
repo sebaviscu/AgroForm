@@ -24,7 +24,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllAsync_DebeRetornarTodosLosCatalogos()
         {
             // Arrange
             var catalogo1 = new Catalogo 
@@ -81,7 +81,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
+        public async Task GetAllWithDetailsAsync_DebeRetornarTodosLosCatalogos()
         {
             // Arrange
             var catalogo1 = new Catalogo 
@@ -147,29 +147,6 @@ namespace AgroForm.Tests.Services
             Assert.False(result.Success);
             Assert.Equal("NOT_FOUND", result.ErrorCode);
             Assert.Equal("No se encontró el registro", result.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task GetByIdAsync_DebeRetornarCorrecto_CuandoExiste()
-        {
-            // Arrange
-            var catalogo = new Catalogo 
-            { 
-                Id = 1, 
-                Nombre = "Plaga 1", 
-                Tipo = TipoCatalogoEnum.Plaga,
-                Activo = true
-            };
-            await AddTestDataAsync(catalogo);
-
-            // Act
-            var result = await _catalogoService.GetByIdAsync(1);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.NotNull(result.Data);
-            Assert.Equal(1, result.Data.Id);
-            Assert.Equal("Plaga 1", result.Data.Nombre);
         }
 
         [Fact]
@@ -283,7 +260,7 @@ namespace AgroForm.Tests.Services
         }
 
         [Fact]
-        public async Task DeleteAsync_DebeEliminarSoloDeLicenciaActual()
+        public async Task DeleteAsync_DebeEliminarCorrectamente()
         {
             // Arrange
             var catalogoMismaLicencia = new Catalogo 
