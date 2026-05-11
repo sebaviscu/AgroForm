@@ -1,0 +1,259 @@
+/* ==========================================================================
+   components.css — Reusable UI Components
+   Dependencies: site.css (CSS variables)
+   Load AFTER site.css and dark-theme.css
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. CARDS
+   -------------------------------------------------------------------------- */
+
+/* .card-app — Extends Bootstrap .card with hover effect */
+.card-app {
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-app:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* .card-kpi — Standalone KPI/metric card (not wrapping .card) */
+.card-kpi {
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem;
+  height: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-kpi:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-kpi .kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.card-kpi .kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.card-kpi .kpi-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.card-kpi .kpi-trend {
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   2. TABS
+   -------------------------------------------------------------------------- */
+
+/* .nav-tabs-app — Replaces all custom tab variants */
+.nav-tabs-app {
+  border-bottom: 2px solid var(--border);
+  gap: 4px;
+}
+
+.nav-tabs-app .nav-link {
+  border: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 10px 18px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.nav-tabs-app .nav-link:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-tabs-app .nav-link.active {
+  color: var(--text);
+  background: var(--surface);
+  border-bottom: 2px solid var(--bs-primary);
+  margin-bottom: -2px;
+}
+
+.nav-tabs-app .nav-link i {
+  margin-right: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   3. BUTTONS
+   -------------------------------------------------------------------------- */
+
+.btn-app {
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-app-sm {
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.btn-app-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.btn-app-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full, 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. MODAL HEADERS
+   -------------------------------------------------------------------------- */
+
+/* .modal-header-app — base class (no background, default close button) */
+.modal-header-app {
+  /* Default - inherits Bootstrap modal-header styles */
+}
+
+/* Success header (green gradient) */
+.modal-header-app.modal-header-success {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+.modal-header-app.modal-header-success .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* Info header (cyan) */
+.modal-header-app.modal-header-info {
+  background: #0dcaf0;
+  color: #fff;
+}
+
+.modal-header-app.modal-header-info .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* Danger header (red) */
+.modal-header-app.modal-header-danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+.modal-header-app.modal-header-danger .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* Primary header (brand blue) */
+.modal-header-app.modal-header-primary {
+  background: var(--bs-primary);
+  color: #fff;
+}
+
+.modal-header-app.modal-header-primary .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* --------------------------------------------------------------------------
+   5. TABLES
+   -------------------------------------------------------------------------- */
+
+/* .table-app — Consolidated report table style */
+.table-app th {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border);
+}
+
+.table-app td {
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. METRICS & BADGES
+   -------------------------------------------------------------------------- */
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.metric-trend {
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   7. TIPO BADGE (Aplicaciones report)
+   -------------------------------------------------------------------------- */
+
+.tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   8. ICON CIRCLE (Summary cards, Comparativa)
+   -------------------------------------------------------------------------- */
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full, 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}

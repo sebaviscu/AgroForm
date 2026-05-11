@@ -234,7 +234,7 @@ function renderKpis() {
     kpis.forEach(function (kpi) {
         const card = `
             <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="kpi-card d-flex align-items-center gap-3">
+                <div class="card-kpi d-flex align-items-center gap-3">
                     <div class="kpi-icon" style="background:${kpi.bg};color:${kpi.color};">
                         <i class="${kpi.icono}"></i>
                     </div>

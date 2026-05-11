@@ -93,7 +93,6 @@ namespace AgroForm.Tests.Services
 
             // Registrar todos los servicios
             services.AddScoped<IActividadService, ActividadService>();
-            services.AddScoped<IAjusteService, AjusteService>();
             services.AddScoped<ICampaniaService, CampaniaService>();
             services.AddScoped<ICampoService, CampoService>();
             services.AddScoped<ICatalogoService, CatalogoService>();
@@ -134,11 +133,10 @@ namespace AgroForm.Tests.Services
 
         protected async Task ClearDatabaseAsync()
         {
-            foreach (var entity in DbContext.ChangeTracker.Entries())
-            {
-                entity.State = EntityState.Detached;
-            }
-
+            // Eliminar todos los datos de la base de datos en memoria
+            await DbContext.Database.EnsureDeletedAsync();
+            await DbContext.Database.EnsureCreatedAsync();
+            
             // Limpiar el change tracker
             DbContext.ChangeTracker.Clear();
         }

@@ -230,8 +230,9 @@ namespace AgroForm.Tests.Services
                 Id = 1, 
                 Nombre = "Trigo Actualizado", 
                 IdCultivo = 1,
-                Activo = false
-                // No incluir RegistrationDate, RegistrationUser, IdLicencia
+                Activo = false,
+                RegistrationUser = "usuario_original" // Preservar el usuario original
+                // No incluir RegistrationDate, IdLicencia
             };
 
             // Act

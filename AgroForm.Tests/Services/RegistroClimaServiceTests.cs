@@ -69,7 +69,7 @@ namespace AgroForm.Tests.Services
             // Assert
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
-            Assert.Equal(2, result.Data.Count); // Solo los de licencia 1
+            Assert.Equal(2, result.Data.Count); // Solo los de licencia 1 (GetAllAsync ahora filtra por licencia)
             Assert.All(result.Data, r => Assert.Equal(1, r.IdLicencia));
         }
 
@@ -121,7 +121,7 @@ namespace AgroForm.Tests.Services
             // Assert
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
-            Assert.Single(result.Data); // Solo el de licencia 1
+            Assert.Single(result.Data); // Solo el de licencia 1 (GetAllWithDetailsAsync ahora filtra por licencia)
             Assert.Equal(1, result.Data[0].IdLicencia);
         }
 

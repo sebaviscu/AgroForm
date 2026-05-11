@@ -3,230 +3,6 @@
     ViewData["Title"] = "Reporte de Aplicaciones Agrícolas";
 }
 
-<style>
-    /* ===== KPI Cards ===== */
-    .kpi-card {
-        border-radius: 12px;
-        border: 1px solid var(--bs-border-color, #dee2e6);
-        background: var(--bs-card-bg, #fff);
-        padding: 1.25rem;
-        transition: all 0.2s ease;
-        height: 100%;
-    }
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .kpi-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-    .kpi-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        line-height: 1.2;
-    }
-    .kpi-label {
-        font-size: 0.85rem;
-        opacity: 0.75;
-        margin-top: 2px;
-    }
-    .kpi-trend {
-        font-size: 0.8rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    /* ===== Tablas ===== */
-    .table-reporte th {
-        font-weight: 600;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-        background: var(--bs-light, #f8f9fa);
-        border-bottom: 2px solid var(--bs-border-color, #dee2e6);
-    }
-    .table-reporte td {
-        vertical-align: middle;
-        font-size: 0.875rem;
-    }
-    .table-reporte .sortable {
-        cursor: pointer;
-        user-select: none;
-    }
-    .table-reporte .sortable:hover {
-        color: var(--bs-primary, #0d6efd);
-    }
-    .table-reporte .sort-icon {
-        opacity: 0.3;
-        margin-left: 4px;
-    }
-    .table-reporte .sortable.active .sort-icon {
-        opacity: 1;
-        color: var(--bs-primary, #0d6efd);
-    }
-    .table-reporte .tipo-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    /* ===== Tab Navigation ===== */
-    .nav-tabs-reporte .nav-link {
-        border: none;
-        border-bottom: 3px solid transparent;
-        color: var(--bs-secondary-color, #6c757d);
-        font-weight: 500;
-        padding: 0.75rem 1.25rem;
-        transition: all 0.2s;
-        border-radius: 0;
-    }
-    .nav-tabs-reporte .nav-link:hover {
-        border-bottom-color: var(--bs-border-color, #dee2e6);
-        color: var(--bs-body-color, #212529);
-    }
-    .nav-tabs-reporte .nav-link.active {
-        border-bottom-color: var(--bs-primary, #0d6efd);
-        color: var(--bs-primary, #0d6efd);
-        background: transparent;
-    }
-    .nav-tabs-reporte .nav-link i {
-        margin-right: 6px;
-    }
-
-    /* ===== Timeline ===== */
-    .timeline-vertical {
-        position: relative;
-        padding-left: 2rem;
-    }
-    .timeline-vertical::before {
-        content: '';
-        position: absolute;
-        left: 0.75rem;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--bs-border-color, #dee2e6);
-    }
-    .timeline-item {
-        position: relative;
-        padding-bottom: 1.5rem;
-    }
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-    .timeline-icon {
-        position: absolute;
-        left: -1.625rem;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 1rem;
-        z-index: 1;
-        border: 3px solid var(--bs-body-bg, #fff);
-    }
-    .timeline-content {
-        background: var(--bs-card-bg, #fff);
-        border: 1px solid var(--bs-border-color, #dee2e6);
-        border-radius: 10px;
-        padding: 1rem 1.25rem;
-    }
-
-    /* ===== Chart Containers ===== */
-    .chart-container {
-        position: relative;
-        width: 100%;
-        min-height: 300px;
-    }
-    .chart-container canvas {
-        max-width: 100%;
-    }
-
-    /* ===== Estado de carga ===== */
-    #loadingState {
-        padding: 4rem 0;
-    }
-    .spinner-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    /* ===== Empty State ===== */
-    #emptyState {
-        padding: 4rem 0;
-    }
-
-    /* ===== Paginación ===== */
-    .pagination-reporte .page-item .page-link {
-        border-radius: 8px !important;
-        margin: 0 2px;
-        min-width: 36px;
-        text-align: center;
-    }
-    .pagination-reporte .page-item.active .page-link {
-        font-weight: 600;
-    }
-
-    /* ===== Indicadores ===== */
-    .indicador-card {
-        border-radius: 12px;
-        border-left: 4px solid;
-        transition: transform 0.2s;
-    }
-    .indicador-card:hover {
-        transform: translateX(4px);
-    }
-
-    /* ===== Traceability Table ===== */
-    .trace-timeline {
-        max-height: 500px;
-        overflow-y: auto;
-    }
-    .trace-item {
-        padding: 0.75rem 1rem;
-        border-left: 3px solid;
-        margin-bottom: 0.5rem;
-        border-radius: 0 8px 8px 0;
-        background: var(--bs-card-bg, #fff);
-        border: 1px solid var(--bs-border-color, #dee2e6);
-        border-left-width: 3px;
-    }
-
-    /* ===== Insumos Analysis ===== */
-    .insumo-bar {
-        height: 28px;
-        border-radius: 6px;
-        min-width: 4px;
-        transition: width 0.6s ease;
-    }
-
-    /* ===== Responsive ===== */
-    @@media (max-width: 768px) {
-        .kpi-value { font-size: 1.35rem; }
-        .kpi-icon { width: 40px; height: 40px; font-size: 1.2rem; }
-        .nav-tabs-reporte .nav-link { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
-        .table-reporte { font-size: 0.8rem; }
-    }
-</style>
-
 <div class="container-fluid py-3">
     <!-- ===== Header ===== -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
@@ -238,10 +14,10 @@
         </div>
         <div class="d-flex gap-2 mt-2 mt-md-0">
             <button class="btn btn-outline-success btn-sm" onclick="exportarExcel()" title="Exportar a Excel">
-                <i class="ph-file-xls"></i> Excel
+                <i class="ph ph-file-xls"></i> Excel
             </button>
             <button class="btn btn-outline-danger btn-sm" onclick="exportarPDF()" title="Exportar a PDF">
-                <i class="ph-file-pdf"></i> PDF
+                <i class="ph ph-file-pdf"></i> PDF
             </button>
             <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#helpModal">
                 <i class="ph ph-question me-1"></i> Ayuda
@@ -317,7 +93,7 @@
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button class="btn btn-primary btn-sm w-100" onclick="cargarDatos()">
-                        <i class="ph-magnifying-glass me-1"></i>Generar Reporte
+                        <i class="ph ph-magnifying-glass me-1"></i>Generar Reporte
                     </button>
                 </div>
             </div>
@@ -336,7 +112,7 @@
 
     <!-- ===== Empty State ===== -->
     <div id="emptyState" class="text-center" style="display:none;">
-        <i class="ph-drop" style="font-size:4rem;opacity:0.3;"></i>
+        <i class="ph ph-drop" style="font-size:4rem;opacity:0.3;"></i>
         <h5 class="mt-3 text-muted">No se encontraron aplicaciones</h5>
         <p class="text-muted small">Seleccione filtros y presione "Generar Reporte" para visualizar los datos.</p>
     </div>
@@ -349,35 +125,35 @@
         <!-- Tabs -->
         <div class="card">
             <div class="card-header p-0 border-bottom-0">
-                <ul class="nav nav-tabs nav-tabs-reporte px-3 pt-2" id="reporteTabs" role="tablist">
+                <ul class="nav nav-tabs-app px-3 pt-2" id="reporteTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="tab-dashboard" data-bs-toggle="tab" data-bs-target="#panel-dashboard" type="button" role="tab">
-                            <i class="ph-gauge"></i>Dashboard
+                            <i class="ph ph-gauge"></i>Dashboard
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-datos" data-bs-toggle="tab" data-bs-target="#panel-datos" type="button" role="tab">
-                            <i class="ph-table"></i>Datos
+                            <i class="ph ph-table"></i>Datos
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-timeline" data-bs-toggle="tab" data-bs-target="#panel-timeline" type="button" role="tab">
-                            <i class="ph-clock-counter-clockwise"></i>Timeline
+                            <i class="ph ph-clock-counter-clockwise"></i>Timeline
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-insumos" data-bs-toggle="tab" data-bs-target="#panel-insumos" type="button" role="tab">
-                            <i class="ph-flask"></i>Insumos
+                            <i class="ph ph-flask"></i>Insumos
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-graficos" data-bs-toggle="tab" data-bs-target="#panel-graficos" type="button" role="tab">
-                            <i class="ph-chart-bar"></i>Gráficos
+                            <i class="ph ph-chart-bar"></i>Gráficos
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-trazabilidad" data-bs-toggle="tab" data-bs-target="#panel-trazabilidad" type="button" role="tab">
-                            <i class="ph-tree-structure"></i>Trazabilidad
+                            <i class="ph ph-tree-structure"></i>Trazabilidad
                         </button>
                     </li>
                 </ul>
@@ -613,7 +389,7 @@
 <div class="modal fade" id="helpModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header modal-header-app">
                 <h5 class="modal-title"><i class="ph-question me-2"></i>Ayuda - Reporte de Aplicaciones</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>

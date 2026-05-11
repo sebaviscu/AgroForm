@@ -195,7 +195,8 @@ namespace AgroForm.Tests.Services
                 Id = 1, 
                 RazonSocial = "Empresa Actualizada", 
                 NombreContacto = "Contacto Actualizado",
-                Activo = false
+                Activo = false,
+                RegistrationUser = "usuario_original" // Preservar el usuario original
             };
 
             // Act

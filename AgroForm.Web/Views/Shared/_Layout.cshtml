@@ -18,6 +18,8 @@
     <link rel="manifest" href="~/manifest.json">
     <link rel="icon" href="~/images/android-launchericon-72-72.png" type="image/png" />
 
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="AgroApp">
@@ -258,7 +260,7 @@
 <div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="perfilModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header modal-header-app">
                 <h5 class="modal-title" id="perfilModalLabel">
                     <i class="ph ph-user me-2"></i>Mi Perfil
                 </h5>
@@ -295,7 +297,7 @@
 <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header modal-header-app">
                 <h5 class="modal-title" id="configModalLabel">
                     <i class="ph ph-gear me-2"></i>Configuración
                 </h5>
@@ -339,8 +341,6 @@
 </div>
 
 <script src="~/js/layout.js" asp-append-version="true"></script>
-</script>
-
 
 </body>
 </html>

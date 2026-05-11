@@ -196,7 +196,9 @@ namespace AgroForm.Tests.Services
                 Id = 1, 
                 Nombre = "Estado Actualizado", 
                 Descripcion = "Descripción actualizada",
-                Activo = false
+                Activo = false,
+                RegistrationUser = "usuario_original" // Preservar el usuario original
+                // No incluir RegistrationDate, IdLicencia
             };
 
             // Act

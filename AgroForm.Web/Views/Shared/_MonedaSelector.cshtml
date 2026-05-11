@@ -1,0 +1,12 @@
+@*
+    _MonedaSelector.cshtml — Reusable currency selector partial
+    Usage: <partial name="_MonedaSelector" />
+    Depends on: cambiarMoneda() JS function defined in each view
+*@
+<div class="d-flex align-items-center gap-2">
+    <label for="selectorMoneda" class="form-label fw-semibold mb-0 small">Moneda:</label>
+    <select id="selectorMoneda" class="form-select form-select-sm" style="width: auto;" onchange="cambiarMoneda()">
+        <option value="ARS">Pesos (ARS)</option>
+        <option value="USD">Dólares (USD)</option>
+    </select>
+</div>

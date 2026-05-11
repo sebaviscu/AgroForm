@@ -253,7 +253,7 @@ function renderizarResumenEjecutivo(r) {
             <div class="col-lg-8">
                 <div class="row g-3">
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card bg-primary bg-opacity-10 border border-primary border-opacity-25">
+                        <div class="card-kpi bg-primary bg-opacity-10 border border-primary border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-primary text-white">
                                     <i class="ph ph-tree"></i>
@@ -267,7 +267,7 @@ function renderizarResumenEjecutivo(r) {
                         </div>
                     </div>
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card bg-success bg-opacity-10 border border-success border-opacity-25">
+                        <div class="card-kpi bg-success bg-opacity-10 border border-success border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-success text-white">
                                     <i class="ph ph-ruler"></i>
@@ -281,7 +281,7 @@ function renderizarResumenEjecutivo(r) {
                         </div>
                     </div>
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card bg-info bg-opacity-10 border border-info border-opacity-25">
+                        <div class="card-kpi bg-info bg-opacity-10 border border-info border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-info text-white">
                                     <i class="ph ph-calendar"></i>
@@ -295,7 +295,7 @@ function renderizarResumenEjecutivo(r) {
                         </div>
                     </div>
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                        <div class="card-kpi bg-warning bg-opacity-10 border border-warning border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-warning text-white">
                                     <i class="ph ph-cloud-rain"></i>
@@ -309,7 +309,7 @@ function renderizarResumenEjecutivo(r) {
                         </div>
                     </div>
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card border" style="border-color: ${estadoColor}40 !important;">
+                        <div class="card-kpi border" style="border-color: ${estadoColor}40 !important;">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon text-white" style="background: ${estadoColor};">
                                     <i class="ph ph-shield-check"></i>
@@ -323,7 +323,7 @@ function renderizarResumenEjecutivo(r) {
                         </div>
                     </div>
                     <div class="col-md-4 col-6">
-                        <div class="kpi-card bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                        <div class="card-kpi bg-danger bg-opacity-10 border border-danger border-opacity-25">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-danger text-white">
                                     <i class="ph ph-warning"></i>

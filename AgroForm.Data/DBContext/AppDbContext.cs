@@ -45,7 +45,6 @@ namespace AgroForm.Data.DBContext
         public DbSet<CicloCultivo> CicloCultivos { get; set; }
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
-        public DbSet<Ajuste> Ajustes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -789,13 +788,6 @@ namespace AgroForm.Data.DBContext
                     .HasForeignKey(e => e.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
 
-            });
-
-            modelBuilder.Entity<Ajuste>(entity =>
-            {
-                entity.ToTable("Ajustes");
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.IdLicencia);
             });
         }
 

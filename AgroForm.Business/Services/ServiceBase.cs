@@ -26,7 +26,15 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var list = await _repository.GetAllAsync();
+                IQueryable<T> query = _repository.Query().AsNoTracking();
+
+                // Filtrar por licencia si la entidad hereda de EntityBaseWithLicencia
+                if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                }
+
+                var list = await query.ToListAsync();
                 return OperationResult<List<T>>.SuccessResult(list);
             }
             catch (Exception ex)
@@ -264,7 +272,15 @@ namespace AgroForm.Business.Services
 
         public virtual IQueryable<T> GetQuery()
         {
-            return _repository.Query();
+            var query = _repository.Query();
+
+            // Filtrar por licencia si la entidad hereda de EntityBaseWithLicencia
+            if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
+            {
+                query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+            }
+
+            return query;
         }
     }
 

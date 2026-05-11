@@ -6,27 +6,6 @@
 }
 
 <div class="container-fluid">
-    <!-- Welcome Section -->
-    @*     <div class="welcome-section">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="display-5 fw-bold mb-3">¡Bienvenido a AgroForm!</h1>
-                <p class="lead mb-4">Sistema integral de gestión agrícola</p>
-
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <div class="d-flex align-items-center">
-                        <i class="ph ph-check-circle-fill me-2 fs-4"></i>
-                        <span class="fs-5">Sesión iniciada como: <strong>@User.Identity.Name</strong></span>
-                    </div>
-                }
-            </div>
-            <div class="col-md-4 text-center">
-                <i class="ph ph-tree display-1 opacity-75"></i>
-            </div>
-        </div>
-    </div> *@
-
     <!-- Stats Section -->
     <div class="row g-3 mb-4">
         <!-- Cotización del Dólar -->
@@ -76,7 +55,7 @@
                                     <div class="text-muted small fw-semibold">HECTÁREAS SEMBRADAS</div>
                                     <div class="h5 mb-0 fw-bold text-primary">@Model.HaSembradas Ha</div>
                                 </div>
-                                <button class="btn btn-sm btn-outline-primary btn-icon cultivos-popover"
+                                <button class="btn btn-sm btn-outline-primary btn-app-icon cultivos-popover"
                                         data-bs-toggle="popover"
                                         data-bs-placement="bottom"
                                         data-bs-title="Detalle de Cultivos"
@@ -221,15 +200,3 @@
         }
     });
 </script>
-
-<style>
-    .btn-icon {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 6px;
-    }
-</style>

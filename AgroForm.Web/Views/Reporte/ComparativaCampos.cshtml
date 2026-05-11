@@ -3,94 +3,6 @@
     ViewData["Title"] = "Comparativa de Campos / Lotes";
 }
 
-<style>
-    .summary-card {
-        border-radius: 12px;
-        transition: transform 0.2s;
-    }
-    .summary-card:hover {
-        transform: translateY(-2px);
-    }
-    .summary-card .card-body {
-        padding: 1rem 1.25rem;
-    }
-    .summary-card .icon-circle {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
-    .ranking-badge {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.8rem;
-    }
-    .ranking-1 { background: #ffd700; color: #000; }
-    .ranking-2 { background: #c0c0c0; color: #000; }
-    .ranking-3 { background: #cd7f32; color: #fff; }
-    .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-    }
-    .filter-section {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 1rem;
-    }
-    .heatmap-cell {
-        padding: 0.5rem;
-        text-align: center;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .heatmap-high { background: #1a9850; color: white; }
-    .heatmap-mid-high { background: #91cf60; color: #333; }
-    .heatmap-mid { background: #fee08b; color: #333; }
-    .heatmap-mid-low { background: #fc8d59; color: #333; }
-    .heatmap-low { background: #d73027; color: white; }
-    .heatmap-none { background: #e9ecef; color: #999; }
-    .table-compact td, .table-compact th {
-        padding: 0.4rem 0.5rem;
-        font-size: 0.85rem;
-        vertical-align: middle;
-    }
-    .table-compact th {
-        white-space: nowrap;
-        cursor: pointer;
-        user-select: none;
-        position: relative;
-    }
-    .table-compact th:hover {
-        background-color: #e9ecef;
-    }
-    .table-compact th.sort-asc,
-    .table-compact th.sort-desc {
-        background-color: #d4edda;
-        color: #155724;
-    }
-    .sort-icon {
-        font-size: 0.7rem;
-        margin-left: 2px;
-    }
-    .lote-name {
-        font-weight: 600;
-    }
-    .campo-name {
-        font-size: 0.75rem;
-        color: #6c757d;
-    }
-</style>
-
 <div class="container-fluid">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -101,14 +13,7 @@
             <p class="text-muted mb-0 small">Compare rendimiento, costos y eficiencia entre lotes y campos</p>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <!-- Selector de Moneda -->
-            <div class="d-flex align-items-center gap-2">
-                <label for="selectorMoneda" class="form-label fw-semibold mb-0 small">Moneda:</label>
-                <select id="selectorMoneda" class="form-select form-select-sm" style="width: auto;" onchange="cambiarMoneda()">
-                    <option value="ARS">Pesos (ARS)</option>
-                    <option value="USD">Dólares (USD)</option>
-                </select>
-            </div>
+            <partial name="_MonedaSelector" />
             <button id="btnExportarExcel" class="btn btn-outline-success btn-sm me-1">
                 <i class="ph ph-file-xls me-1"></i> Exportar Excel
             </button>
@@ -161,7 +66,7 @@
     <!-- Tarjetas de Resumen -->
     <div class="row g-2 mb-3" id="summaryCards">
         <div class="col-md-3 col-6">
-            <div class="card summary-card border-0 shadow-sm h-100">
+            <div class="card card-kpi border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-primary bg-opacity-10 text-primary">
@@ -176,7 +81,7 @@
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="card summary-card border-0 shadow-sm h-100">
+            <div class="card card-kpi border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-success bg-opacity-10 text-success">
@@ -193,7 +98,7 @@
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="card summary-card border-0 shadow-sm h-100">
+            <div class="card card-kpi border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-warning bg-opacity-10 text-warning">
@@ -213,7 +118,7 @@
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="card summary-card border-0 shadow-sm h-100">
+            <div class="card card-kpi border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-info bg-opacity-10 text-info">

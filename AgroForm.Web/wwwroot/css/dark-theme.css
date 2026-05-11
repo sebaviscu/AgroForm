@@ -47,6 +47,28 @@
     border-color: var(--border) !important;
 }
 
+/* Preserve colored modal header backgrounds in dark mode */
+[data-theme="dark"] .modal-header-app.modal-header-success,
+[data-theme="dark"] .modal-header-app.modal-header-info,
+[data-theme="dark"] .modal-header-app.modal-header-primary,
+[data-theme="dark"] .modal-header-app.modal-header-danger {
+    background: var(--brand-gradient) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+[data-theme="dark"] .modal-header-app.modal-header-info {
+    background: #0dcaf0 !important;
+}
+
+[data-theme="dark"] .modal-header-app.modal-header-danger {
+    background: #dc3545 !important;
+}
+
+[data-theme="dark"] .modal-header-app.modal-header-primary {
+    background: var(--bs-primary) !important;
+}
+
 [data-theme="dark"] .card-footer,
 [data-theme="dark"] .modal-footer {
     background: var(--surface) !important;
@@ -279,19 +301,19 @@
     color: var(--text-muted) !important;
 }
 
-[data-theme="dark"] .kpi-card {
+[data-theme="dark"] .card-kpi {
     color: var(--text);
 }
 
-[data-theme="dark"] .kpi-card .text-muted {
+[data-theme="dark"] .card-kpi .text-muted {
     color: var(--text-muted) !important;
 }
 
-[data-theme="dark"] .kpi-card small {
+[data-theme="dark"] .card-kpi small {
     color: var(--text-muted);
 }
 
-[data-theme="dark"] .kpi-card h5 {
+[data-theme="dark"] .card-kpi h5 {
     color: var(--text);
 }
 
@@ -340,7 +362,7 @@
 /* ==========================================================================
    10. REPORT: COSECHA VIEW
    ========================================================================== */
-[data-theme="dark"] .kpi-card {
+[data-theme="dark"] .card-kpi {
     background: var(--surface);
     border: 1px solid var(--border);
 }
@@ -603,4 +625,86 @@
 
 [data-theme="dark"] .choices__list--multiple .choices__item .choices__button {
     filter: invert(1);
+}
+
+/* ==========================================================================
+   15. SIDEBAR DARK MODE
+   ========================================================================== */
+[data-theme="dark"] .sidebar {
+    background: var(--sidebar-bg) !important;
+}
+
+[data-theme="dark"] .sidebar-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%) !important;
+}
+
+[data-theme="dark"] .sidebar-link {
+    color: var(--sidebar-text);
+}
+
+[data-theme="dark"] .sidebar-link:hover,
+[data-theme="dark"] .sidebar-link:focus {
+    color: var(--sidebar-text-active);
+    background: var(--sidebar-hover-bg);
+}
+
+[data-theme="dark"] .sidebar-link.active {
+    color: var(--sidebar-text-active);
+    background: var(--sidebar-hover-bg);
+}
+
+[data-theme="dark"] .sidebar-subitem {
+    color: var(--sidebar-text);
+}
+
+[data-theme="dark"] .sidebar-subitem:hover {
+    color: var(--sidebar-text-active);
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+}
+
+[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ==========================================================================
+   16. REPORT VIEWS DARK MODE
+   ========================================================================== */
+
+/* Filter section (Comparativa) */
+[data-theme="dark"] .filter-section {
+    background: var(--surface-2);
+}
+
+/* Nav tabs app dark mode */
+[data-theme="dark"] .nav-tabs-app .nav-link:hover {
+    background: var(--surface-2);
+}
+
+[data-theme="dark"] .nav-tabs-app .nav-link.active {
+    background: var(--surface);
+}
+
+/* KPI trends */
+[data-theme="dark"] .kpi-trend-up { color: #4caf50; }
+[data-theme="dark"] .kpi-trend-down { color: #f44336; }
+[data-theme="dark"] .kpi-trend-stable { color: #ffc107; }
+
+/* Score rings (dark mode adjusted) */
+[data-theme="dark"] .score-excellent { background: conic-gradient(#4caf50 var(--pct), var(--border) var(--pct)); }
+[data-theme="dark"] .score-good { background: conic-gradient(#17a2b8 var(--pct), var(--border) var(--pct)); }
+[data-theme="dark"] .score-regular { background: conic-gradient(#ffc107 var(--pct), var(--border) var(--pct)); }
+[data-theme="dark"] .score-critical { background: conic-gradient(#dc3545 var(--pct), var(--border) var(--pct)); }
+
+/* Ranking badges */
+[data-theme="dark"] .ranking-1 { background: linear-gradient(135deg, #FFD700, #FFA000); }
+[data-theme="dark"] .ranking-2 { background: linear-gradient(135deg, #C0C0C0, #9E9E9E); }
+[data-theme="dark"] .ranking-3 { background: linear-gradient(135deg, #CD7F32, #8D6E63); }
+
+/* Heatmap (Comparativa) — low values more visible in dark */
+[data-theme="dark"] .heatmap-none {
+    background: var(--surface-2);
+    color: var(--text-muted);
 }

@@ -260,7 +260,7 @@ function renderKpis(kpis) {
     var html = '';
     cards.forEach(function (c) {
         html += '<div class="col-md-4 col-lg-2 col-sm-6">' +
-            '<div class="card kpi-card border">' +
+            '<div class="card card-kpi border">' +
             '<div class="d-flex align-items-start gap-3">' +
             '<div class="kpi-icon" style="background:' + c.color + '22;color:' + c.color + '">' +
             '<i class="ph ' + c.icon + '"></i>' +

@@ -1,0 +1,847 @@
+/* ==========================================================================
+   reports.css — Report-specific Styles
+   Dependencies: site.css (CSS variables), components.css (.card-kpi, .table-app, etc.)
+   Load AFTER components.css
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TIMELINE (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.timeline {
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 70px;
+  margin-bottom: 20px;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.timeline-content {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* --------------------------------------------------------------------------
+   2. SCORE RINGS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.score-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  position: relative;
+}
+
+.score-excellent { background: conic-gradient(#28a745 var(--pct), var(--border) var(--pct)); }
+.score-good      { background: conic-gradient(#17a2b8 var(--pct), var(--border) var(--pct)); }
+.score-regular   { background: conic-gradient(#ffc107 var(--pct), var(--border) var(--pct)); }
+.score-critical  { background: conic-gradient(#dc3545 var(--pct), var(--border) var(--pct)); }
+
+.score-ring-inner {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   3. SOIL BARS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.soil-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.soil-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* --------------------------------------------------------------------------
+   4. RANKING BADGES (Reporte/Cosecha, Comparativa)
+   -------------------------------------------------------------------------- */
+
+.ranking-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.ranking-1 {
+  background: linear-gradient(135deg, #FFD700, #FFA000);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ranking-2 {
+  background: linear-gradient(135deg, #C0C0C0, #9E9E9E);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ranking-3 {
+  background: linear-gradient(135deg, #CD7F32, #8D6E63);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   5. HEATMAP (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+.heatmap-cell {
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.heatmap-high    { background: #1a9850; color: white; }
+.heatmap-mid-high{ background: #91cf60; color: #333; }
+.heatmap-mid     { background: #fee08b; color: #333; }
+.heatmap-mid-low { background: #fc8d59; color: #333; }
+.heatmap-low     { background: #d73027; color: white; }
+.heatmap-none    { background: #e9ecef; color: #999; }
+
+/* --------------------------------------------------------------------------
+   6. KPI TRENDS (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.kpi-trend-up    { color: #28a745; }
+.kpi-trend-down  { color: #dc3545; }
+.kpi-trend-stable{ color: #ffc107; }
+
+/* --------------------------------------------------------------------------
+   7. INDICATOR CARDS (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.indicator-card {
+  border-left: 4px solid;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: transform 0.2s;
+  height: 100%;
+}
+
+.indicator-card:hover {
+  transform: translateY(-2px);
+}
+
+.indicator-card .indicator-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.indicator-severity-alta  { border-left-color: #dc3545; }
+.indicator-severity-media { border-left-color: #ffc107; }
+.indicator-severity-baja  { border-left-color: #17a2b8; }
+
+/* --------------------------------------------------------------------------
+   8. FILTER SECTION (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+.filter-section {
+  background: var(--surface-2);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   9. CHART CONTAINER (all reports)
+   -------------------------------------------------------------------------- */
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   10. SORTABLE TABLE HELPERS (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--bs-primary, #0d6efd);
+}
+
+.sort-icon {
+  opacity: 0.3;
+  margin-left: 4px;
+}
+
+.sortable.active .sort-icon {
+  opacity: 1;
+  color: var(--bs-primary, #0d6efd);
+}
+
+/* --------------------------------------------------------------------------
+   11. TABLE COMPACT (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+.table-compact td,
+.table-compact th {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.table-compact th {
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.table-compact th:hover {
+  background-color: var(--surface-2);
+}
+
+.table-compact th.sort-asc,
+.table-compact th.sort-desc {
+  background-color: rgba(25, 135, 84, 0.12);
+  color: var(--brand-primary, #198754);
+}
+
+/* --------------------------------------------------------------------------
+   12. LOTE/CAMPO NAMES (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+.lote-name {
+  font-weight: 600;
+}
+
+.campo-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   13. BOOTSTRAP TAB-PANE STACKING FIX (all report views)
+   -------------------------------------------------------------------------- */
+
+.tab-content {
+  position: relative;
+}
+
+.tab-content > .tab-pane {
+  display: none !important;
+  position: relative;
+  width: 100%;
+}
+
+.tab-content > .tab-pane.active {
+  display: block !important;
+}
+
+.tab-content > .tab-pane.active.show {
+  display: block !important;
+}
+
+/* --------------------------------------------------------------------------
+   14. FLAT RANKING (ComparativaCampos)
+   -------------------------------------------------------------------------- */
+
+/* Flat-color ranking (used together with .ranking-badge in Comparativa table) */
+
+.ranking-badge.ranking-1 {
+  background: #ffd700;
+  color: #000;
+}
+
+.ranking-badge.ranking-2 {
+  background: #c0c0c0;
+  color: #000;
+}
+
+.ranking-badge.ranking-3 {
+  background: #cd7f32;
+  color: #fff;
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   16. SOIL BAR LABELS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.soil-bar-label {
+  position: absolute;
+  top: -22px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.soil-low { background: #dc3545; }
+.soil-medium { background: #ffc107; }
+.soil-optimum { background: #28a745; }
+.soil-high { background: #17a2b8; }
+
+/* --------------------------------------------------------------------------
+   17. ALERT CARDS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.alert-card {
+  border-left: 4px solid;
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--bs-card-bg);
+  border: 1px solid var(--bs-border-color);
+  border-left-width: 4px;
+}
+
+.alert-severity-alta  { border-left-color: #dc3545; }
+.alert-severity-media { border-left-color: #ffc107; }
+.alert-severity-baja  { border-left-color: #17a2b8; }
+
+/* --------------------------------------------------------------------------
+   18. COMPARATIVA TABLE ROWS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.comparativa-row {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: 10px 0;
+}
+
+.comparativa-row:last-child {
+  border-bottom: none;
+}
+
+.comparativa-valor-principal {
+  font-weight: 700;
+  color: var(--bs-primary);
+}
+
+.comparativa-valor-secundario {
+  font-weight: 600;
+  color: var(--bs-secondary);
+}
+
+.comparativa-ganador {
+  background-color: rgba(40, 167, 69, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+/* --------------------------------------------------------------------------
+   19. REPORT LOADING STATE (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.report-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+/* --------------------------------------------------------------------------
+   21. CHART CONTAINER (Reporte/Campo — 250px override)
+   -------------------------------------------------------------------------- */
+
+#reportData .chart-container {
+  height: 250px;
+  max-height: 250px;
+}
+
+#reportData .chart-container canvas {
+  max-height: 250px !important;
+}
+
+/* --------------------------------------------------------------------------
+   22. COMPACT FILTERS ROW (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.filters-row .form-label {
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+.filters-row .form-select {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.filters-row .btn {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   23. COST BREAKDOWN ITEMS (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.cost-item:last-child {
+  border-bottom: none;
+}
+
+/* --------------------------------------------------------------------------
+   24. HISTORY ACCORDION (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+.history-campaign {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.history-campaign-header {
+  padding: 14px 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bs-card-bg);
+  transition: background 0.2s;
+}
+
+.history-campaign-header:hover {
+  background: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.history-campaign-body {
+  padding: 14px 18px;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* --------------------------------------------------------------------------
+   25. PRINT OVERRIDES (Reporte/Campo)
+   -------------------------------------------------------------------------- */
+
+@media print {
+  .no-print { display: none !important; }
+  .card-kpi { break-inside: avoid; }
+  .tab-content > .tab-pane { display: block !important; opacity: 1 !important; visibility: visible !important; }
+  .nav-tabs { display: none !important; }
+  .card { border: none !important; box-shadow: none !important; }
+}
+
+/* --------------------------------------------------------------------------
+   27. RANKING DEFAULT BADGE (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.ranking-default {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-secondary-color);
+}
+
+/* --------------------------------------------------------------------------
+   28. COSECHA TABLE (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.table-cosecha th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.table-cosecha th:hover {
+  color: var(--bs-primary);
+}
+
+.table-cosecha th .sort-icon {
+  margin-left: 4px;
+  opacity: 0.4;
+}
+
+.table-cosecha th.active .sort-icon {
+  opacity: 1;
+  color: var(--bs-primary);
+}
+
+.table-cosecha td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   29. TREND COLORS (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.trend-up    { color: #28a745; }
+.trend-down  { color: #dc3545; }
+.trend-stable{ color: #ffc107; }
+
+/* --------------------------------------------------------------------------
+   30. CUSTOM PAGINATION (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.pagination-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pagination-custom .btn-page {
+  min-width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--bs-border-color);
+  background: var(--bs-card-bg);
+  color: var(--bs-body-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-custom .btn-page:hover {
+  background: var(--bs-tertiary-bg);
+}
+
+.pagination-custom .btn-page.active {
+  background: var(--bs-primary);
+  color: #fff;
+  border-color: var(--bs-primary);
+}
+
+.pagination-custom .btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+}
+
+/* --------------------------------------------------------------------------
+   31. CHART CONTAINER SMALL 250px (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.chart-container-sm {
+  position: relative;
+  height: 250px;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   32. LOADING CONTAINER (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+/* --------------------------------------------------------------------------
+   33. RESPONSIVE OVERRIDES (Reporte/Cosecha)
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .card-kpi { padding: 14px; }
+  .kpi-icon { width: 40px; height: 40px; font-size: 20px; }
+  .nav-tabs-custom .nav-link { padding: 8px 12px; font-size: 0.85rem; }
+  .chart-container { height: 220px; }
+}
+
+/* --------------------------------------------------------------------------
+   34. KPI TREND (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.kpi-trend {
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   35. REPORT TABLE (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.table-reporte th {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: var(--bs-light, #f8f9fa);
+  border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+}
+
+.table-reporte td {
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+.table-reporte .sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table-reporte .sortable:hover {
+  color: var(--bs-primary, #0d6efd);
+}
+
+.table-reporte .sort-icon {
+  opacity: 0.3;
+  margin-left: 4px;
+}
+
+.table-reporte .sortable.active .sort-icon {
+  opacity: 1;
+  color: var(--bs-primary, #0d6efd);
+}
+
+.table-reporte .tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   37. VERTICAL TIMELINE (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.timeline-vertical {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-vertical::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--bs-border-color, #dee2e6);
+}
+
+.timeline-vertical .timeline-item {
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.timeline-vertical .timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-vertical .timeline-icon {
+  position: absolute;
+  left: -1.625rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  z-index: 1;
+  border: 3px solid var(--bs-body-bg, #fff);
+}
+
+.timeline-vertical .timeline-content {
+  background: var(--bs-card-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   38. LOADING & EMPTY STATES (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+#loadingState,
+#emptyState {
+  padding: 4rem 0;
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   40. REPORT PAGINATION (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.pagination-reporte .page-item .page-link {
+  border-radius: var(--radius-sm) !important;
+  margin: 0 2px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.pagination-reporte .page-item.active .page-link {
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   41. INDICADOR CARD (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.indicador-card {
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  transition: transform 0.2s;
+}
+
+.indicador-card:hover {
+  transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   42. TRACEABILITY TIMELINE (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.trace-timeline {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.trace-item {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid;
+  margin-bottom: 0.5rem;
+  border-radius: 0 8px 8px 0;
+  background: var(--bs-card-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-left-width: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   43. INSUMO BAR (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+.insumo-bar {
+  height: 28px;
+  border-radius: var(--radius-sm);
+  min-width: 4px;
+  transition: width 0.6s ease;
+}
+
+/* --------------------------------------------------------------------------
+   44. RESPONSIVE OVERRIDES (Reporte/Aplicaciones)
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .kpi-value { font-size: 1.35rem; }
+  .kpi-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+  .nav-tabs-app .nav-link { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+  .table-reporte { font-size: 0.8rem; }
+}
