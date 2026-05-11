@@ -103,27 +103,72 @@ namespace AgroForm.Web.Controllers
 
             try
             {
-                var reporte = await _cierreCampaniaService.GenerarReporteCierreAsync(id);
+                ValidarAutorizacion(new[] { Roles.Administrador });
 
-                if (!reporte.Success)
+                // Primero finalizar la campaña (cierra ciclos activos y cambia estado)
+                var resultadoFinalizacion = await _service.FinalizarCampaña(id);
+                if (!resultadoFinalizacion.Success)
                 {
                     gResponse.Success = false;
-                    gResponse.Message = reporte.ErrorMessage;
+                    gResponse.Message = resultadoFinalizacion.ErrorMessage;
                     return BadRequest(gResponse);
                 }
 
+                // Generar reporte de cierre
+                var reporte = await _cierreCampaniaService.GenerarReporteCierreAsync(id);
+                if (!reporte.Success)
+                {
+                    _logger.LogWarning("No se pudo generar el reporte de cierre para la campaña {Id}: {Error}", id, reporte.ErrorMessage);
+                    // Continuamos aunque falle el reporte, la campaña ya está finalizada
+                }
+
+                // Limpiar el claim de idCampania del usuario
+                await UpdateClaimAsync("Campania", null);
+
                 gResponse.Success = true;
-                gResponse.Message = "Campaña finalizada";
+                gResponse.Message = "Campaña finalizada correctamente";
                 return Ok(gResponse);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cerrar campaña");
                 gResponse.Success = false;
-                gResponse.Message = "Ah ocurrido un error";
+                gResponse.Message = "Ha ocurrido un error al cerrar la campaña";
                 return BadRequest(gResponse);
             }
+        }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Iniciar(int id)
+        {
+            var gResponse = new GenericResponse<CampaniaVM>();
+            try
+            {
+                ValidarAutorizacion(new[] { Roles.Administrador });
+
+                var result = await _service.IniciarCampania(id);
+                if (!result.Success)
+                {
+                    gResponse.Success = false;
+                    gResponse.Message = result.ErrorMessage;
+                    return BadRequest(gResponse);
+                }
+
+                // Actualizar claim del usuario a la nueva campaña activa
+                await UpdateClaimAsync("Campania", id.ToString());
+
+                gResponse.Success = true;
+                gResponse.Object = Map<Campania, CampaniaVM>(result.Data);
+                gResponse.Message = "Campaña iniciada correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al iniciar campaña {Id}", id);
+                gResponse.Success = false;
+                gResponse.Message = "Ocurrió un error al iniciar la campaña";
+                return BadRequest(gResponse);
+            }
         }
 
         //[HttpGet("{id}")]

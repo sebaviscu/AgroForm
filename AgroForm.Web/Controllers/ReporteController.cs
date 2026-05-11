@@ -1,5 +1,6 @@
 ﻿using AgroForm.Business.Contracts;
 using AgroForm.Business.Services;
+using AgroForm.Web.Models;
 using AgroForm.Web.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,38 @@ public class ReporteController : Controller
     {
         var campos = await _campoService.GetAllAsync();
         return View();
+    }
+
+    [HttpGet("[action]")]
+    public async Task<IActionResult> ComparativaCampos()
+    {
+        try
+        {
+            // Obtener datos para los filtros
+            var camposResult = await _campoService.GetAllAsync();
+            var cultivosResult = await _reportService.GetComparativaCamposAsync(); // Para obtener cultivos disponibles
+
+            var viewModel = new ReporteComparativaVM
+            {
+                Campos = camposResult.Success 
+                    ? camposResult.Data.Select(c => new FiltroItem { Id = c.Id, Nombre = c.Nombre }).ToList()
+                    : new List<FiltroItem>(),
+                Cultivos = cultivosResult.Success
+                    ? cultivosResult.Data
+                        .Where(d => d.IdCultivo.HasValue)
+                        .Select(d => new FiltroItem { Id = d.IdCultivo!.Value, Nombre = d.Cultivo ?? "Sin nombre" })
+                        .DistinctBy(c => c.Id)
+                        .ToList()
+                    : new List<FiltroItem>()
+            };
+
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            // En caso de error, retornar vista con datos vacíos
+            return View(new ReporteComparativaVM());
+        }
     }
 
     [HttpGet("CierreCampania/{idCampania}")]
@@ -132,6 +165,74 @@ public class ReporteController : Controller
         catch (Exception ex)
         {
             return BadRequest(new { Success = false, Message = "Ha ocurrido un error al obtener las campañas" });
+        }
+    }
+
+    /// <summary>
+    /// Obtiene los lotes de un campo específico para el filtro
+    /// </summary>
+    [HttpGet("GetLotesByCampo/{idCampo}")]
+    public async Task<IActionResult> GetLotesByCampo(int idCampo)
+    {
+        try
+        {
+            var campo = await _campoService.GetByIdAsync(idCampo);
+
+            if (!campo.Success || campo.Data == null)
+            {
+                return NotFound(new { Success = false, Message = "Campo no encontrado" });
+            }
+
+            var lotes = campo.Data.Lotes
+                .Select(l => new
+                {
+                    Id = l.Id,
+                    Nombre = l.Nombre
+                })
+                .OrderBy(l => l.Nombre)
+                .ToList();
+
+            return Ok(new { Success = true, Data = lotes });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Success = false, Message = "Ha ocurrido un error al obtener los lotes" });
+        }
+    }
+
+    /// <summary>
+    /// Obtiene datos comparativos de campos/lotes para el reporte
+    /// </summary>
+    [HttpPost("GetComparativaCamposData")]
+    public async Task<IActionResult> GetComparativaCamposData([FromBody] ReporteComparativaRequest request)
+    {
+        var gResponse = new GenericResponse<List<ReporteComparativaCampoDto>>();
+
+        try
+        {
+            var result = await _reportService.GetComparativaCamposAsync(
+                request.IdCampania,
+                request.IdCampo,
+                request.IdLote,
+                request.IdCultivo);
+
+            if (!result.Success)
+            {
+                gResponse.Success = false;
+                gResponse.Message = result.ErrorMessage;
+                return BadRequest(gResponse);
+            }
+
+            gResponse.Success = true;
+            gResponse.Object = result.Data;
+            gResponse.Message = "Datos comparativos obtenidos correctamente";
+            return Ok(gResponse);
+        }
+        catch (Exception ex)
+        {
+            gResponse.Success = false;
+            gResponse.Message = "Ha ocurrido un error al obtener los datos comparativos";
+            return BadRequest(gResponse);
         }
     }
 

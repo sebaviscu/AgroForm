@@ -33,7 +33,8 @@ VALUES
 ('Riego', 'ph-drop', '#03A9F4'),
 ('Monitoreo', 'ph-magnifying-glass', '#795548'),
 ('Cosecha', 'ph-grains', '#FFC107'),
-('Otras labores', 'ph-wrench', '#9E9E9E');
+('Otras labores', 'ph-wrench', '#9E9E9E'),
+('Silo Bolsa', 'ph-package', '#8B5E3C');
 
 
 -- Insertar Cultivos (sin IDs explícitos y sin Descripcion)

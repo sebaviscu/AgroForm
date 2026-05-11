@@ -361,6 +361,48 @@ BEGIN
       AND (@IdLoteFilter IS NULL OR o.IdLote = @IdLoteFilter)
       AND (@IdsLotes IS NULL OR o.IdLote IN (SELECT Id FROM @LotesFilter))
 
+    UNION ALL
+
+    -- ==============================
+    -- S I L O   B O L S A
+    -- ==============================
+    SELECT
+        sb.Id,
+        sb.IdTipoActividad,
+        ta.Nombre,
+        ta.Icono,
+        ta.ColorIcono,
+        sb.Fecha,
+        sb.RegistrationUser,
+        sb.RegistrationDate,
+        CONCAT('Código: ', sb.Codigo,
+               CASE WHEN sb.Longitud IS NOT NULL THEN CONCAT(', Longitud: ', FORMAT(sb.Longitud, 'N1'), ' m') ELSE '' END,
+               CASE WHEN sb.CapacidadTotalTn IS NOT NULL THEN CONCAT(', Capacidad: ', FORMAT(sb.CapacidadTotalTn, 'N1'), ' tn') ELSE '' END,
+               CASE WHEN sb.HumedadGrano IS NOT NULL THEN CONCAT(', Humedad: ', FORMAT(sb.HumedadGrano, 'N1'), '%') ELSE '' END),
+        sb.Costo,
+        sb.CostoUSD,
+        sb.CostoARS,
+        sb.IdCampania,
+        camp.Nombre,
+        sb.Observacion,
+        sb.IdLote,
+        l.Nombre,
+        campo.Nombre,
+        CAST(CASE WHEN sb.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        sb.IdCicloCultivo,
+        CONCAT(c2.Nombre, CASE WHEN cc.FechaFin IS NULL THEN '' ELSE ' (Cerrado)' END) AS CicloCultivoNombre
+    FROM SiloBolsas sb
+    INNER JOIN Lotes l ON l.Id = sb.IdLote
+    INNER JOIN Campos campo ON campo.Id = l.IdCampo
+    INNER JOIN Campanias camp ON camp.Id = sb.IdCampania
+    INNER JOIN TiposActividad ta ON ta.Id = sb.IdTipoActividad
+    INNER JOIN CicloCultivos cc ON cc.Id = sb.IdCicloCultivo
+    INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
+    WHERE sb.IdLicencia = @IdLicencia
+      AND (@IdCampaniaFilter IS NULL OR sb.IdCampania = @IdCampaniaFilter)
+      AND (@IdLoteFilter IS NULL OR sb.IdLote = @IdLoteFilter)
+      AND (@IdsLotes IS NULL OR sb.IdLote IN (SELECT Id FROM @LotesFilter))
+
     -- ==============================
     -- O R D E N A M I E N T O
     -- ==============================

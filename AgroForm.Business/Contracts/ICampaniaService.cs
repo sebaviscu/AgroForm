@@ -12,5 +12,7 @@ namespace AgroForm.Business.Contracts
     {
         Task<OperationResult<Campania>> GetCurrent();
         Task<OperationResult<Campania>> GetCurrentByLicencia(int? idLicencia);
+        Task<OperationResult<Campania>> IniciarCampania(int id);
+        Task<OperationResult<bool>> FinalizarCampaña(int id);
     }
 }

@@ -400,5 +400,290 @@ namespace AgroForm.Tests.Services
             Assert.Single(resultados); // Solo el de licencia 1
             Assert.Equal(1, resultados[0].IdLicencia);
         }
+
+        [Fact]
+        public async Task IniciarCampania_DebeCambiarEstadoCorrectamente()
+        {
+            // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                SuperficieHectareas = 100,
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campo);
+
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña a Iniciar",
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 1,
+                        Nombre = "Lote 1",
+                        SuperficieHectareas = 50,
+                        IdCampo = 1,
+                        IdCampania = 1,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.IniciarCampania(1);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.Equal(EnumClass.EstadosCamapaña.EnCurso, result.Data.EstadosCampania);
+        }
+
+        [Fact]
+        public async Task IniciarCampania_DebeRechazar_CuandoYaExisteUnaEnCurso()
+        {
+            // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                SuperficieHectareas = 100,
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campo);
+
+            var campaniaEnCurso = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña En Curso",
+                EstadosCampania = EnumClass.EstadosCamapaña.EnCurso,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 1,
+                        Nombre = "Lote 1",
+                        SuperficieHectareas = 50,
+                        IdCampo = 1,
+                        IdCampania = 1,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campaniaEnCurso);
+
+            var campaniaPlanificada = new Campania
+            {
+                Id = 2,
+                Nombre = "Campaña Planificada",
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 2,
+                        Nombre = "Lote 2",
+                        SuperficieHectareas = 30,
+                        IdCampo = 1,
+                        IdCampania = 2,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campaniaPlanificada);
+
+            // Act
+            var result = await _campaniaService.IniciarCampania(2);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("CAMPAIGN_ALREADY_IN_PROGRESS", result.ErrorCode);
+        }
+
+        [Fact]
+        public async Task IniciarCampania_DebeRechazar_CuandoNoEstaPlanificada()
+        {
+            // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                SuperficieHectareas = 100,
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campo);
+
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña Finalizada",
+                EstadosCampania = EnumClass.EstadosCamapaña.Finalizada,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 1,
+                        Nombre = "Lote 1",
+                        SuperficieHectareas = 50,
+                        IdCampo = 1,
+                        IdCampania = 1,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.IniciarCampania(1);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("INVALID_STATE", result.ErrorCode);
+        }
+
+        [Fact]
+        public async Task IniciarCampania_DebeRechazar_CuandoNoTieneLotes()
+        {
+            // Arrange
+            var campania = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña Sin Lotes",
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>() // Sin lotes
+            };
+            await AddTestDataAsync(campania);
+
+            // Act
+            var result = await _campaniaService.IniciarCampania(1);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NO_LOTS", result.ErrorCode);
+        }
+
+        [Fact]
+        public async Task IniciarCampania_DebeRechazar_CuandoIdNoExiste()
+        {
+            // Act
+            var result = await _campaniaService.IniciarCampania(999);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("NOT_FOUND", result.ErrorCode);
+        }
+
+        [Fact]
+        public async Task IniciarCampania_DebeRechazar_CuandoRecursoEnConflicto()
+        {
+            // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Compartido",
+                SuperficieHectareas = 100,
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
+            await AddTestDataAsync(campo);
+
+            var campaniaEnCurso = new Campania
+            {
+                Id = 1,
+                Nombre = "Campaña En Curso",
+                EstadosCampania = EnumClass.EstadosCamapaña.EnCurso,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 1,
+                        Nombre = "Lote Campo Compartido",
+                        SuperficieHectareas = 50,
+                        IdCampo = 1, // Mismo campo
+                        IdCampania = 1,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campaniaEnCurso);
+
+            var campaniaPlanificada = new Campania
+            {
+                Id = 2,
+                Nombre = "Campaña Planificada",
+                EstadosCampania = EnumClass.EstadosCamapaña.Planificada,
+                FechaInicio = TimeHelper.GetArgentinaTime(),
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName,
+                Lotes = new List<Lote>
+                {
+                    new Lote
+                    {
+                        Id = 2,
+                        Nombre = "Lote Mismo Campo",
+                        SuperficieHectareas = 30,
+                        IdCampo = 1, // Mismo campo que la campaña en curso
+                        IdCampania = 2,
+                        IdLicencia = 1,
+                        RegistrationDate = TimeHelper.GetArgentinaTime(),
+                        RegistrationUser = TestUserAuth.UserName
+                    }
+                }
+            };
+            await AddTestDataAsync(campaniaPlanificada);
+
+            // Act
+            var result = await _campaniaService.IniciarCampania(2);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("RESOURCE_CONFLICT", result.ErrorCode);
+        }
     }
 }

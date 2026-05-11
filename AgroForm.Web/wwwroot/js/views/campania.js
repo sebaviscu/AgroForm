@@ -55,7 +55,7 @@ function inicializarDataTable() {
                 data: 'estadoDisplay',
                 render: function (data, type, row) {
                     const estadoColors = {
-                        'Iniciada': 'secondary',
+                        'Planificada': 'secondary',
                         'En Curso': 'info',
                         'Finalizada': 'success',
                         'Cancelada': 'danger'
@@ -86,8 +86,8 @@ function inicializarDataTable() {
 
                     let botones = `<div class="btn-group btn-group-sm">`;
 
-                    // ----- ESTADO: INICIADA -----
-                    if (estado === 'Iniciada') {
+                    // ----- ESTADO: PLANIFICADA -----
+                    if (estado === 'Planificada') {
                         botones += `
                         <button type="button" class="btn btn-outline-primary btn-edit"
                                 title="Editar" data-id="${data}">
@@ -96,6 +96,11 @@ function inicializarDataTable() {
                         <button type="button" class="btn btn-outline-danger btn-delete"
                                 title="Eliminar" data-id="${data}">
                             <i class="ph ph-trash"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-iniciar ms-3"
+                                title="Iniciar campaña" data-id="${data}" data-nombre="${row.nombre}">
+                            <i class="ph ph-play"></i>
+                            <span class="d-none d-sm-inline">Iniciar</span>
                         </button>
                     `;
                     }
@@ -165,6 +170,12 @@ function configurarEventosGrilla() {
         var id = $(this).data('id');
         var nombre = $(this).data('nombre');
         finalizarCampania(id, nombre);
+    });
+
+    $('#tblCampanias tbody').on('click', '.btn-iniciar', function () {
+        var id = $(this).data('id');
+        var nombre = $(this).data('nombre');
+        iniciarCampania(id, nombre);
     });
 
     $('#tblCampanias tbody').on('click', '.btn-ver', function () {
@@ -654,7 +665,7 @@ function actualizarResumenGeneral() {
 
 function actualizarResumen() {
     $('#resumenNombre').text($('#nombre').val());
-    $('#resumenEstado').text("Inicializado");
+    $('#resumenEstado').text("Planificada");
     $('#resumenFechaInicio').text($('#fechaInicio').val());
     $('#resumenTotalCampos').text(camposConLotes.length);
     $('#resumenTotalLotes').text(camposConLotes.reduce((total, item) => total + item.lotes.length, 0));
@@ -800,6 +811,42 @@ function guardarCampania() {
     });
 }
 
+function iniciarCampania(id, nombre) {
+    mostrarConfirmacion(
+        `¿Está seguro de que desea iniciar la campaña "${nombre}"?`,
+        'Iniciar Campaña'
+    ).then((result) => {
+        if (result.isConfirmed) {
+            mostrarLoading('Iniciando campaña...');
+            $.ajax({
+                url: '/Campania/Iniciar/' + id,
+                type: 'PUT',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    cerrarAlertas();
+                    if (response.success) {
+                        mostrarExito(response.message || 'Campaña iniciada correctamente');
+                        table.ajax.reload();
+                        window.location.reload();
+                    } else {
+                        mostrarError(response.message || 'Error al iniciar campaña');
+                    }
+                },
+                error: function (xhr) {
+                    cerrarAlertas();
+                    var msg = 'Error al conectar con el servidor';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    mostrarError(msg);
+                }
+            });
+        }
+    });
+}
+
 function finalizarCampania(id, nombre) {
     mostrarConfirmacion(
         'Esta acción generará un reporte final y cerrará la campaña. ¿Continuar?',
@@ -814,7 +861,11 @@ function finalizarCampania(id, nombre) {
                 success: function (response) {
                     cerrarAlertas();
                     if (response.success) {
-
+                        mostrarExito(response.message || 'Campaña finalizada correctamente');
+                        
+                        // Recargar la DataTable para mostrar el estado actualizado
+                        table.ajax.reload();
+                        
                         generarPdf(id);
 
                     } else {

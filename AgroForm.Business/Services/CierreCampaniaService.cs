@@ -53,12 +53,15 @@ namespace AgroForm.Business.Services
                     .ThenInclude(l => l.AnalisisSuelos)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Cosechas)
+                        .ThenInclude(c => c.Cultivo)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Fertilizaciones)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Monitoreos)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.OtrasLabores)
+                .Include(c => c.Lotes)
+                    .ThenInclude(l => l.SiloBolsas)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Siembras)
                         .ThenInclude(l => l.Cultivo)
@@ -69,6 +72,12 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Campo)
                     .ThenInclude(l => l.RegistrosClima)
+                .Include(c => c.Lotes)
+                    .ThenInclude(l => l.CicloCultivos)
+                        .ThenInclude(cc => cc.Cultivo)
+                .Include(c => c.Lotes)
+                    .ThenInclude(l => l.CicloCultivos)
+                        .ThenInclude(cc => cc.Variedad)
                 .Include(_ => _.Gastos)
                 .FirstOrDefaultAsync(c => c.Id == idCampania);
 
@@ -141,6 +150,10 @@ namespace AgroForm.Business.Services
             var OtrasLabores = lotes.SelectMany(_ => _.OtrasLabores).ToList();
             reporte.CostoOtrasLaboresArs = OtrasLabores.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoOtrasLaboresUsd = OtrasLabores.Sum(_ => _.CostoUSD.GetValueOrDefault());
+
+            var SiloBolsas = lotes.SelectMany(_ => _.SiloBolsas).ToList();
+            reporte.CostoSiloBolsasArs = SiloBolsas.Sum(_ => _.CostoARS.GetValueOrDefault());
+            reporte.CostoSiloBolsasUsd = SiloBolsas.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
             var Pulverizaciones = lotes.SelectMany(_ => _.Pulverizaciones).ToList();
             reporte.CostoPulverizacionesArs = Pulverizaciones.Sum(_ => _.CostoARS.GetValueOrDefault());
@@ -220,23 +233,87 @@ namespace AgroForm.Business.Services
                         .Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
                     CostoTotalArs = lotesCampo.Sum(l => l.CostoTotalLaboresArs),
                     CostoTotalUsd = lotesCampo.Sum(l => l.CostoTotalLaboresUsd),
-                    Lotes = lotesCampo.Select(l => new ResumenLote
-                    {
-                        NombreLote = l.Nombre,
-                        Cultivo = l.Siembras.FirstOrDefault()?.Cultivo?.Nombre ?? "Sin cultivo",
-                        SuperficieHa = l.SuperficieHectareas ?? 0,
-                        ToneladasProducidas = l.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
-                        CostoTotalArs = l.CostoTotalLaboresArs,
-                        CostoTotalUsd = l.CostoTotalLaboresUsd,
-                        RendimientoHa = l.SuperficieHectareas > 0 ?
-                            (l.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0) / l.SuperficieHectareas ?? 0 : 0
-                    }).ToList()
+                    Lotes = lotesCampo.SelectMany(l => ObtenerResumenLotesPorCiclo(l)).ToList()
                 };
 
                 resumenCampos.Add(resumen);
             }
 
             reporte.ResumenPorCampoJson = JsonSerializer.Serialize(resumenCampos);
+        }
+
+        private List<ResumenLote> ObtenerResumenLotesPorCiclo(Lote lote)
+        {
+            var resultados = new List<ResumenLote>();
+
+            // Si el lote tiene ciclos de cultivo, crear un ResumenLote por cada ciclo
+            if (lote.CicloCultivos != null && lote.CicloCultivos.Any())
+            {
+                foreach (var ciclo in lote.CicloCultivos)
+                {
+                    // Filtrar cosechas y siembras que pertenecen a este ciclo
+                    var cosechasCiclo = lote.Cosechas.Where(c => c.IdCicloCultivo == ciclo.Id).ToList();
+                    var siembrasCiclo = lote.Siembras.Where(s => s.IdCicloCultivo == ciclo.Id).ToList();
+
+                    var toneladasProducidas = cosechasCiclo.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
+                    var superficieSembrada = siembrasCiclo.Any() ? siembrasCiclo.Sum(s => s.SuperficieHa ?? 0) : lote.SuperficieHectareas ?? 0;
+                    var superficieCosechada = cosechasCiclo.Sum(c => c.SuperficieCosechadaHa) ?? 0;
+                    var superficieEfectiva = superficieCosechada > 0 ? superficieCosechada : superficieSembrada;
+
+                    // Calcular costos del ciclo filtrando por IdCicloCultivo
+                    var costosArs = cosechasCiclo.Sum(c => c.CostoARS ?? 0)
+                                  + siembrasCiclo.Sum(s => s.CostoARS ?? 0)
+                                  + lote.Riegos.Where(r => r.IdCicloCultivo == ciclo.Id).Sum(r => r.CostoARS ?? 0)
+                                  + lote.Fertilizaciones.Where(f => f.IdCicloCultivo == ciclo.Id).Sum(f => f.CostoARS ?? 0)
+                                  + lote.Pulverizaciones.Where(p => p.IdCicloCultivo == ciclo.Id).Sum(p => p.CostoARS ?? 0)
+                                  + lote.Monitoreos.Where(m => m.IdCicloCultivo == ciclo.Id).Sum(m => m.CostoARS ?? 0)
+                                  + lote.AnalisisSuelos.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoARS ?? 0)
+                                  + lote.OtrasLabores.Where(o => o.IdCicloCultivo == ciclo.Id).Sum(o => o.CostoARS ?? 0)
+                                  + lote.SiloBolsas.Where(s => s.IdCicloCultivo == ciclo.Id).Sum(s => s.CostoARS ?? 0);
+
+                    var costosUsd = cosechasCiclo.Sum(c => c.CostoUSD ?? 0)
+                                  + siembrasCiclo.Sum(s => s.CostoUSD ?? 0)
+                                  + lote.Riegos.Where(r => r.IdCicloCultivo == ciclo.Id).Sum(r => r.CostoUSD ?? 0)
+                                  + lote.Fertilizaciones.Where(f => f.IdCicloCultivo == ciclo.Id).Sum(f => f.CostoUSD ?? 0)
+                                  + lote.Pulverizaciones.Where(p => p.IdCicloCultivo == ciclo.Id).Sum(p => p.CostoUSD ?? 0)
+                                  + lote.Monitoreos.Where(m => m.IdCicloCultivo == ciclo.Id).Sum(m => m.CostoUSD ?? 0)
+                                  + lote.AnalisisSuelos.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoUSD ?? 0)
+                                  + lote.OtrasLabores.Where(o => o.IdCicloCultivo == ciclo.Id).Sum(o => o.CostoUSD ?? 0)
+                                  + lote.SiloBolsas.Where(s => s.IdCicloCultivo == ciclo.Id).Sum(s => s.CostoUSD ?? 0);
+
+                    var epocaDisplay = ciclo.Epoca != null ? ciclo.Epoca.GetDisplayName() : null;
+
+                    resultados.Add(new ResumenLote
+                    {
+                        NombreLote = lote.Nombre,
+                        Cultivo = ciclo.Cultivo?.Nombre ?? "Sin cultivo",
+                        Epoca = epocaDisplay,
+                        IdCicloCultivo = ciclo.Id,
+                        SuperficieHa = superficieEfectiva > 0 ? superficieEfectiva : lote.SuperficieHectareas ?? 0,
+                        ToneladasProducidas = toneladasProducidas,
+                        CostoTotalArs = costosArs,
+                        CostoTotalUsd = costosUsd,
+                        RendimientoHa = superficieEfectiva > 0 ? toneladasProducidas / superficieEfectiva : 0
+                    });
+                }
+            }
+            else
+            {
+                // Fallback: si no hay ciclos, usar el comportamiento anterior
+                resultados.Add(new ResumenLote
+                {
+                    NombreLote = lote.Nombre,
+                    Cultivo = lote.Siembras.FirstOrDefault()?.Cultivo?.Nombre ?? "Sin cultivo",
+                    SuperficieHa = lote.SuperficieHectareas ?? 0,
+                    ToneladasProducidas = lote.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                    CostoTotalArs = lote.CostoTotalLaboresArs,
+                    CostoTotalUsd = lote.CostoTotalLaboresUsd,
+                    RendimientoHa = lote.SuperficieHectareas > 0 ?
+                        (lote.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0) / lote.SuperficieHectareas ?? 0 : 0
+                });
+            }
+
+            return resultados;
         }
 
         private void CalcularDatosClimaticosAsync(Campania campania, ReporteCierreCampania reporte)

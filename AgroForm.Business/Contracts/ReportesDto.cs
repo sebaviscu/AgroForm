@@ -235,6 +235,8 @@ namespace AgroForm.Business.Contracts
         public decimal AnalisisSueloUSD { get; set; }
         public decimal OtrasLaboresARS { get; set; }
         public decimal OtrasLaboresUSD { get; set; }
+        public decimal SiloBolsasARS { get; set; }
+        public decimal SiloBolsasUSD { get; set; }
     }
 
     /// <summary>
@@ -330,5 +332,16 @@ namespace AgroForm.Business.Contracts
         public int IdCampoPrincipal { get; set; }
         public int? IdCampoSecundario { get; set; }
         public int? IdCampania { get; set; }
+    }
+
+    /// <summary>
+    /// Request para obtener datos comparativos de campos/lotes
+    /// </summary>
+    public class ReporteComparativaRequest
+    {
+        public int? IdCampania { get; set; }
+        public int? IdCampo { get; set; }
+        public int? IdLote { get; set; }
+        public int? IdCultivo { get; set; }
     }
 }

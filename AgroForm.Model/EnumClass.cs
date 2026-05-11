@@ -49,9 +49,11 @@ namespace AgroForm.Model
             Fertilizado = 4,
             Riego = 5,
             Monitoreo = 6,
-            Cosecha = 7, 
+            Cosecha = 7,
             [Display(Name = "Otras Labores")]
-            OtrasLabores = 8
+            OtrasLabores = 8,
+            [Display(Name = "Silo Bolsa")]
+            SiloBolsa = 9
         }
 
         public enum TipoCatalogoEnum

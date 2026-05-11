@@ -19,7 +19,8 @@ $(document).ready(function () {
         'Monitoreo': '#templateMonitoreo',
         'Analisis de suelo': '#templateAnalisisSuelo',
         'Otras labores': '#templateOtrasLabores',
-        'Cosecha': '#templateCosecha'
+        'Cosecha': '#templateCosecha',
+        'Silo Bolsa': '#templateSiloBolsa'
     };
 
     // FUNCIÓN: Cargar campos específicos según tipo de actividad
@@ -33,7 +34,7 @@ $(document).ready(function () {
 
             $('.form-select', camposEspecificosContainer).each(function () {
                 const element = this;
-                // Los selects de cultivo y variedad se manejan manualmente con cargarCultivos()/cargarVariedades(),
+                // Los selects de cultivo se manejan manualmente con cargarCultivos(),
                 // no deben tener Choices.js porque interfiere con la recarga de opciones
                 if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha' || element.id === 'idVariedad') return;
                 if (element._choicesInstance) {
@@ -52,6 +53,9 @@ $(document).ready(function () {
 
             // Si hay un ciclo seleccionado con cultivo, auto-completar en Siembra o Cosecha
             autoCompletarCultivoDesdeCiclo(tipoActividadNombre);
+
+            // Configurar límites basados en superficie sembrada para Cosecha y Silo Bolsa
+            configurarLimitesPorSuperficieSembrada(tipoActividadNombre);
         }
     }
 
@@ -61,6 +65,39 @@ $(document).ready(function () {
             $("#" + idLabel).text(esUSD ? "US$" : "$");
             $(this).next("label").text(esUSD ? "USD" : "ARS");
         });
+    }
+
+    // FUNCIÓN: Configurar límites basados en superficie sembrada para Cosecha y Silo Bolsa
+    function configurarLimitesPorSuperficieSembrada(tipoActividadNombre) {
+        const selectedValue = loteChoicesInstance.getValue(true);
+        if (!selectedValue) return;
+
+        const selectElement = document.getElementById('IdLote');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const superficieSembrada = parseFloat(selectedOption.getAttribute('data-superficie-sembrada')) || 0;
+
+        if (superficieSembrada <= 0) return;
+
+        switch (tipoActividadNombre) {
+            case 'Cosecha':
+                const inputSuperficieCosechada = $('#superficieCosechadaHa');
+                inputSuperficieCosechada.attr('max', superficieSembrada);
+                inputSuperficieCosechada.attr('placeholder', `Máximo: ${superficieSembrada} ha`);
+                inputSuperficieCosechada.attr('title', `Superficie máxima permitida: ${superficieSembrada} ha (basado en superficie sembrada)`);
+                // Auto-completar con la superficie sembrada
+                inputSuperficieCosechada.val(superficieSembrada);
+                break;
+
+            case 'Silo Bolsa':
+                const inputCapacidadTotal = $('#capacidadTotalTn');
+                // Para Silo Bolsa, usamos la superficie sembrada directamente como capacidad máxima
+                inputCapacidadTotal.attr('max', superficieSembrada * 2);
+                inputCapacidadTotal.attr('placeholder', `Máximo: ${superficieSembrada} Tn`);
+                inputCapacidadTotal.attr('title', `Capacidad máxima permitida: ${superficieSembrada} Tn (basado en superficie sembrada)`);
+                // Auto-completar con la superficie sembrada
+                inputCapacidadTotal.val(superficieSembrada);
+                break;
+        }
     }
 
     // Auto-completar cultivo desde ciclo seleccionado
@@ -118,6 +155,9 @@ $(document).ready(function () {
                 break;
             case 'Otras labores':
                 cargarSwitchMoneda("switchMonedaCostoOtraLabor", "labelMonedaCostoOtraLabor");
+                break;
+            case 'Silo Bolsa':
+                cargarSwitchMoneda("switchMonedaCostoSiloBolsa", "labelMonedaCostoSiloBolsa");
                 break;
         }
     }
@@ -528,6 +568,56 @@ $(document).ready(function () {
                     isValid = false;
                 }
                 break;
+
+            case 'Analisis de suelo':
+                var phValue = parseFloat($('#ph').val());
+                if ($('#ph').val() && (phValue < 3.5 || phValue > 9.5)) {
+                    $('#ph').addClass('is-invalid');
+                    errorMessage = 'El pH debe estar entre 3.5 y 9.5 (valores realistas para suelos agrícolas)';
+                    isValid = false;
+                } else {
+                    $('#ph').removeClass('is-invalid');
+                }
+                break;
+
+            case 'Cosecha':
+                if (!$('#idCultivoCosecha').val()) {
+                    errorMessage = 'Debe seleccionar un cultivo';
+                    isValid = false;
+                }
+                
+                // Validar superficie cosechada no exceda superficie sembrada
+                var superficieMaxString = $('#superficieCosechadaHa').attr('max');
+                var superficieValString = $('#superficieCosechadaHa').val();
+                if (superficieMaxString && superficieValString) {
+                    var superficieMax = parseFloat(superficieMaxString);
+                    var superficieVal = parseFloat(superficieValString);
+                    if (superficieVal > superficieMax) {
+                        $('#superficieCosechadaHa').addClass('is-invalid');
+                        mostrarMensaje(`La superficie cosechada no puede superar la superficie sembrada (${superficieMax} Ha)`, 'error');
+                        return;
+                    } else {
+                        $('#superficieCosechadaHa').removeClass('is-invalid');
+                    }
+                }
+                break;
+
+            case 'Silo Bolsa':
+                // Validar capacidad total no exceda límite estimado
+                var capacidadMaxString = $('#capacidadTotalTn').attr('max');
+                var capacidadValString = $('#capacidadTotalTn').val();
+                if (capacidadMaxString && capacidadValString) {
+                    var capacidadMax = parseFloat(capacidadMaxString);
+                    var capacidadVal = parseFloat(capacidadValString);
+                    if (capacidadVal > capacidadMax) {
+                        $('#capacidadTotalTn').addClass('is-invalid');
+                        mostrarMensaje(`La capacidad total no puede superar el límite estimado (${capacidadMax} Tn) basado en la superficie sembrada`, 'error');
+                        return;
+                    } else {
+                        $('#capacidadTotalTn').removeClass('is-invalid');
+                    }
+                }
+                break;
         }
         if (!isValid)
             mostrarMensaje(errorMessage);
@@ -701,6 +791,16 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
                 };
                 break;
+            case 9: // SiloBolsa
+                datos = {
+                    Codigo: $('#codigoSiloBolsa').val() || '',
+                    Longitud: parseFloat($('#longitudSiloBolsa').val()) || null,
+                    CapacidadTotalTn: parseFloat($('#capacidadTotalTn').val()) || null,
+                    HumedadGrano: parseFloat($('#humedadGrano').val()) || null,
+                    Costo: parseFloat($('#costoSiloBolsaTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoSiloBolsa').is(':checked')
+                };
+                break;
         }
         return datos;
     }
@@ -785,34 +885,8 @@ $(document).ready(function () {
     });
 
     // Cargar variedades cuando cambia el cultivo en el inline
-    $(document).on('change', '#nuevoCicloIdCultivo', function () {
-        var cultivoId = parseInt($(this).val());
-        if (cultivoId) {
-            cargarVariedadesInline(cultivoId);
-        } else {
-            $('#nuevoCicloIdVariedad').empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
-        }
-    });
-
-    function cargarVariedadesInline(idCultivo) {
-        var selectVariedad = $('#nuevoCicloIdVariedad');
-        selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
-        $.ajax({
-            url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
-            type: 'GET',
-            success: function (result) {
-                if (result.success && result.listObject) {
-                    $.each(result.listObject, function (i, v) {
-                        selectVariedad.append($('<option>', {
-                            value: v.id,
-                            text: v.nombre
-                        }));
-                    });
-                }
-            }
-        });
-    }
-
+    
+    
     // Botón: Guardar ciclo inline
     $('#btnGuardarNuevoCicloInline').on('click', function () {
         var loteId = parseInt($('#IdLote').val());
@@ -824,8 +898,7 @@ $(document).ready(function () {
         var data = {
             idLote: loteId,
             idCultivo: cultivoId,
-            idVariedad: parseInt($('#nuevoCicloIdVariedad').val()) || null,
-            epoca: parseInt($('#nuevoCicloEpoca').val()) || null
+            epoca: $('#nuevoCicloEpoca').val() ? parseInt($('#nuevoCicloEpoca').val()) : null
         };
 
         var btn = $(this);
@@ -841,6 +914,8 @@ $(document).ready(function () {
             success: function (result) {
                 if (result.success && result.object) {
                     mostrarExito('Ciclo creado correctamente');
+                    // Restaurar botón
+                    btn.html(originalText).prop('disabled', false);
                     // Ocultar inline y mostrar botón +
                     $('#nuevoCicloInline').addClass('d-none');
                     $('#btnNuevoCiclo').show();
@@ -1026,7 +1101,7 @@ function cerrarCiclo(idCicloCultivo) {
 }
 
 function cargarVariedades(idCultivo) {
-    var selectVariedad = $('#nuevoCicloIdVariedad, #idVariedad');
+    var selectVariedad = $('#idVariedad');
     selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
     $.ajax({
         url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,

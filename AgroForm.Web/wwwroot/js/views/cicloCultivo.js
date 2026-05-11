@@ -57,13 +57,7 @@ function abrirModalCrearCiclo() {
             '                    <label for="gestCicloIdCultivo" class="form-label">Cultivo *</label>' +
             '                    <select class="form-select" id="gestCicloIdCultivo" required></select>' +
             '                </div>' +
-            '                <div class="mb-3">' +
-            '                    <label for="gestCicloIdVariedad" class="form-label">Variedad</label>' +
-            '                    <select class="form-select" id="gestCicloIdVariedad">' +
-            '                        <option value="">Sin variedad...</option>' +
-            '                    </select>' +
-            '                </div>' +
-            '                <div class="mb-3">' +
+                        '                <div class="mb-3">' +
             '                    <label for="gestCicloEpoca" class="form-label">Época</label>' +
             '                    <select class="form-select" id="gestCicloEpoca">' +
             '                        <option value="">Sin especificar</option>' +
@@ -123,16 +117,7 @@ function abrirModalCrearCiclo() {
         }
     });
 
-    // Al cambiar cultivo, cargar variedades
-    selectCultivo.off('change').on('change', function () {
-        var cultivoId = parseInt($(this).val());
-        if (cultivoId) {
-            cargarVariedadesGestion(cultivoId);
-        } else {
-            $('#gestCicloIdVariedad').empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
-        }
-    });
-
+    
     // Guardar ciclo
     $('#btnGuardarCicloGestion').off('click').on('click', function () {
         var loteId = parseInt($('#gestCicloIdLote').val());
@@ -150,7 +135,6 @@ function abrirModalCrearCiclo() {
         var data = {
             idLote: loteId,
             idCultivo: cultivoId,
-            idVariedad: parseInt($('#gestCicloIdVariedad').val()) || null,
             epoca: parseInt($('#gestCicloEpoca').val()) || null
         };
 
@@ -182,24 +166,6 @@ function abrirModalCrearCiclo() {
     $('#modalCrearCicloGestion').modal('show');
 }
 
-function cargarVariedadesGestion(idCultivo) {
-    var selectVariedad = $('#gestCicloIdVariedad');
-    selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
-    $.ajax({
-        url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
-        type: 'GET',
-        success: function (result) {
-            if (result.success && result.listObject) {
-                $.each(result.listObject, function (i, v) {
-                    selectVariedad.append($('<option>', {
-                        value: v.id,
-                        text: v.nombre
-                    }));
-                });
-            }
-        }
-    });
-}
 
 function verDetalleCiclo(id) {
     $.ajax({

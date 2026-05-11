@@ -205,6 +205,16 @@ namespace AgroForm.Web.Controllers
 
                     };
                     break;
+
+                case TipoActividadEnum.SiloBolsa:
+                    actividad = new SiloBolsa
+                    {
+                        Codigo = model.DatosEspecificos?.Codigo ?? string.Empty,
+                        Longitud = model.DatosEspecificos?.Longitud,
+                        CapacidadTotalTn = model.DatosEspecificos?.CapacidadTotalTn,
+                        HumedadGrano = model.DatosEspecificos?.HumedadGrano,
+                    };
+                    break;
             }
 
             var esDolar = model.DatosEspecificos?.EsDolar == true;

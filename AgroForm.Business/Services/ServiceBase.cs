@@ -38,15 +38,22 @@ namespace AgroForm.Business.Services
 
         public virtual async Task<OperationResult<List<T>>> GetAllByCamapniaAsync()
         {
-            // Nota: El filtro de IdLicencia ya es global en el DbContext.
-            // Si se requiere filtrar por campaña específicamente (y no es global), se hace aquí.
             try
             {
                 IQueryable<T> query = _repository.Query().AsNoTracking();
 
                 if (typeof(IEntityBaseWithCampania).IsAssignableFrom(typeof(T)))
                 {
-                    query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userContext.IdCampaña);
+                    // Solo filtrar por campaña si el claim tiene un valor
+                    if (_userContext.IdCampaña.HasValue)
+                    {
+                        query = query.Where(e => EF.Property<int>(e, "IdCampania") == _userContext.IdCampaña.Value);
+                    }
+                    else
+                    {
+                        // Si no hay campaña activa, no devolver registros
+                        query = query.Where(e => false);
+                    }
                 }
 
                 var list = await query.ToListAsync();

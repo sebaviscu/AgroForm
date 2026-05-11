@@ -86,5 +86,10 @@ namespace AgroForm.Web.Models.IndexVM
         public decimal? RendimientoTonHa { get; set; }
         public decimal? HumedadGrano { get; set; }
         public decimal? SuperficieCosechadaHa { get; set; }
+
+        // Silo Bolsa
+        public string? Codigo { get; set; }
+        public decimal? Longitud { get; set; }
+        public decimal? CapacidadTotalTn { get; set; }
     }
 }

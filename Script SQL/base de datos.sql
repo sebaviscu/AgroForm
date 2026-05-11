@@ -458,6 +458,40 @@ CREATE TABLE OtrasLabores (
     FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id)
 );
 
+-- ============================================
+-- TABLA: SiloBolsas
+-- ============================================
+CREATE TABLE SiloBolsas (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    IdCampania INT NOT NULL,
+    IdLicencia INT NOT NULL,
+    Fecha DATETIME NOT NULL,
+    Observacion NVARCHAR(MAX) NULL,
+    IdLote INT NOT NULL,
+    IdTipoActividad INT NOT NULL,
+    IdUsuario INT NULL,
+    Codigo NVARCHAR(50) NOT NULL DEFAULT '',
+    Longitud DECIMAL(10,2) NULL,
+    CapacidadTotalTn DECIMAL(10,2) NULL,
+    HumedadGrano DECIMAL(5,2) NULL,
+    Costo DECIMAL(18,2) NULL,
+	CostoARS DECIMAL(18,2) NULL,
+    CostoUSD DECIMAL(18,2) NULL,
+	IdMoneda INT NOT NULL,
+    IdCicloCultivo INT NOT NULL,
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL,
+
+    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
+    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id),
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
+	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id)
+);
+
 CREATE TABLE RegistrosClima (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     IdLicencia INT NOT NULL,
@@ -519,6 +553,7 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [CostoMonitoreosArs] [decimal](18,2) NOT NULL,
     [CostoFertilizantesArs] [decimal](18,2) NOT NULL,
     [CostoOtrasLaboresArs] [decimal](18,2) NOT NULL,
+    [CostoSiloBolsasArs] [decimal](18,2) NOT NULL,
     
     [AnalisisSueloUsd] [decimal](18,2) NOT NULL,
     [CostoSiembrasUsd] [decimal](18,2) NOT NULL,
@@ -528,8 +563,9 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [CostoMonitoreosUsd] [decimal](18,2) NOT NULL,
     [CostoFertilizantesUsd] [decimal](18,2) NOT NULL,
     [CostoOtrasLaboresUsd] [decimal](18,2) NOT NULL,
+    [CostoSiloBolsasUsd] [decimal](18,2) NOT NULL,
     
-	GastosTotalesArs decimal(18,2) NOT NULL,
+    GastosTotalesArs decimal(18,2) NOT NULL,
 	GastosTotalesUsd decimal(18,2) NOT NULL,
 	GastosPorCategoriaJson nvarchar(max) NOT NULL,
 	 

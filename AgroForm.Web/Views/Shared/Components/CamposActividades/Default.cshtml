@@ -37,9 +37,11 @@
                     </div>
 
                     <!-- Lista de Campos y Lotes -->
-                    <div class="campos-lotes-container" id="camposLotesList">
-                        <!-- Se llenará dinámicamente -->
-                    </div>
+                    <table class="table table-sm table-hover" id="camposLotesList">
+                        <tbody id="camposLotesBody">
+                            <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
 
                 </div>
             </div>
@@ -90,17 +92,17 @@
 
     // Función para renderizar campos y lotes
     function renderizarCamposYLotes(campos) {
-        var $container = $('#camposLotesList');
-        $container.empty();
+        var $tbody = $('#camposLotesBody');
+        $tbody.empty();
 
         if (!campos || campos.length === 0) {
-            $container.html('<div class="alert alert-info">No se encontraron campos con actividades</div>');
+            $tbody.append('<tr><td colspan="2" class="text-center text-muted">No hay datos</td></tr>');
             return;
         }
 
         $.each(campos, function(index, campo) {
             var $campoElement = crearCampoElement(campo);
-            $container.append($campoElement);
+            $tbody.append($campoElement);
         });
 
     }

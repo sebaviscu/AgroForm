@@ -231,7 +231,8 @@ namespace AgroForm.Business.Services
                 new { Nombre = "Pulverizaciones", Ars = reporte.CostoPulverizacionesArs, Usd = reporte.CostoPulverizacionesUsd },
                 new { Nombre = "Análisis de Suelo", Ars = reporte.AnalisisSueloArs, Usd = reporte.AnalisisSueloUsd },
                 new { Nombre = "Monitoreos", Ars = reporte.CostoMonitoreosArs, Usd = reporte.CostoMonitoreosUsd },
-                new { Nombre = "Otras Labores", Ars = reporte.CostoOtrasLaboresArs, Usd = reporte.CostoOtrasLaboresUsd }
+                new { Nombre = "Otras Labores", Ars = reporte.CostoOtrasLaboresArs, Usd = reporte.CostoOtrasLaboresUsd },
+                new { Nombre = "Silo Bolsa", Ars = reporte.CostoSiloBolsasArs, Usd = reporte.CostoSiloBolsasUsd }
             };
 
             foreach (var costo in costos)
@@ -357,49 +358,33 @@ namespace AgroForm.Business.Services
 
         private Table CrearTablaInversionCompacta(decimal valorArs, decimal valorUsd, string titulo)
         {
-            var tablaInversion = new Table(3) // 3 columnas: ARS | Separador | USD
+            // Tabla apilada: ARS arriba, USD abajo
+            var tablaContenedora = new Table(1)
                 .SetWidth(UnitValue.CreatePercentValue(100))
                 .SetBorder(Border.NO_BORDER)
                 .SetHorizontalAlignment(HorizontalAlignment.CENTER);
 
-            // Número ARS
-            tablaInversion.AddCell(new Cell()
+            // Número ARS (arriba)
+            tablaContenedora.AddCell(new Cell()
                 .SetBorder(Border.NO_BORDER)
                 .SetPadding(0)
-                .SetTextAlignment(TextAlignment.RIGHT)
+                .SetPaddingBottom(1)
+                .SetTextAlignment(TextAlignment.CENTER)
                 .Add(new Paragraph($"${valorArs:N0}")
                     .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
                     .SetFontSize(7)
                     .SetFontColor(_colorPrimario)));
 
-            // Separador |
-            tablaInversion.AddCell(new Cell()
-                .SetWidth(5)
+            // Número USD (abajo)
+            tablaContenedora.AddCell(new Cell()
                 .SetBorder(Border.NO_BORDER)
                 .SetPadding(0)
+                .SetPaddingTop(1)
                 .SetTextAlignment(TextAlignment.CENTER)
-                .SetVerticalAlignment(VerticalAlignment.MIDDLE)
-                .Add(new Paragraph("|")
-                    .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA))
-                    .SetFontSize(6)
-                    .SetFontColor(_colorBorde)));
-
-            // Número USD
-            tablaInversion.AddCell(new Cell()
-                .SetBorder(Border.NO_BORDER)
-                .SetPadding(0)
-                .SetTextAlignment(TextAlignment.LEFT)
                 .Add(new Paragraph($"US${valorUsd:N2}")
                     .SetFont(PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD))
                     .SetFontSize(7)
                     .SetFontColor(_colorPrimario)));
-
-            // Crear tabla contenedora para ambas filas
-            var tablaContenedora = new Table(1)
-                .SetWidth(UnitValue.CreatePercentValue(100))
-                .SetBorder(Border.NO_BORDER);
-
-            tablaContenedora.AddCell(new Cell().Add(tablaInversion).SetBorder(Border.NO_BORDER).SetPadding(0));
 
             return tablaContenedora;
         }
@@ -539,13 +524,14 @@ namespace AgroForm.Business.Services
                     // Tabla de lotes (código existente)
                     if (campo.Lotes != null && campo.Lotes.Any())
                     {
-                        var tablaLotes = new Table(new float[] { 3, 2, 2, 2, 2, 2, 2 })
+                        var tablaLotes = new Table(new float[] { 3, 2, 1.5f, 2, 2, 2, 2, 2 })
                             .SetWidth(UnitValue.CreatePercentValue(100))
                             .SetMarginTop(3);
 
                         // Header de la tabla de lotes
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("LOTE"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("CULTIVO"));
+                        tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("ÉPOCA"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("SUPERFICIE"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("PRODUCCIÓN"));
                         tablaLotes.AddHeaderCell(CrearHeaderTablaLotes("RENDIMIENTO"));
@@ -564,6 +550,7 @@ namespace AgroForm.Business.Services
                         {
                             tablaLotes.AddCell(CrearCeldaLote(lote.NombreLote, TextAlignment.LEFT));
                             tablaLotes.AddCell(CrearCeldaLote(lote.Cultivo ?? "Sin cultivo", TextAlignment.LEFT));
+                            tablaLotes.AddCell(CrearCeldaLote(lote.Epoca ?? "-", TextAlignment.CENTER));
                             tablaLotes.AddCell(CrearCeldaLote($"{lote.SuperficieHa:N1} ha", TextAlignment.RIGHT));
                             tablaLotes.AddCell(CrearCeldaLote(lote.ToneladasProducidas > 0 ? $"{lote.ToneladasProducidas:N1} Tn" : "-", TextAlignment.RIGHT));
                             tablaLotes.AddCell(CrearCeldaLote(lote.RendimientoHa > 0 ? $"{lote.RendimientoHa:N1} Tn/ha" : "-", TextAlignment.RIGHT));

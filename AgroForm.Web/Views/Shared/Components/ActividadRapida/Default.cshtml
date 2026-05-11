@@ -106,13 +106,7 @@
                                             <option value="">Seleccione cultivo...</option>
                                         </select>
                                     </div>
-                                    <div class="mb-2">
-                                        <label for="nuevoCicloIdVariedad" class="form-label small">Variedad</label>
-                                        <select class="form-select form-select-sm" id="nuevoCicloIdVariedad">
-                                            <option value="">Sin variedad...</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-2">
+                                                                        <div class="mb-2">
                                         <label for="nuevoCicloEpoca" class="form-label small">Época</label>
                                         <select class="form-select form-select-sm" id="nuevoCicloEpoca">
                                             <option value="">Sin especificar</option>
@@ -550,7 +544,7 @@
                         <div class="mb-3">
                             <label for="ph" class="form-label">pH</label>
                             <input type="number" class="form-control" id="ph" name="PH"
-                                   min="0" max="14" step="0.1">
+                                   min="3.5" max="9.5" step="0.1">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -699,6 +693,65 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SILO BOLSA -->
+    <div id="templateSiloBolsa">
+        <div class="card mb-3">
+            <div class="card-header" style="background-color: #8B5E3C; color: white;">
+                <h6 class="card-title mb-0">
+                    <i class="ph ph-package me-1"></i>Datos de Silo Bolsa
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="codigoSiloBolsa" class="form-label">Código</label>
+                            <input type="text" class="form-control" id="codigoSiloBolsa" name="Codigo"
+                                   maxlength="50" placeholder="Ej: SB-2025-001">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="longitudSiloBolsa" class="form-label">Longitud (m)</label>
+                            <input type="number" class="form-control" id="longitudSiloBolsa" name="Longitud"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="capacidadTotalTn" class="form-label">Capacidad Total (Tn)</label>
+                            <input type="number" class="form-control" id="capacidadTotalTn" name="CapacidadTotalTn"
+                                   min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="humedadGrano" class="form-label">Humedad del Grano (%)</label>
+                            <input type="number" class="form-control" id="humedadGrano" name="HumedadGrano"
+                                   min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="costoSiloBolsaTotal" class="form-label">Costo</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="labelMonedaCostoSiloBolsa">$</span>
+                                <input type="number" class="form-control" id="costoSiloBolsaTotal"
+                                       name="Costo" min="0.01" step="0.01">
+                                <div class="form-check form-switch ms-2">
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoSiloBolsa">
+                                    <label class="form-check-label" for="switchMonedaCostoSiloBolsa">ARS</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

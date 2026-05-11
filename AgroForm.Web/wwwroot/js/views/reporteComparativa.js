@@ -2,6 +2,7 @@ let chartRendimiento = null;
 let chartCostos = null;
 let monedaActual = 'ARS';
 let datosActuales = [];
+let sortConfig = { col: null, asc: true };
 
 $(document).ready(function () {
     // Inicializar
@@ -36,7 +37,90 @@ $(document).ready(function () {
     $('#btnExportarExcel').on('click', function () {
         exportarExcel();
     });
+
+    // Sorting: click en encabezados de tabla
+    $('#tblComparativa thead th').on('click', function () {
+        var colIndex = $(this).index();
+        var colKey = getSortKey(colIndex);
+        if (!colKey) return;
+
+        if (sortConfig.col === colKey) {
+            sortConfig.asc = !sortConfig.asc;
+        } else {
+            sortConfig.col = colKey;
+            sortConfig.asc = true;
+        }
+
+        ordenarDatos();
+        renderizarTabla(datosActuales);
+        actualizarIndicadoresSort(colIndex);
+    });
 });
+
+function getSortKey(colIndex) {
+    var keys = [
+        null,           // 0: Ranking (no sort)
+        'campo',        // 1: Campo
+        'lote',         // 2: Lote
+        'superficieHa', // 3: Superficie
+        'cultivo',      // 4: Cultivo
+        'fechaSiembra', // 5: Siembra
+        'fechaCosecha', // 6: Cosecha
+        'rendimientoTonHa', // 7: Rend. tn/ha
+        'rendimientoTotalTon', // 8: Rend. Total
+        'totalFertilizantesKgHa', // 9: Fert.
+        'totalPulverizacionesLtsHa', // 10: Pulv.
+        'cantidadLabores', // 11: Labores
+        'costoTotalARS', // 12: Costo Total
+        'costoPorHaARS'  // 13: Costo/Ha
+    ];
+    return keys[colIndex] || null;
+}
+
+function ordenarDatos() {
+    if (!sortConfig.col) return;
+
+    datosActuales.sort(function (a, b) {
+        var valA = a[sortConfig.col];
+        var valB = b[sortConfig.col];
+
+        // Fechas
+        if (sortConfig.col === 'fechaSiembra' || sortConfig.col === 'fechaCosecha') {
+            valA = valA ? new Date(valA).getTime() : (sortConfig.asc ? Infinity : -Infinity);
+            valB = valB ? new Date(valB).getTime() : (sortConfig.asc ? Infinity : -Infinity);
+        }
+        // Strings
+        else if (typeof valA === 'string' || typeof valB === 'string') {
+            valA = (valA || '').toLowerCase();
+            valB = (valB || '').toLowerCase();
+            if (valA < valB) return sortConfig.asc ? -1 : 1;
+            if (valA > valB) return sortConfig.asc ? 1 : -1;
+            return 0;
+        }
+        // Números
+        else {
+            valA = valA ?? (sortConfig.asc ? Infinity : -Infinity);
+            valB = valB ?? (sortConfig.asc ? Infinity : -Infinity);
+        }
+
+        if (valA < valB) return sortConfig.asc ? -1 : 1;
+        if (valA > valB) return sortConfig.asc ? 1 : -1;
+        return 0;
+    });
+}
+
+function actualizarIndicadoresSort(colIndex) {
+    $('#tblComparativa thead th').each(function (i) {
+        $(this).removeClass('sort-asc sort-desc');
+        var icon = $(this).find('.sort-icon');
+        if (i === colIndex) {
+            $(this).addClass(sortConfig.asc ? 'sort-asc' : 'sort-desc');
+            icon.text(sortConfig.asc ? ' ▲' : ' ▼');
+        } else {
+            icon.text('');
+        }
+    });
+}
 
 function cargarDatos() {
     var filtros = {
@@ -55,7 +139,8 @@ function cargarDatos() {
         data: JSON.stringify(filtros),
         success: function (response) {
             if (response.success) {
-                datosActuales = response.listObject || [];
+                datosActuales = response.object || response.listObject || [];
+                sortConfig = { col: null, asc: true };
                 renderizarDatos(datosActuales);
             } else {
                 toastr.error(response.message || 'Error al cargar datos');
@@ -78,8 +163,9 @@ function cargarLotes(idCampo) {
         success: function (response) {
             var select = $('#filtroLote');
             select.empty().append('<option value="">Todos los lotes</option>');
-            if (response.success && response.listObject) {
-                $.each(response.listObject, function (i, item) {
+            var lotes = response.data || response.listObject || [];
+            if (response.success && lotes.length > 0) {
+                $.each(lotes, function (i, item) {
                     select.append($('<option>', {
                         value: item.id,
                         text: item.nombre
@@ -383,6 +469,11 @@ function exportarExcel() {
     // Quitar la columna de ranking (primera columna)
     $(clone).find('tr').each(function () {
         $(this).find('th:first, td:first').remove();
+    });
+    // Quitar indicadores de sort de los encabezados
+    $(clone).find('thead th').each(function () {
+        $(this).removeClass('sort-asc sort-desc');
+        $(this).html($(this).html().replace(/\s*[▲▼]\s*$/, ''));
     });
 
     var wb = XLSX.utils.table_to_book(clone, { sheet: 'Comparativa' });

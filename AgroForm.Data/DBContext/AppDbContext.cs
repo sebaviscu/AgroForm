@@ -41,6 +41,7 @@ namespace AgroForm.Data.DBContext
         public DbSet<AnalisisSuelo> AnalisisSuelos { get; set; }
         public DbSet<Cosecha> Cosechas { get; set; }
         public DbSet<OtraLabor> OtrasLabores { get; set; }
+        public DbSet<SiloBolsa> SiloBolsas { get; set; }
         public DbSet<CicloCultivo> CicloCultivos { get; set; }
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
@@ -624,6 +625,51 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<SiloBolsa>(entity =>
+            {
+                entity.ToTable("SiloBolsas");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.IdLicencia);
+
+                entity.Property(e => e.Codigo).HasMaxLength(50);
+                entity.Property(e => e.Longitud).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.CapacidadTotalTn).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.HumedadGrano).HasColumnType("decimal(5,2)");
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+
+                entity.HasOne(a => a.Lote)
+                    .WithMany(l => l.SiloBolsas)
+                    .HasForeignKey(a => a.IdLote)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(a => a.TipoActividad)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdTipoActividad)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Usuario)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Campania)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdCampania)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(h => h.Moneda)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdMoneda)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.CicloCultivo)
+                    .WithMany(cc => cc.SiloBolsas)
+                    .HasForeignKey(a => a.IdCicloCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.ToTable("Usuarios");
@@ -689,6 +735,8 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.CostoMonitoreosUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoSiloBolsasArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoSiloBolsasUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPorHaArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPorToneladaArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPulverizacionesArs).HasColumnType("decimal(18,4)");

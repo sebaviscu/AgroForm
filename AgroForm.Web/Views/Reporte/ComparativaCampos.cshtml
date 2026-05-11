@@ -66,6 +66,21 @@
     }
     .table-compact th {
         white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+    .table-compact th:hover {
+        background-color: #e9ecef;
+    }
+    .table-compact th.sort-asc,
+    .table-compact th.sort-desc {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .sort-icon {
+        font-size: 0.7rem;
+        margin-left: 2px;
     }
     .lote-name {
         font-weight: 600;
@@ -283,20 +298,20 @@
                 <table id="tblComparativa" class="table table-striped table-hover table-compact mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>Campo</th>
-                            <th>Lote</th>
-                            <th>Superficie (Ha)</th>
-                            <th>Cultivo</th>
-                            <th>Siembra</th>
-                            <th>Cosecha</th>
-                            <th>Rend. (tn/ha)</th>
-                            <th>Rend. Total (tn)</th>
-                            <th>Fert. (kg/ha)</th>
-                            <th>Pulv. (L/ha)</th>
-                            <th>Labores</th>
-                            <th>Costo Total <span class="valor-ars">($)</span><span class="valor-usd" style="display: none;">(US$)</span></th>
-                            <th>Costo/Ha <span class="valor-ars">($)</span><span class="valor-usd" style="display: none;">(US$)</span></th>
+                            <th>#<span class="sort-icon"></span></th>
+                            <th>Campo<span class="sort-icon"></span></th>
+                            <th>Lote<span class="sort-icon"></span></th>
+                            <th>Superficie (Ha)<span class="sort-icon"></span></th>
+                            <th>Cultivo<span class="sort-icon"></span></th>
+                            <th>Siembra<span class="sort-icon"></span></th>
+                            <th>Cosecha<span class="sort-icon"></span></th>
+                            <th>Rend. (tn/ha)<span class="sort-icon"></span></th>
+                            <th>Rend. Total (tn)<span class="sort-icon"></span></th>
+                            <th>Fert. (kg/ha)<span class="sort-icon"></span></th>
+                            <th>Pulv. (L/ha)<span class="sort-icon"></span></th>
+                            <th>Labores<span class="sort-icon"></span></th>
+                            <th>Costo Total <span class="valor-ars">($)</span><span class="valor-usd" style="display: none;">(US$)</span><span class="sort-icon"></span></th>
+                            <th>Costo/Ha <span class="valor-ars">($)</span><span class="valor-usd" style="display: none;">(US$)</span><span class="sort-icon"></span></th>
                         </tr>
                     </thead>
                     <tbody id="tablaBody">

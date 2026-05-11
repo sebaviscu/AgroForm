@@ -255,6 +255,15 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.costo != null) $('#costoOtraLaborTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoOtraLabor').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
+
+        case 9: // SiloBolsa
+            if (datosEspecificos.codigo != null) $('#codigoSiloBolsa').val(datosEspecificos.codigo);
+            if (datosEspecificos.longitud != null) $('#longitudSiloBolsa').val(datosEspecificos.longitud);
+            if (datosEspecificos.capacidadTotalTn != null) $('#capacidadTotalTn').val(datosEspecificos.capacidadTotalTn);
+            if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
+            if (datosEspecificos.costo != null) $('#costoSiloBolsaTotal').val(datosEspecificos.costo);
+            if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiloBolsa').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+            break;
     }
 }
 

@@ -37,6 +37,7 @@ namespace AgroForm.Business.Services
             var repoPulv = unitOfWork.Repository<Pulverizacion>();
             var repoRiego = unitOfWork.Repository<Riego>();
             var repoSiembra = unitOfWork.Repository<Siembra>();
+            var repoSiloBolsa = unitOfWork.Repository<SiloBolsa>();
 
             _reposPorTipo = new Dictionary<TipoActividadEnum, object>
             {
@@ -47,7 +48,8 @@ namespace AgroForm.Business.Services
                 { TipoActividadEnum.OtrasLabores, repoOtra },
                 { TipoActividadEnum.Pulverizacion, repoPulv },
                 { TipoActividadEnum.Riego, repoRiego },
-                { TipoActividadEnum.Siembra, repoSiembra }
+                { TipoActividadEnum.Siembra, repoSiembra },
+                { TipoActividadEnum.SiloBolsa, repoSiloBolsa }
             };
 
             _reposPorTipoClr = new Dictionary<Type, object>
@@ -59,7 +61,8 @@ namespace AgroForm.Business.Services
                 { typeof(OtraLabor), repoOtra },
                 { typeof(Pulverizacion), repoPulv },
                 { typeof(Riego), repoRiego },
-                { typeof(Siembra), repoSiembra }
+                { typeof(Siembra), repoSiembra },
+                { typeof(SiloBolsa), repoSiloBolsa }
             };
         }
 
@@ -348,6 +351,37 @@ namespace AgroForm.Business.Services
                 _logger.LogError(ex, "Error cargando otras labores");
             }
 
+            try
+            {
+                var siloBolsas = await aplicarFiltros((_reposPorTipo[TipoActividadEnum.SiloBolsa] as IGenericRepository<SiloBolsa>).Query()).Select(sb => new LaborDTO
+                {
+                    Id = sb.Id,
+                    IdTipoActividad = sb.TipoActividad.Id,
+                    TipoActividad = sb.TipoActividad.Nombre,
+                    IconoTipoActividad = sb.TipoActividad.Icono,
+                    IconoColorTipoActividad = sb.TipoActividad.ColorIcono,
+                    Fecha = sb.Fecha,
+                    Responsable = sb.RegistrationUser,
+                    RegistrationDate = sb.RegistrationDate,
+                    Detalle = $"Código: {sb.Codigo}, Longitud: {sb.Longitud}m, Capacidad: {sb.CapacidadTotalTn}tn, Humedad: {sb.HumedadGrano}%",
+                    Costo = sb.Costo,
+                    CostoUSD = sb.CostoUSD,
+                    CostoARS = sb.CostoARS,
+                    IdCampania = sb.IdCampania,
+                    Campania = sb.Campania.Nombre,
+                    Observacion = sb.Observacion,
+                    IdLote = sb.IdLote,
+                    Lote = sb.Lote.Nombre,
+                    Campo = sb.Lote.Campo.Nombre,
+                    EsDolar = sb.IdMoneda == (int)Monedas.DolarOficial
+                }).ToListAsync();
+                labores.AddRange(siloBolsas);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cargando silo bolsas");
+            }
+
             return OperationResult<List<LaborDTO>>.SuccessResult(labores.OrderByDescending(l => l.RegistrationDate).ToList());
         }
 
@@ -355,6 +389,19 @@ namespace AgroForm.Business.Services
         {
             try
             {
+                // Si no se especifica campaña, usar la del usuario actual
+                if (!idCampania.HasValue)
+                {
+                    idCampania = _userContext.IdCampaña;
+                }
+
+                // Si no hay campaña activa, devolver lista vacía
+                if (!idCampania.HasValue)
+                {
+                    _logger.LogInformation("No hay campaña activa, devolviendo lista vacía de labores");
+                    return OperationResult<List<LaborDTO>>.SuccessResult(new List<LaborDTO>());
+                }
+
                 var idLicencia = _userContext.IdLicencia ?? 0;
                 var idsLotesStr = idsLotes != null && idsLotes.Any() ? string.Join(",", idsLotes) : null;
 
@@ -500,6 +547,15 @@ namespace AgroForm.Business.Services
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(o => o.Id == idActividad);
 
+                    case TipoActividadEnum.SiloBolsa:
+                        var repoSiloBolsa = repoObj as IGenericRepository<SiloBolsa>;
+                        return await repoSiloBolsa.Query()
+                            .Include(s => s.Moneda)
+                            .Include(sb => sb.TipoActividad)
+                            .Include(sb => sb.Lote)
+                                .ThenInclude(l => l.Campo)
+                            .FirstOrDefaultAsync(sb => sb.Id == idActividad);
+
                     default:
                         return null;
                 }
@@ -557,12 +613,22 @@ namespace AgroForm.Business.Services
             try
             {
                 var repo = _reposPorTipoClr[typeof(Siembra)] as IGenericRepository<Siembra>;
-                var list = await repo.Query()
-                    .Where(_ => _.IdCampania == _userContext.IdCampaña)
-                    .Include(_ => _.Cultivo)
-                    .ToListAsync();
+                
+                // Solo filtrar por campaña si el claim tiene un valor
+                if (_userContext.IdCampaña.HasValue)
+                {
+                    var list = await repo.Query()
+                        .Where(_ => _.IdCampania == _userContext.IdCampaña.Value)
+                        .Include(_ => _.Cultivo)
+                        .ToListAsync();
 
-                return OperationResult<List<Siembra>>.SuccessResult(list);
+                    return OperationResult<List<Siembra>>.SuccessResult(list);
+                }
+                else
+                {
+                    // Si no hay campaña activa, devolver lista vacía
+                    return OperationResult<List<Siembra>>.SuccessResult(new List<Siembra>());
+                }
             }
             catch (Exception e)
             {

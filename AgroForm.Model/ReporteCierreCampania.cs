@@ -21,9 +21,11 @@ namespace AgroForm.Model
         public decimal SuperficieTotalHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
         public decimal CostoTotalArs => AnalisisSueloArs+CostoSiembrasArs+CostoRiegosArs+CostoPulverizacionesArs+
-                                       CostoCosechasArs+CostoMonitoreosArs+CostoFertilizantesArs+CostoOtrasLaboresArs;
+                                       CostoCosechasArs+CostoMonitoreosArs+CostoFertilizantesArs+CostoOtrasLaboresArs+
+                                       CostoSiloBolsasArs;
         public decimal CostoTotalUsd => AnalisisSueloUsd+CostoSiembrasUsd+CostoRiegosUsd+CostoPulverizacionesUsd+
-                                       CostoCosechasUsd+CostoMonitoreosUsd+CostoFertilizantesUsd+CostoOtrasLaboresUsd;
+                                       CostoCosechasUsd+CostoMonitoreosUsd+CostoFertilizantesUsd+CostoOtrasLaboresUsd+
+                                       CostoSiloBolsasUsd;
         
         public decimal CostoPorHaArs { get; set; }
         public decimal CostoPorToneladaArs { get; set; }
@@ -58,6 +60,9 @@ namespace AgroForm.Model
 
         public decimal CostoOtrasLaboresArs { get; set; }
         public decimal CostoOtrasLaboresUsd { get; set; }
+
+        public decimal CostoSiloBolsasArs { get; set; }
+        public decimal CostoSiloBolsasUsd { get; set; }
 
         // Gastos
 
@@ -105,6 +110,8 @@ namespace AgroForm.Model
     {
         public string NombreLote { get; set; } = string.Empty;
         public string? Cultivo { get; set; }
+        public string? Epoca { get; set; }
+        public int? IdCicloCultivo { get; set; }
         public decimal SuperficieHa { get; set; }
         public decimal ToneladasProducidas { get; set; }
         public decimal CostoTotalArs { get; set; }

@@ -49,6 +49,8 @@ namespace AgroForm.Business.Services
                         .ThenInclude(c => c.AnalisisSuelos)
                     .Include(l => l.CicloCultivos)
                         .ThenInclude(c => c.OtrasLabores)
+                    .Include(l => l.CicloCultivos)
+                        .ThenInclude(c => c.SiloBolsas)
                     .Where(l => l.IdLicencia == _userContext.IdLicencia)
                     .AsQueryable();
 
@@ -69,8 +71,44 @@ namespace AgroForm.Business.Services
 
                 foreach (var lote in lotes)
                 {
-                    var todasLasSiembras = lote.Siembras.ToList();
-                    var todasLasCosechas = lote.Cosechas.ToList();
+                    // Activities are loaded through CicloCultivos, not directly on Lote
+                    var todosLosCiclos = lote.CicloCultivos.ToList();
+
+                    var todasLasSiembras = todosLosCiclos
+                        .SelectMany(cc => cc.Siembras)
+                        .ToList();
+
+                    var todasLasCosechas = todosLosCiclos
+                        .SelectMany(cc => cc.Cosechas)
+                        .ToList();
+
+                    var todasLasFertilizaciones = todosLosCiclos
+                        .SelectMany(cc => cc.Fertilizaciones)
+                        .ToList();
+
+                    var todasLasPulverizaciones = todosLosCiclos
+                        .SelectMany(cc => cc.Pulverizaciones)
+                        .ToList();
+
+                    var todosLosRiegos = todosLosCiclos
+                        .SelectMany(cc => cc.Riegos)
+                        .ToList();
+
+                    var todosLosMonitoreos = todosLosCiclos
+                        .SelectMany(cc => cc.Monitoreos)
+                        .ToList();
+
+                    var todosLosAnalisisSuelos = todosLosCiclos
+                        .SelectMany(cc => cc.AnalisisSuelos)
+                        .ToList();
+
+                    var todasLasOtrasLabores = todosLosCiclos
+                        .SelectMany(cc => cc.OtrasLabores)
+                        .ToList();
+
+                    var todosLosSiloBolsas = todosLosCiclos
+                        .SelectMany(cc => cc.SiloBolsas)
+                        .ToList();
 
                     var ultimaSiembra = todasLasSiembras
                         .OrderByDescending(s => s.Fecha)
@@ -83,16 +121,16 @@ namespace AgroForm.Business.Services
                     if (idCultivo.HasValue && ultimaSiembra != null && ultimaSiembra.IdCultivo != idCultivo.Value)
                         continue;
 
-                    var totalFertKgHa = lote.Fertilizaciones
+                    var totalFertKgHa = todasLasFertilizaciones
                         .Where(f => f.CantidadKgHa.HasValue)
                         .Sum(f => f.CantidadKgHa!.Value);
 
-                    var totalPulvLtsHa = lote.Pulverizaciones
+                    var totalPulvLtsHa = todasLasPulverizaciones
                         .Where(p => p.VolumenLitrosHa.HasValue)
                         .Sum(p => p.VolumenLitrosHa!.Value);
 
-                    var costosARS = ObtenerCostosARS(lote);
-                    var costosUSD = ObtenerCostosUSD(lote);
+                    var costosARS = ObtenerCostosARS(lote, todosLosCiclos);
+                    var costosUSD = ObtenerCostosUSD(lote, todosLosCiclos);
 
                     var rendimientoTonHa = ultimaCosecha?.RendimientoTonHa;
                     var superficieHa = lote.SuperficieHectareas ?? ultimaSiembra?.SuperficieHa ?? 0;
@@ -105,12 +143,12 @@ namespace AgroForm.Business.Services
 
                     var cantidadLabores = todasLasSiembras.Count
                         + todasLasCosechas.Count
-                        + lote.Fertilizaciones.Count
-                        + lote.Pulverizaciones.Count
-                        + lote.Riegos.Count
-                        + lote.Monitoreos.Count
-                        + lote.AnalisisSuelos.Count
-                        + lote.OtrasLabores.Count;
+                        + todasLasFertilizaciones.Count
+                        + todasLasPulverizaciones.Count
+                        + todosLosRiegos.Count
+                        + todosLosMonitoreos.Count
+                        + todosLosAnalisisSuelos.Count
+                        + todasLasOtrasLabores.Count;
 
                     decimal? margenBrutoARS = null;
                     decimal? margenBrutoUSD = null;
@@ -206,6 +244,9 @@ namespace AgroForm.Business.Services
                         .Include(c => c.Lotes)
                             .ThenInclude(l => l.CicloCultivos)
                                 .ThenInclude(cc => cc.OtrasLabores)
+                        .Include(c => c.Lotes)
+                            .ThenInclude(l => l.CicloCultivos)
+                                .ThenInclude(cc => cc.SiloBolsas)
                         .FirstOrDefaultAsync(c => c.Id == idCampo && c.IdLicencia == _userContext.IdLicencia);
 
                     if (campo == null) return null;
@@ -269,13 +310,18 @@ namespace AgroForm.Business.Services
                             desglose.OtrasLaboresARS += o.CostoARS.GetValueOrDefault();
                             desglose.OtrasLaboresUSD += o.CostoUSD.GetValueOrDefault();
                         }
+                        foreach (var sb in ciclo.SiloBolsas)
+                        {
+                            desglose.SiloBolsasARS += sb.CostoARS.GetValueOrDefault();
+                            desglose.SiloBolsasUSD += sb.CostoUSD.GetValueOrDefault();
+                        }
                     }
                     totalARS = desglose.SiembraARS + desglose.FertilizacionARS + desglose.PulverizacionARS +
                                desglose.RiegoARS + desglose.CosechaARS + desglose.MonitoreoARS +
-                               desglose.AnalisisSueloARS + desglose.OtrasLaboresARS;
+                               desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.SiloBolsasARS;
                     totalUSD = desglose.SiembraUSD + desglose.FertilizacionUSD + desglose.PulverizacionUSD +
                                desglose.RiegoUSD + desglose.CosechaUSD + desglose.MonitoreoUSD +
-                               desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD;
+                               desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.SiloBolsasUSD;
 
                     var costoPorHaARS = superficieHa > 0 ? totalARS / superficieHa : 0;
 
@@ -283,7 +329,7 @@ namespace AgroForm.Business.Services
                     var cantidadLabores = ciclos.Sum(cc =>
                         cc.Siembras.Count + cc.Cosechas.Count + cc.Fertilizaciones.Count +
                         cc.Pulverizaciones.Count + cc.Riegos.Count + cc.Monitoreos.Count +
-                        cc.AnalisisSuelos.Count + cc.OtrasLabores.Count);
+                        cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.SiloBolsas.Count);
 
                     // Count alerts from data
                     var cantidadAlertas = 0;
@@ -411,6 +457,9 @@ namespace AgroForm.Business.Services
                     .Include(c => c.Lotes)
                         .ThenInclude(l => l.CicloCultivos)
                             .ThenInclude(cc => cc.OtrasLabores)
+                    .Include(c => c.Lotes)
+                        .ThenInclude(l => l.CicloCultivos)
+                            .ThenInclude(cc => cc.SiloBolsas)
                     .Include(c => c.RegistrosClima)
                     .FirstOrDefaultAsync(c => c.Id == idCampo && c.IdLicencia == _userContext.IdLicencia);
 
@@ -804,6 +853,25 @@ namespace AgroForm.Business.Services
                 }
             }
 
+            void AddSiloBolsas(CicloCultivo ciclo, string tipo, string defaultIcono, string defaultColor)
+            {
+                var (icono, color) = GetIconoYColor(tipo, defaultIcono, defaultColor);
+                foreach (var sb in ciclo.SiloBolsas)
+                {
+                    eventos.Add(new TimelineEventoDto
+                    {
+                        Id = eventId++,
+                        Fecha = sb.Fecha,
+                        TipoActividad = tipo,
+                        Icono = icono,
+                        Color = color,
+                        Descripcion = $"Código: {sb.Codigo}, Longitud: {sb.Longitud}m, Capacidad: {sb.CapacidadTotalTn}tn",
+                        Lote = ciclo.Lote?.Nombre,
+                        CicloCultivo = $"{ciclo.Cultivo?.Nombre} {ciclo.Campania?.Nombre}",
+                    });
+                }
+            }
+
             // Procesar ciclos activos primero, luego históricos
             var ciclosOrdenados = activosCiclos
                 .OrderByDescending(cc => cc.FechaInicio)
@@ -818,6 +886,7 @@ namespace AgroForm.Business.Services
                 AddMonitoreos(ciclo, "Monitoreo", "ph-eye", "#ffc107");
                 AddCosechas(ciclo, "Cosecha", "ph-trend-up", "#fd7e14");
                 AddOtrasLabores(ciclo, "Otra Labor", "ph-wrench", "#6c757d");
+                AddSiloBolsas(ciclo, "Silo Bolsa", "ph-package", "#8B5E3C");
 
                 // Agregar análisis de suelo
                 var (analisisIcono, analisisColor) = GetIconoYColor("Análisis de Suelo", "ph-magnifying-glass", "#20c997");
@@ -1142,15 +1211,20 @@ namespace AgroForm.Business.Services
                     desglose.OtrasLaboresARS += o.CostoARS.GetValueOrDefault();
                     desglose.OtrasLaboresUSD += o.CostoUSD.GetValueOrDefault();
                 }
+                foreach (var sb in ciclo.SiloBolsas)
+                {
+                    desglose.SiloBolsasARS += sb.CostoARS.GetValueOrDefault();
+                    desglose.SiloBolsasUSD += sb.CostoUSD.GetValueOrDefault();
+                }
             }
 
             totalARS = desglose.SiembraARS + desglose.FertilizacionARS + desglose.PulverizacionARS
                      + desglose.RiegoARS + desglose.CosechaARS + desglose.MonitoreoARS
-                     + desglose.AnalisisSueloARS + desglose.OtrasLaboresARS;
+                     + desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.SiloBolsasARS;
 
             totalUSD = desglose.SiembraUSD + desglose.FertilizacionUSD + desglose.PulverizacionUSD
                      + desglose.RiegoUSD + desglose.CosechaUSD + desglose.MonitoreoUSD
-                     + desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD;
+                     + desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.SiloBolsasUSD;
 
             // Agregar gastos generales si coinciden con la campaña
             var gastosFiltrados = idCampaniaEfectiva.HasValue
@@ -1403,7 +1477,7 @@ namespace AgroForm.Business.Services
                     CantidadLabores = grupo.Sum(cc =>
                         cc.Siembras.Count + cc.Cosechas.Count + cc.Fertilizaciones.Count
                         + cc.Pulverizaciones.Count + cc.Riegos.Count + cc.Monitoreos.Count
-                        + cc.AnalisisSuelos.Count + cc.OtrasLabores.Count),
+                        + cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.SiloBolsas.Count),
                     RendimientoTonHa = todasLasCosechas
                         .Where(c => c.RendimientoTonHa.HasValue)
                         .DefaultIfEmpty()
@@ -1454,6 +1528,11 @@ namespace AgroForm.Business.Services
                         costosARS += o.CostoARS.GetValueOrDefault();
                         costosUSD += o.CostoUSD.GetValueOrDefault();
                     }
+                    foreach (var sb in ciclo.SiloBolsas)
+                    {
+                        costosARS += sb.CostoARS.GetValueOrDefault();
+                        costosUSD += sb.CostoUSD.GetValueOrDefault();
+                    }
                 }
                 entry.CostoTotalARS = costosARS;
                 entry.CostoTotalUSD = costosUSD;
@@ -1468,34 +1547,46 @@ namespace AgroForm.Business.Services
         // MÉTODOS EXISTENTES DE CÁLCULO DE COSTOS
         // ============================================================
 
-        private decimal ObtenerCostosARS(Lote lote)
+        private decimal ObtenerCostosARS(Lote lote, List<CicloCultivo>? ciclos = null)
         {
             decimal total = 0;
 
-            foreach (var s in lote.Siembras) total += s.CostoARS.GetValueOrDefault();
-            foreach (var c in lote.Cosechas) total += c.CostoARS.GetValueOrDefault();
-            foreach (var f in lote.Fertilizaciones) total += f.CostoARS.GetValueOrDefault();
-            foreach (var p in lote.Pulverizaciones) total += p.CostoARS.GetValueOrDefault();
-            foreach (var r in lote.Riegos) total += r.CostoARS.GetValueOrDefault();
-            foreach (var m in lote.Monitoreos) total += m.CostoARS.GetValueOrDefault();
-            foreach (var a in lote.AnalisisSuelos) total += a.CostoARS.GetValueOrDefault();
-            foreach (var o in lote.OtrasLabores) total += o.CostoARS.GetValueOrDefault();
+            var ciclosToUse = ciclos ?? lote.CicloCultivos;
+
+            foreach (var ciclo in ciclosToUse)
+            {
+                foreach (var s in ciclo.Siembras) total += s.CostoARS.GetValueOrDefault();
+                foreach (var c in ciclo.Cosechas) total += c.CostoARS.GetValueOrDefault();
+                foreach (var f in ciclo.Fertilizaciones) total += f.CostoARS.GetValueOrDefault();
+                foreach (var p in ciclo.Pulverizaciones) total += p.CostoARS.GetValueOrDefault();
+                foreach (var r in ciclo.Riegos) total += r.CostoARS.GetValueOrDefault();
+                foreach (var m in ciclo.Monitoreos) total += m.CostoARS.GetValueOrDefault();
+                foreach (var a in ciclo.AnalisisSuelos) total += a.CostoARS.GetValueOrDefault();
+                foreach (var o in ciclo.OtrasLabores) total += o.CostoARS.GetValueOrDefault();
+                foreach (var sb in ciclo.SiloBolsas) total += sb.CostoARS.GetValueOrDefault();
+            }
 
             return total;
         }
 
-        private decimal ObtenerCostosUSD(Lote lote)
+        private decimal ObtenerCostosUSD(Lote lote, List<CicloCultivo>? ciclos = null)
         {
             decimal total = 0;
 
-            foreach (var s in lote.Siembras) total += s.CostoUSD.GetValueOrDefault();
-            foreach (var c in lote.Cosechas) total += c.CostoUSD.GetValueOrDefault();
-            foreach (var f in lote.Fertilizaciones) total += f.CostoUSD.GetValueOrDefault();
-            foreach (var p in lote.Pulverizaciones) total += p.CostoUSD.GetValueOrDefault();
-            foreach (var r in lote.Riegos) total += r.CostoUSD.GetValueOrDefault();
-            foreach (var m in lote.Monitoreos) total += m.CostoUSD.GetValueOrDefault();
-            foreach (var a in lote.AnalisisSuelos) total += a.CostoUSD.GetValueOrDefault();
-            foreach (var o in lote.OtrasLabores) total += o.CostoUSD.GetValueOrDefault();
+            var ciclosToUse = ciclos ?? lote.CicloCultivos;
+
+            foreach (var ciclo in ciclosToUse)
+            {
+                foreach (var s in ciclo.Siembras) total += s.CostoUSD.GetValueOrDefault();
+                foreach (var c in ciclo.Cosechas) total += c.CostoUSD.GetValueOrDefault();
+                foreach (var f in ciclo.Fertilizaciones) total += f.CostoUSD.GetValueOrDefault();
+                foreach (var p in ciclo.Pulverizaciones) total += p.CostoUSD.GetValueOrDefault();
+                foreach (var r in ciclo.Riegos) total += r.CostoUSD.GetValueOrDefault();
+                foreach (var m in ciclo.Monitoreos) total += m.CostoUSD.GetValueOrDefault();
+                foreach (var a in ciclo.AnalisisSuelos) total += a.CostoUSD.GetValueOrDefault();
+                foreach (var o in ciclo.OtrasLabores) total += o.CostoUSD.GetValueOrDefault();
+                foreach (var sb in ciclo.SiloBolsas) total += sb.CostoUSD.GetValueOrDefault();
+            }
 
             return total;
         }

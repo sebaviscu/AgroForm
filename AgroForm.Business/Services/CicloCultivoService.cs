@@ -172,6 +172,7 @@ namespace AgroForm.Business.Services
                     .Include(c => c.AnalisisSuelos)
                     .Include(c => c.Cosechas)
                     .Include(c => c.OtrasLabores)
+                    .Include(c => c.SiloBolsas)
                     .OrderByDescending(c => c.FechaInicio)
                     .ToListAsync();
 
@@ -208,6 +209,7 @@ namespace AgroForm.Business.Services
                     .Include(c => c.AnalisisSuelos)
                     .Include(c => c.Cosechas)
                     .Include(c => c.OtrasLabores)
+                    .Include(c => c.SiloBolsas)
                     .FirstOrDefaultAsync();
 
                 if (ciclo == null)
