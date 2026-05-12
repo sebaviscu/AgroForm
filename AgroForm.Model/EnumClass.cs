@@ -82,13 +82,6 @@ namespace AgroForm.Model
             Otro = 99
         }
 
-        public enum TipoVariedadEnum
-        {
-            Variedad,
-            Subproducto,
-            Descarte
-        }
-
         public enum IdMonitoreoEnum
         {
             Plaga = 10,

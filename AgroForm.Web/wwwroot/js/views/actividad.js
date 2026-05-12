@@ -7,7 +7,7 @@
 function inicializarDataTable() {
     var table = $('#tblActividades').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json'
         },
         dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
         buttons: {
@@ -179,14 +179,6 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.idCultivo != null) setSelectWhenReady('#idCultivo', datosEspecificos.idCultivo);
             $('#idCultivo').trigger('change');
 
-            if (datosEspecificos.idVariedad != null) {
-
-                mostrarLoading();
-                setTimeout(() => {
-                    setSelectWhenReady('#idVariedad', datosEspecificos.idVariedad);
-                    cerrarAlertas();
-                }, 1000);
-            }
             break;
 
         case 5:

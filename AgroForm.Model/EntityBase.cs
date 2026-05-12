@@ -32,4 +32,24 @@ namespace AgroForm.Model
     {
         int IdMoneda { get; set; }
     }
+
+    /// <summary>
+    /// Interface for entities where IdLicencia can be NULL (global records) or have a value (license-owned records).
+    /// Used for multitenant entities that support both global and per-license records.
+    /// </summary>
+    public interface IOptionalLicenciaEntity
+    {
+        int? IdLicencia { get; set; }
+    }
+
+    /// <summary>
+    /// Interface for side-table entities that manage visibility of global records per license.
+    /// These tables control which global records are visible/hidden for a specific license.
+    /// </summary>
+    public interface ILicenciaVisibility
+    {
+        int IdLicencia { get; set; }
+        int Id { get; set; }
+        bool Activo { get; set; }
+    }
 }

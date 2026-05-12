@@ -43,7 +43,6 @@ namespace AgroForm.Web.Models.IndexVM
         public decimal? SuperficieHa { get; set; }
         public decimal? DensidadSemillaKgHa { get; set; }
         public int IdCultivo { get; set; }
-        public int? IdVariedad { get; set; }
         public int? IdMetodoSiembra { get; set; }
 
         // Riego

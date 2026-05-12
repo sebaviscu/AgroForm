@@ -36,7 +36,7 @@ $(document).ready(function () {
                 const element = this;
                 // Los selects de cultivo se manejan manualmente con cargarCultivos(),
                 // no deben tener Choices.js porque interfiere con la recarga de opciones
-                if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha' || element.id === 'idVariedad') return;
+                if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha') return;
                 if (element._choicesInstance) {
                     element._choicesInstance.destroy();
                 }
@@ -165,7 +165,7 @@ $(document).ready(function () {
     // FUNCIÓN: Cargar cultivos en todos los selectores de cultivo
     function cargarCultivos(tipoActividadOrigen) {
         $.ajax({
-            url: '/Cultivo/GetAll',
+            url: '/Cultivo/GetVisible',
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {
@@ -276,13 +276,6 @@ $(document).ready(function () {
         });
     }
 
-    // Evento cuando cambia el cultivo (para variedades)
-    $(document).on('change', '#idCultivo', function () {
-        var cultivoId = $(this).val();
-        if (cultivoId) {
-            cargarVariedades(cultivoId);
-        }
-    });
 
     $(document).on('change', '#idMonitoreo', function () {
         var idTipoCatalogo = $(this).val();
@@ -576,10 +569,6 @@ $(document).ready(function () {
                     errorMessage = 'Debe seleccionar un cultivo';
                     isValid = false;
                 }
-                if (!$('#idVariedad').val()) {
-                    errorMessage = 'Debe seleccionar una variedad de cultivo';
-                    isValid = false;
-                }
                 var superficieMaxString = $('#superficieHa').attr('max');
                 var superficieValString = $('#superficieHa').val();
                 if (superficieMaxString && superficieValString) {
@@ -673,7 +662,7 @@ $(document).ready(function () {
                 break;
         }
         if (!isValid)
-            mostrarMensaje(errorMessage);
+            mostrarMensaje(errorMessage,'error');
         return isValid;
     }
 
@@ -779,7 +768,6 @@ $(document).ready(function () {
                     DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
                     Costo: parseFloat($('#costoSiembra').val()) || 0,
                     IdCultivo: parseInt($('#idCultivo').val()),
-                    IdVariedad: $('#idVariedad').val() ? parseInt($('#idVariedad').val()) : null,
                     IdMetodoSiembra: parseInt($('#idMetodoSiembra').val()),
                     EsDolar: $('#switchMonedaCostoSiembra').is(':checked')
                 };
@@ -978,7 +966,7 @@ $(document).ready(function () {
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             success: function (result) {
                 if (result.success && result.object) {
-                    mostrarMensaje('Ciclo creado correctamente');
+                    mostrarMensaje('Ciclo creado correctamente', 'success');
                     // Restaurar botón
                     btn.html(originalText).prop('disabled', false);
                     // Ocultar inline y mostrar botón +
@@ -1150,7 +1138,7 @@ function cerrarCiclo(idCicloCultivo) {
         headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
         success: function (result) {
             if (result.success) {
-                mostrarMensaje('Ciclo cerrado correctamente');
+                mostrarMensaje('Ciclo cerrado correctamente', 'success');
                 var loteId = parseInt($('#IdLote').val());
                 if (loteId) {
                     cargarCiclosPorLote(loteId);
@@ -1161,25 +1149,6 @@ function cerrarCiclo(idCicloCultivo) {
         },
         error: function () {
             mostrarError('Error al conectar con el servidor');
-        }
-    });
-}
-
-function cargarVariedades(idCultivo) {
-    var selectVariedad = $('#idVariedad');
-    selectVariedad.empty().append($('<option>', { value: '', text: 'Sin variedad...' }));
-    $.ajax({
-        url: '/Variedad/GetByCultivo?idCultivo=' + idCultivo,
-        type: 'GET',
-        success: function (result) {
-            if (result.success && result.listObject) {
-                $.each(result.listObject, function (i, v) {
-                    selectVariedad.append($('<option>', {
-                        value: v.id,
-                        text: v.nombre
-                    }));
-                });
-            }
         }
     });
 }

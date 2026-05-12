@@ -16,19 +16,16 @@ namespace AgroForm.Web.Controllers
     public class CicloCultivoController : BaseController<CicloCultivo, CicloCultivoVM, ICicloCultivoService>
     {
         private readonly ICultivoService _cultivoService;
-        private readonly IVariedadService _variedadService;
         private readonly ILoteService _loteService;
 
         public CicloCultivoController(
             ICicloCultivoService cicloService,
             ICultivoService cultivoService,
-            IVariedadService variedadService,
             ILoteService loteService,
             ILogger<CicloCultivoController> logger)
             : base(logger, cicloService)
         {
             _cultivoService = cultivoService;
-            _variedadService = variedadService;
             _loteService = loteService;
         }
 
@@ -192,7 +189,6 @@ namespace AgroForm.Web.Controllers
                 var result = await _service.CrearCicloAsync(
                     model.IdLote,
                     model.IdCultivo,
-                    model.IdVariedad,
                     model.Epoca);
 
                 if (!result.Success)

@@ -185,8 +185,8 @@
             });
 
             $.each(ciclosOrdenados, function (index, ciclo) {
-                var isCerrado = ciclo.nombre.indexOf('(Finalizado)') > -1;
-                var displayNombre = isCerrado ? ciclo.nombre.replace(' (Finalizado)', '') : ciclo.nombre;
+                var isCerrado = ciclo.estaCerrado || false;
+                var displayNombre = ciclo.nombre;
 
                 var $cicloDiv = $('<div>', {
                     class: 'ciclo-group mb-2'

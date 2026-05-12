@@ -321,7 +321,7 @@ function recargarCuadrosSuperiores() {
 function inicializarDataTable() {
     table = $('#tblGasto').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json'
         },
         dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
         buttons: {
@@ -441,7 +441,7 @@ function eliminarGasto(id) {
                 success: function (response) {
                     cerrarAlertas();
                     if (response.success) {
-                        mostrarMensaje(response.message);
+                        mostrarMensaje(response.message, 'success');
                         // Recargar tabla principal y cuadros superiores
                         table.ajax.reload(null, false);
                         recargarCuadrosSuperiores(); // Recargar solo los cuadros

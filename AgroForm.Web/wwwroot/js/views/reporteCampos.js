@@ -236,7 +236,7 @@ function renderizarResumenEjecutivo(r) {
             var bgClass = isActive ? 'bg-success' : 'bg-secondary';
             var textClass = isActive ? 'text-success' : 'text-secondary';
             cultivosHtml += `<span class="badge ${bgClass} bg-opacity-10 border ${bgClass} border-opacity-25 ${textClass} px-2 py-1 d-inline-flex align-items-center gap-1" style="font-size:0.75rem;white-space:nowrap;">
-                ${c.nombre}${c.variedad ? ' (' + c.variedad + ')' : ''}
+                ${c.nombre}
                 <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'} text-white ms-1" style="font-size:0.55rem;">${isActive ? 'Activo' : 'Finalizado'}</span>
                 <small class="text-muted" style="font-size:0.65rem;">${formatNum(c.superficieHa, 1)} ha</small>
             </span>`;

@@ -25,9 +25,6 @@ namespace AgroForm.Model.Actividades
         public int IdCultivo { get; set; }
         public Cultivo Cultivo { get; set; } = null!;
 
-        public int? IdVariedad { get; set; }
-        public Variedad? Variedad { get; set; }
-
         public int? IdMetodoSiembra { get; set; }
         public Catalogo MetodoSiembra { get; set; } = null!;
 

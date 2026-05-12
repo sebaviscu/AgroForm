@@ -29,9 +29,10 @@ namespace AgroForm.Data.DBContext
         public DbSet<Moneda> Monedas { get; set; }
 
         public DbSet<Cultivo> Cultivos { get; set; }
-        public DbSet<Variedad> Variedades { get; set; }
         public DbSet<EstadoFenologico> EstadosFenologicos { get; set; }
         public DbSet<Catalogo> Catalogos { get; set; }
+        public DbSet<LicenciasCultivos> LicenciasCultivos { get; set; }
+        public DbSet<LicenciasCatalogos> LicenciasCatalogos { get; set; }
 
         public DbSet<Siembra> Siembras { get; set; }
         public DbSet<Riego> Riegos { get; set; }
@@ -121,19 +122,9 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("Cultivos");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
-            });
-
-            modelBuilder.Entity<Variedad>(entity =>
-            {
-                entity.ToTable("Variedades");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
-
-                entity.HasOne(v => v.Cultivo)
-                    .WithMany(c => c.Variedades)
-                    .HasForeignKey(v => v.IdCultivo)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.Color).HasMaxLength(20);
+                entity.HasIndex(e => e.IdLicencia);
             });
 
             modelBuilder.Entity<EstadoFenologico>(entity =>
@@ -150,6 +141,28 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // LicenciasCultivos - Visibility side table
+            modelBuilder.Entity<LicenciasCultivos>(entity =>
+            {
+                entity.ToTable("LicenciasCultivos");
+                entity.HasKey(e => e.Id);
+
+                // A license can only have one visibility entry per crop
+                entity.HasIndex(e => new { e.IdLicencia, e.IdCultivo }).IsUnique();
+                entity.HasIndex(e => e.IdLicencia);
+                entity.HasIndex(e => e.IdCultivo);
+
+                entity.HasOne(lc => lc.Licencia)
+                    .WithMany()
+                    .HasForeignKey(lc => lc.IdLicencia)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(lc => lc.Cultivo)
+                    .WithMany(c => c.LicenciasCultivos)
+                    .HasForeignKey(lc => lc.IdCultivo)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // Catalogo
             modelBuilder.Entity<Catalogo>(entity =>
             {
@@ -157,6 +170,29 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
+                entity.HasIndex(e => e.IdLicencia);
+            });
+
+            // LicenciasCatalogos - Visibility side table
+            modelBuilder.Entity<LicenciasCatalogos>(entity =>
+            {
+                entity.ToTable("LicenciasCatalogos");
+                entity.HasKey(e => e.Id);
+
+                // A license can only have one visibility entry per catalog item
+                entity.HasIndex(e => new { e.IdLicencia, e.IdCatalogo }).IsUnique();
+                entity.HasIndex(e => e.IdLicencia);
+                entity.HasIndex(e => e.IdCatalogo);
+
+                entity.HasOne(lc => lc.Licencia)
+                    .WithMany()
+                    .HasForeignKey(lc => lc.IdLicencia)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(lc => lc.Catalogo)
+                    .WithMany(c => c.LicenciasCatalogos)
+                    .HasForeignKey(lc => lc.IdCatalogo)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // CicloCultivo
@@ -184,11 +220,6 @@ namespace AgroForm.Data.DBContext
                     .HasForeignKey(cc => cc.IdCampania)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(cc => cc.Variedad)
-                    .WithMany()
-                    .HasForeignKey(cc => cc.IdVariedad)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Siembra>(entity =>
@@ -229,11 +260,6 @@ namespace AgroForm.Data.DBContext
                     .HasForeignKey(s => s.IdCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(s => s.Variedad)
-                    .WithMany()
-                    .HasForeignKey(s => s.IdVariedad)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(s => s.MetodoSiembra)
                     .WithMany()

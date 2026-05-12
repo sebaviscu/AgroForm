@@ -19,6 +19,7 @@ namespace AgroForm.Model.Actividades
 
         public int IdCicloCultivo { get; set; }
         public string CicloCultivoNombre { get; set; } = string.Empty;
+        public bool EstaCerrado { get; set; }
 
         public string TipoActividad { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }

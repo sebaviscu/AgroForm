@@ -126,7 +126,6 @@ namespace AgroForm.Web.Controllers
                     {
                         SuperficieHa = model.DatosEspecificos?.SuperficieHa,
                         DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa,
-                        IdVariedad = model.DatosEspecificos?.IdVariedad,
                         IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra,
                         IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la siembra")
                     };
@@ -301,7 +300,6 @@ namespace AgroForm.Web.Controllers
                                 var nuevoCiclo = await _cicloCultivoService.CrearCicloAsync(
                                     loteId,
                                     model.DatosEspecificos?.IdCultivo ?? 0,
-                                    model.DatosEspecificos?.IdVariedad,
                                     null);
                                 if (nuevoCiclo.Success)
                                     model.IdCicloCultivo = nuevoCiclo.Data.Id;

@@ -11,7 +11,7 @@ namespace AgroForm.Business.Contracts
         /// Creates a new crop cycle for a lot when a Siembra is registered.
         /// Convenience method that builds a CicloCultivo entity and delegates to CreateAsync.
         /// </summary>
-        Task<OperationResult<CicloCultivo>> CrearCicloAsync(int idLote, int idCultivo, int? idVariedad, EpocaSiembra? epoca);
+        Task<OperationResult<CicloCultivo>> CrearCicloAsync(int idLote, int idCultivo, EpocaSiembra? epoca);
 
         /// <summary>
         /// Closes a crop cycle (sets FechaFin) when a Cosecha is registered.

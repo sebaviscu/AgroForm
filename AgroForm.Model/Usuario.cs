@@ -7,7 +7,7 @@ using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model
 {
-    public class Usuario : EntityBaseWithLicencia
+    public class Usuario : EntityBaseWithLicencia, IOptionalLicenciaEntity
     {
         public string Nombre { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

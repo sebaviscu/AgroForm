@@ -88,6 +88,7 @@ CREATE TABLE Campanias (
 
 CREATE TABLE Cultivos (
     Id INT IDENTITY(1,1) PRIMARY KEY,
+    IdLicencia INT NULL,
     Nombre NVARCHAR(150) NOT NULL,
     Descripcion NVARCHAR(500) NULL,
     Orden INT NULL,
@@ -96,7 +97,8 @@ CREATE TABLE Cultivos (
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
-    ModificationUser NVARCHAR(150) NULL
+    ModificationUser NVARCHAR(150) NULL,
+    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE SET NULL
 );
 
 CREATE TABLE EstadosFenologicos (
@@ -105,6 +107,7 @@ CREATE TABLE EstadosFenologicos (
     Codigo NVARCHAR(50) NOT NULL,
     Nombre NVARCHAR(150) NOT NULL,
     Descripcion NVARCHAR(500) NULL,
+    Orden INT NULL,
     Activo BIT NOT NULL DEFAULT 1,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
@@ -113,18 +116,25 @@ CREATE TABLE EstadosFenologicos (
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id) ON DELETE CASCADE
 );
 
-CREATE TABLE Variedades (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
+-- ============================================
+-- TABLA: LicenciasCultivos (Visibility side table)
+-- ============================================
+CREATE TABLE LicenciasCultivos (
+    Id INT IDENTITY(1,1) NOT NULL,
+    IdLicencia INT NOT NULL,
     IdCultivo INT NOT NULL,
-    Nombre NVARCHAR(150) NOT NULL,
-    Descripcion NVARCHAR(500) NULL,
-    Tipo INT NOT NULL, -- 0=Variedad, 1=Subproducto, 2=Descarte
     Activo BIT NOT NULL DEFAULT 1,
+    Orden INT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
-    FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id) ON DELETE CASCADE
+    CONSTRAINT PK_LicenciasCultivos PRIMARY KEY (Id),
+    CONSTRAINT UQ_LicenciasCultivos_IdLicencia_IdCultivo UNIQUE (IdLicencia, IdCultivo),
+    CONSTRAINT FK_LicenciasCultivos_Licencias
+        FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_LicenciasCultivos_Cultivos
+        FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id) ON DELETE CASCADE
 );
 
 CREATE TABLE Catalogos (
@@ -132,11 +142,34 @@ CREATE TABLE Catalogos (
     Tipo INT NOT NULL, -- Según enum TipoCatalogo
     Nombre NVARCHAR(150) NOT NULL,
     Descripcion NVARCHAR(500) NULL,
+    IdLicencia INT NULL,
     Activo BIT NOT NULL DEFAULT 1,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
-    ModificationUser NVARCHAR(150) NULL
+    ModificationUser NVARCHAR(150) NULL,
+    FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE SET NULL
+);
+
+-- ============================================
+-- TABLA: LicenciasCatalogos (Visibility side table)
+-- ============================================
+CREATE TABLE LicenciasCatalogos (
+    Id INT IDENTITY(1,1) NOT NULL,
+    IdLicencia INT NOT NULL,
+    IdCatalogo INT NOT NULL,
+    Activo BIT NOT NULL DEFAULT 1,
+    Orden INT NULL,
+    RegistrationDate DATETIME NULL,
+    RegistrationUser NVARCHAR(150) NULL,
+    ModificationDate DATETIME NULL,
+    ModificationUser NVARCHAR(150) NULL,
+    CONSTRAINT PK_LicenciasCatalogos PRIMARY KEY (Id),
+    CONSTRAINT UQ_LicenciasCatalogos_IdLicencia_IdCatalogo UNIQUE (IdLicencia, IdCatalogo),
+    CONSTRAINT FK_LicenciasCatalogos_Licencias
+        FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_LicenciasCatalogos_Catalogos
+        FOREIGN KEY (IdCatalogo) REFERENCES Catalogos(Id) ON DELETE CASCADE
 );
 
 CREATE TABLE Lotes (
@@ -164,8 +197,7 @@ CREATE TABLE CicloCultivos (
     IdLote INT NOT NULL,
     IdCultivo INT NOT NULL,
     IdCampania INT NOT NULL,
-    IdVariedad INT NULL,
-    Epoca INT NULL, -- 1=Primera, 2=Segunda, 3=Tercera
+    Epoca INT NULL,
     FechaInicio DATETIME NULL,
     FechaFin DATETIME NULL,
     RegistrationDate DATETIME NULL,
@@ -177,7 +209,6 @@ CREATE TABLE CicloCultivos (
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
-    FOREIGN KEY (IdVariedad) REFERENCES Variedades(Id)
 );
 
 
@@ -208,7 +239,6 @@ CREATE TABLE Siembras (
 	CostoARS DECIMAL(18,2) NULL,
     CostoUSD DECIMAL(18,2) NULL,
     IdCultivo INT NOT NULL,
-    IdVariedad INT NULL,
     IdMetodoSiembra INT NULL,
 	IdMoneda INT NOT NULL,
     Epoca INT NULL,
@@ -223,7 +253,6 @@ CREATE TABLE Siembras (
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
-    FOREIGN KEY (IdVariedad) REFERENCES Variedades(Id),
     FOREIGN KEY (IdMetodoSiembra) REFERENCES Catalogos(Id),
 	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id)

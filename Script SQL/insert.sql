@@ -38,158 +38,33 @@ VALUES
 
 
 -- Insertar Cultivos (sin IDs explícitos y sin Descripcion)
-INSERT INTO Cultivos (Nombre, Orden, Activo, RegistrationDate) VALUES
-('SOJA', 1, 1, GETDATE()),
-('MAÍZ', 2, 1, GETDATE()),
-('TRIGO', 3, 1, GETDATE()),
-('SORGO', 4, 1, GETDATE()),
-('GIRASOL', 5, 1, GETDATE()),
-('MIJO', 6, 1, GETDATE()),
-('LINO', 7, 1, GETDATE()),
-('AVENA', 8, 1, GETDATE()),
-('ARROZ', 9, 1, GETDATE()),
-('CEBADA', 10, 1, GETDATE()),
-('GARBANZO', 11, 1, GETDATE()),
-('COLZA', 12, 1, GETDATE()),
-('ALGODÓN', 13, 1, GETDATE()),
-('CHÍA', 14, 1, GETDATE()),
-('MANÍ', 15, 1, GETDATE()),
-('POROTO', 16, 1, GETDATE()),
-('ARVEJA', 17, 1, GETDATE()),
-('LENTEJA', 18, 1, GETDATE()),
-('QUINOA', 19, 1, GETDATE()),
-('ALPISTE', 20, 1, GETDATE()),
-('SESAMO', 21, 1, GETDATE()),
-('CÁRTAMO', 22, 1, GETDATE()),
-('CORIANDRO', 23, 1, GETDATE()),
-('CARINATA', 24, 1, GETDATE()),
-('CAMELINA', 25, 1, GETDATE()),
-('CENTENO', 26, 1, GETDATE());
-
--- Insertar Variedades con descripciones
-INSERT INTO Variedades (IdCultivo, Nombre, Descripcion, Tipo, Activo, RegistrationDate) VALUES
--- SOJA
-(1, 'SOJA', 'Variedad principal de soja para producción de grano', 0, 1, GETDATE()),
-(1, 'ACEITE DE SOJA', 'Subproducto obtenido del procesamiento de soja', 1, 1, GETDATE()),
-(1, 'PELLET SOJA', 'Subproducto peletizado para alimentación animal', 1, 1, GETDATE()),
-(1, 'HARINA DE SOJA', 'Harina proteica para alimentación animal', 1, 1, GETDATE()),
-(1, 'HARINA SOJA HI PRO', 'Harina de soja con alto contenido proteico', 1, 1, GETDATE()),
-
--- MAÍZ
-(2, 'MAÍZ', 'Variedad principal de maíz para grano', 0, 1, GETDATE()),
-(2, 'MAÍZ FLINT', 'Maíz de tipo flint para usos específicos', 0, 1, GETDATE()),
-(2, 'MAÍZ PISINGALLO', 'Maíz pisingallo para pochoclo', 0, 1, GETDATE()),
-(2, 'DESCARTE MAIZ PISINGALLO', 'Descarte de maíz pisingallo para otros usos', 2, 1, GETDATE()),
-
--- TRIGO
-(3, 'TRIGO', 'Variedad principal de trigo pan', 0, 1, GETDATE()),
-(3, 'TRIGO CANDEAL', 'Trigo candeal para pastas y sémolas', 0, 1, GETDATE()),
-(3, 'AFRECHILLO DE TRIGO', 'Subproducto de la molinería de trigo', 1, 1, GETDATE()),
-
--- SORGO
-(4, 'SORGO', 'Variedad principal de sorgo granífero', 0, 1, GETDATE()),
-
--- GIRASOL
-(5, 'GIRASOL', 'Variedad principal de girasol', 0, 1, GETDATE()),
-(5, 'GIRASOL DE ALTO GRADO OLEICO', 'Girasol con alto contenido de ácido oleico', 0, 1, GETDATE()),
-(5, 'GIRASOL CONFITERO', 'Girasol para consumo directo como confitería', 0, 1, GETDATE()),
-(5, 'PELLET GIRASOL', 'Subproducto peletizado de girasol', 1, 1, GETDATE()),
-(5, 'DESCARTE GIRASOL CONFITERO', 'Descarte de girasol confitero', 2, 1, GETDATE()),
-
--- MIJO
-(6, 'MIJO', 'Variedad principal de mijo', 0, 1, GETDATE()),
-
--- LINO
-(7, 'LINO', 'Variedad principal de lino oleaginoso', 0, 1, GETDATE()),
-
--- AVENA
-(8, 'AVENA', 'Variedad principal de avena', 0, 1, GETDATE()),
-
--- ARROZ
-(9, 'ARROZ CÁSCARA', 'Arroz con cáscara para procesamiento', 0, 1, GETDATE()),
-(9, 'ARROZ CÁSCARA LARGO ANCHO', 'Arroz largo ancho con cáscara', 0, 1, GETDATE()),
-
--- CEBADA
-(10, 'CEBADA FORRAJERA', 'Cebada para uso forrajero', 0, 1, GETDATE()),
-(10, 'CEBADA CERVECERA', 'Cebada para producción de cerveza', 0, 1, GETDATE()),
-
--- GARBANZO
-(11, 'GARBANZO', 'Variedad principal de garbanzo', 0, 1, GETDATE()),
-(11, 'GARBANZO PARTIDO', 'Garbanzo partido para consumo', 0, 1, GETDATE()),
-(11, 'DESCARTE GARBANZO', 'Descarte de garbanzo para otros usos', 2, 1, GETDATE()),
-
--- COLZA
-(12, 'COLZA', 'Variedad principal de colza', 0, 1, GETDATE()),
-(12, 'COLZA CANOLA', 'Colza tipo canola con bajo ácido erúcico', 0, 1, GETDATE()),
-
--- ALGODÓN
-(13, 'ALGODÓN', 'Variedad principal de algodón', 0, 1, GETDATE()),
-
--- CHÍA
-(14, 'CHÍA', 'Variedad principal de chía', 0, 1, GETDATE()),
-
--- MANÍ
-(15, 'MANÍ', 'Variedad principal de maní', 0, 1, GETDATE()),
-(15, 'MANÍ PARTIDO', 'Maní partido para consumo', 0, 1, GETDATE()),
-
--- POROTO
-(16, 'POROTO BLANCO NATURAL OVAL Y ALUBIA', 'Poroto blanco natural tipo oval y alubia', 0, 1, GETDATE()),
-(16, 'POROTO DISTINTO DEL BLANCO OVAL Y ALUBIA', 'Poroto de otros colores diferentes al blanco', 0, 1, GETDATE()),
-(16, 'POROTO PALLAR', 'Poroto pallar de grano grande', 0, 1, GETDATE()),
-(16, 'POROTO CRANBERRY', 'Poroto cranberry con manchas rojas', 0, 1, GETDATE()),
-(16, 'POROTO COLORADO OSCURO', 'Poroto colorado de tono oscuro', 0, 1, GETDATE()),
-(16, 'POROTO COLORADO CLARO', 'Poroto colorado de tono claro', 0, 1, GETDATE()),
-(16, 'POROTO MUNG', 'Poroto mung para brotes', 0, 1, GETDATE()),
-(16, 'POROTO NEGRO', 'Poroto negro para consumo', 0, 1, GETDATE()),
-(16, 'POROTO NAVY', 'Poroto navy blanco pequeño', 0, 1, GETDATE()),
-(16, 'POROTO ALUBIA', 'Poroto alubia blanco', 0, 1, GETDATE()),
-(16, 'DESCARTE POROTO ALUBIA', 'Descarte de poroto alubia', 2, 1, GETDATE()),
-(16, 'DESCARTE POROTO NEGRO', 'Descarte de poroto negro', 2, 1, GETDATE()),
-(16, 'DESCARTE POROTO CRANBERRY', 'Descarte de poroto cranberry', 2, 1, GETDATE()),
-(16, 'DESCARTE POROTO COLORADO CLARO', 'Descarte de poroto colorado claro', 2, 1, GETDATE()),
-(16, 'DESCARTE POROTO COLORADO OSCURO', 'Descarte de poroto colorado oscuro', 2, 1, GETDATE()),
-
--- ARVEJA
-(17, 'ARVEJA AMARILLA', 'Arveja amarilla para consumo', 0, 1, GETDATE()),
-(17, 'ARVEJA VERDE', 'Arveja verde para consumo fresco', 0, 1, GETDATE()),
-(17, 'ARVEJA AMARILLA PARTIDA', 'Arveja amarilla partida para sopas', 0, 1, GETDATE()),
-(17, 'ARVEJA VERDE PARTIDA', 'Arveja verde partida para consumo', 0, 1, GETDATE()),
-(17, 'DESCARTE ARVEJA AMARILLA', 'Descarte de arveja amarilla', 2, 1, GETDATE()),
-(17, 'DESCARTE ARVEJA VERDE', 'Descarte de arveja verde', 2, 1, GETDATE()),
-
--- LENTEJA
-(18, 'LENTEJA', 'Variedad principal de lenteja', 0, 1, GETDATE()),
-(18, 'DESCARTE LENTEJA', 'Descarte de lenteja para otros usos', 2, 1, GETDATE()),
-
--- QUINOA
-(19, 'QUINOA', 'Variedad principal de quinoa', 0, 1, GETDATE()),
-(19, 'DESCARTE QUINOA', 'Descarte de quinoa para alimentación animal', 2, 1, GETDATE()),
-
--- ALPISTE
-(20, 'ALPISTE', 'Variedad principal de alpiste', 0, 1, GETDATE()),
-(20, 'DESCARTE ALPISTE', 'Descarte de alpiste para otros usos', 2, 1, GETDATE()),
-
--- SESAMO
-(21, 'SESAMO', 'Variedad principal de sésamo', 0, 1, GETDATE()),
-(21, 'DESCARTE SESAMO', 'Descarte de sésamo para aceite', 2, 1, GETDATE()),
-
--- CÁRTAMO
-(22, 'CÁRTAMO', 'Variedad principal de cártamo', 0, 1, GETDATE()),
-(22, 'CÁRTAMO ALTO OLEICO', 'Cártamo con alto contenido de ácido oleico', 0, 1, GETDATE()),
-
--- CORIANDRO
-(23, 'CORIANDRO', 'Variedad principal de coriandro', 0, 1, GETDATE()),
-(23, 'DESCARTE CORIANDRO', 'Descarte de coriandro para especias', 2, 1, GETDATE()),
-
--- CARINATA
-(24, 'CARINATA', 'Variedad principal de carinata para biocombustibles', 0, 1, GETDATE()),
-
--- CAMELINA
-(25, 'CAMELINA', 'Variedad principal de camelina', 0, 1, GETDATE()),
-
--- CENTENO
-(26, 'CENTENO', 'Variedad principal de centeno', 0, 1, GETDATE()),
-(26, 'DESCARTE CENTENO', 'Descarte de centeno para forraje', 2, 1, GETDATE());
+INSERT INTO Cultivos (Nombre, Orden, Activo, Color, RegistrationDate) VALUES
+('SOJA', 1, 1, '#4CAF50', GETDATE()),
+('MAÍZ', 2, 1, '#FF9800', GETDATE()),
+('TRIGO', 3, 1, '#2196F3', GETDATE()),
+('SORGO', 4, 1, '#9C27B0', GETDATE()),
+('GIRASOL', 5, 1, '#FFC107', GETDATE()),
+('MIJO', 6, 0, '#795548', GETDATE()),
+('LINO', 7, 0, '#00BCD4', GETDATE()),
+('AVENA', 8, 0, '#795548', GETDATE()),
+('ARROZ', 9, 0, '#607D8B', GETDATE()),
+('CEBADA', 10, 0, '#00BCD4', GETDATE()),
+('GARBANZO', 11, 0, '#8BC34A', GETDATE()),
+('COLZA', 12, 0, '#607D8B', GETDATE()),
+('ALGODÓN', 13, 0, '#E91E63', GETDATE()),
+('CHÍA', 14, 0, '#4CAF50', GETDATE()),
+('MANÍ', 15, 0, '#FF9800', GETDATE()),
+('POROTO', 16, 0, '#8BC34A', GETDATE()),
+('ARVEJA', 17, 0, '#8BC34A', GETDATE()),
+('LENTEJA', 18, 0, '#8BC34A', GETDATE()),
+('QUINOA', 19, 0, '#4CAF50', GETDATE()),
+('ALPISTE', 20, 0, '#8BC34A', GETDATE()),
+('SESAMO', 21, 0, '#FFC107', GETDATE()),
+('CÁRTAMO', 22, 0, '#FFC107', GETDATE()),
+('CORIANDRO', 23, 0, '#4CAF50', GETDATE()),
+('CARINATA', 24, 0, '#607D8B', GETDATE()),
+('CAMELINA', 25, 0, '#607D8B', GETDATE()),
+('CENTENO', 26, 0, '#E91E63', GETDATE());
 
 
 -- Insertar Estados Fenológicos

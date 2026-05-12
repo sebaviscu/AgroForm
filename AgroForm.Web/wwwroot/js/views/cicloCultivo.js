@@ -2,7 +2,7 @@ $(document).ready(function () {
     // Inicializar DataTable
     var tabla = $('#tablaCiclos').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-AR.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-AR.json'
         },
         order: [[5, 'desc']],
         pageLength: 25,
@@ -102,7 +102,7 @@ function abrirModalCrearCiclo() {
     var selectCultivo = $('#gestCicloIdCultivo');
     selectCultivo.empty().append('<option value="">Cargando cultivos...</option>');
     $.ajax({
-        url: '/Cultivo/GetAll',
+        url: '/Cultivo/GetVisible',
         type: 'GET',
         success: function (result) {
             selectCultivo.empty().append('<option value="">Seleccione un cultivo...</option>');
@@ -149,7 +149,7 @@ function abrirModalCrearCiclo() {
             success: function (result) {
                 if (result.success) {
                     $('#modalCrearCicloGestion').modal('hide');
-                    mostrarMensaje('Ciclo creado correctamente');
+                    mostrarMensaje('Ciclo creado correctamente', 'success');
                     setTimeout(function () {
                         location.reload();
                     }, 500);
@@ -180,7 +180,6 @@ function verDetalleCiclo(id) {
                 html += '<div class="row mb-3">';
                 html += '    <div class="col-md-4"><strong>Lote:</strong> ' + (ciclo.lote?.nombre || '-') + '</div>';
                 html += '    <div class="col-md-4"><strong>Cultivo:</strong> ' + (ciclo.cultivo?.nombre || '-') + '</div>';
-                html += '    <div class="col-md-4"><strong>Variedad:</strong> ' + (ciclo.variedad?.nombre || '-') + '</div>';
                 html += '</div>';
                 html += '<div class="row mb-3">';
                 html += '    <div class="col-md-4"><strong>Época:</strong> ' + ciclo.epocaDisplay + '</div>';
@@ -240,7 +239,7 @@ function cerrarCicloGestion(id, row) {
         },
         success: function (result) {
             if (result.success) {
-                mostrarMensaje('Ciclo cerrado correctamente');
+                mostrarMensaje('Ciclo cerrado correctamente', 'success');
                 setTimeout(function () {
                     location.reload();
                 }, 500);

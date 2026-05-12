@@ -1,4 +1,5 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
 using AgroForm.Model.Actividades;
 using AgroForm.Web.Models;
 using Mapster;
@@ -57,5 +58,49 @@ namespace AgroForm.Web.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets all visible catalog items for the current license.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetVisible()
+        {
+            try
+            {
+                var result = await _service.GetVisibleByLicenseAsync();
+                if (!result.Success)
+                    return Json(new { success = false, message = result.ErrorMessage });
+
+                gResponse.Success = true;
+                gResponse.ListObject = Map<List<Catalogo>, List<CatalogoVM>>(result.Data);
+                gResponse.Message = "Datos obtenidos correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al obtener catálogos visibles", "GetVisible");
+            }
+        }
+
+        /// <summary>
+        /// Sets visibility of a global catalog item for the current license.
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> SetVisibility(int idCatalogo, bool visible)
+        {
+            try
+            {
+                var result = await _service.SetVisibilityAsync(idCatalogo, visible);
+                if (!result.Success)
+                    return Json(new { success = false, message = result.ErrorMessage });
+
+                gResponse.Success = true;
+                gResponse.Message = "Visibilidad actualizada correctamente";
+                return Ok(gResponse);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al establecer visibilidad del catálogo", "SetVisibility", idCatalogo, ("Visible", (object)visible));
+            }
+        }
     }
 }

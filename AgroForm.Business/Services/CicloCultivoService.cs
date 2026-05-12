@@ -60,13 +60,12 @@ namespace AgroForm.Business.Services
         /// <summary>
         /// Convenience method that builds a CicloCultivo entity and delegates to CreateAsync.
         /// </summary>
-        public async Task<OperationResult<CicloCultivo>> CrearCicloAsync(int idLote, int idCultivo, int? idVariedad, EpocaSiembra? epoca)
+        public async Task<OperationResult<CicloCultivo>> CrearCicloAsync(int idLote, int idCultivo, EpocaSiembra? epoca)
         {
             var ciclo = new CicloCultivo
             {
                 IdLote = idLote,
                 IdCultivo = idCultivo,
-                IdVariedad = idVariedad,
                 Epoca = epoca
             };
             return await CreateAsync(ciclo);
@@ -115,7 +114,6 @@ namespace AgroForm.Business.Services
 
                 var ciclo = await query
                     .Include(c => c.Cultivo)
-                    .Include(c => c.Variedad)
                     .FirstOrDefaultAsync();
 
                 return OperationResult<CicloCultivo?>.SuccessResult(ciclo);
@@ -137,7 +135,6 @@ namespace AgroForm.Business.Services
                 var ciclos = await _repository.Query()
                     .Where(c => c.IdLote == idLote && c.IdCampania == _userContext.IdCampaña)
                     .Include(c => c.Cultivo)
-                    .Include(c => c.Variedad)
                     .OrderByDescending(c => c.FechaInicio)
                     .ToListAsync();
 
@@ -161,7 +158,6 @@ namespace AgroForm.Business.Services
                 var ciclos = await _repository.Query()
                     .Where(c => c.IdCampania == _userContext.IdCampaña)
                     .Include(c => c.Cultivo)
-                    .Include(c => c.Variedad)
                     .Include(c => c.Lote)
                         .ThenInclude(l => l.Campo)
                     .Include(c => c.Siembras)
@@ -196,7 +192,6 @@ namespace AgroForm.Business.Services
                 var ciclo = await _repository.Query()
                     .Where(c => c.Id == id)
                     .Include(c => c.Cultivo)
-                    .Include(c => c.Variedad)
                     .Include(c => c.Lote)
                         .ThenInclude(l => l.Campo)
                     .Include(c => c.Campania)

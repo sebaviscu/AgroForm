@@ -468,7 +468,7 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(campania);
 
             // Act
-            var result = await _cicloCultivoService.CrearCicloAsync(1, 1, null, EpocaSiembra.primera);
+            var result = await _cicloCultivoService.CrearCicloAsync(1, 1, EpocaSiembra.primera);
 
             // Assert
             Assert.True(result.Success);

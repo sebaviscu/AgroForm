@@ -100,7 +100,6 @@ namespace AgroForm.Business.Contracts
     {
         public string Lote { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
-        public string? Variedad { get; set; }
         public decimal SuperficieHa { get; set; }
         public int CantidadCiclos { get; set; }
         public int CantidadInactivos { get; set; }

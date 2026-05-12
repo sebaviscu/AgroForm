@@ -18,9 +18,6 @@ namespace AgroForm.Model.Actividades
         public int IdCampania { get; set; }
         public Campania Campania { get; set; } = null!;
 
-        public int? IdVariedad { get; set; }
-        public Variedad? Variedad { get; set; }
-
         public EpocaSiembra? Epoca { get; set; }
 
         public DateTime? FechaInicio { get; set; }

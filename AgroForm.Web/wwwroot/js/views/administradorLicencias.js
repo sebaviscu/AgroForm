@@ -13,7 +13,7 @@ $(document).ready(function () {
 function inicializarDataTable() {
     table = $('#tblLicencias').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json'
         },
         dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
         buttons: {
@@ -441,7 +441,7 @@ function inicializarTablaPagos(pagos) {
 
     tablePagos = $('#tblPagosLicencia').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json'
         },
         data: pagos || [],
         columns: [
@@ -558,7 +558,7 @@ function agregarPago() {
         },
         success: function (response) {
             if (response.success) {
-                mostrarMensaje(response.message || 'Pago agregado correctamente');
+                mostrarMensaje(response.message || 'Pago agregado correctamente', 'success');
                 $('#formPagoLicencia')[0].reset();
                 $('#formPagoLicencia').removeClass('was-validated');
 
@@ -599,7 +599,7 @@ function eliminarPago(idPago) {
                     cerrarAlertas();
 
                     if (response.success) {
-                        mostrarMensaje(response.message || 'Pago eliminado correctamente');
+                        mostrarMensaje(response.message || 'Pago eliminado correctamente', 'success');
 
                         // Recargar los datos de la licencia para actualizar la tabla
                         const idLicencia = $('#idLicenciaPago').val();
@@ -684,7 +684,7 @@ function configurarEventos() {
 function inicializarDataTableCatalogos() {
     tableCatalogos = $('#tblCatalogos').DataTable({
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/es-ES.json'
         },
         dom: '<"row"<"col-md-6"B><"col-md-6"f>>rt<"row"<"col-md-6"l><"col-md-6"p>>',
         buttons: {
@@ -782,7 +782,7 @@ function inicializarDataTableCatalogos() {
             }
         ],
         order: [[0, 'asc'], [1, 'asc']],
-        pageLength: 25,
+        pageLength: 10,
         responsive: true
     });
 }
@@ -902,7 +902,7 @@ function guardarCatalogo() {
         },
         success: function (response) {
             if (response.success) {
-                mostrarMensaje(response.message || (datos.Id ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente'));
+                mostrarMensaje(response.message || (datos.Id ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente', 'success'));
                 $('#modalCatalogo').modal('hide');
                 tableCatalogos.ajax.reload();
             } else {
@@ -938,7 +938,7 @@ function eliminarCatalogo(id) {
                     cerrarAlertas();
 
                     if (response.success) {
-                        mostrarMensaje(response.message || 'Catálogo eliminado correctamente');
+                        mostrarMensaje(response.message || 'Catálogo eliminado correctamente', 'success');
                         tableCatalogos.ajax.reload();
                     } else {
                         mostrarError(response.message || 'Error al eliminar el catálogo');

@@ -14,9 +14,6 @@ namespace AgroForm.Web.Models
 
         public int IdCampania { get; set; }
 
-        public int? IdVariedad { get; set; }
-        public VariedadVM? Variedad { get; set; }
-
         public EpocaSiembra? Epoca { get; set; }
 
         public DateTime? FechaInicio { get; set; }

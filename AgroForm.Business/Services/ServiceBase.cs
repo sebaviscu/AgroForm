@@ -31,7 +31,17 @@ namespace AgroForm.Business.Services
                 // Filtrar por licencia si la entidad hereda de EntityBaseWithLicencia
                 if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
                 {
-                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                    // For IOptionalLicenciaEntity: bring globals (IdLicencia IS NULL) + own records (IdLicencia = licenseId)
+                    // For strict EntityBaseWithLicencia: only bring own records
+                    if (typeof(IOptionalLicenciaEntity).IsAssignableFrom(typeof(T)))
+                    {
+                        query = query.Where(e => EF.Property<int?>(e, "IdLicencia") == null
+                            || EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                    }
+                    else
+                    {
+                        query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                    }
                 }
 
                 var list = await query.ToListAsync();
@@ -91,8 +101,18 @@ namespace AgroForm.Business.Services
                 // Multi-tenancy: verificar que la entidad pertenezca a la licencia actual
                 if (entity is EntityBaseWithLicencia entidadConLicencia)
                 {
-                    if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
-                        return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
+                    // For IOptionalLicenciaEntity: allow access to globals (IdLicencia == null) OR own records
+                    if (entity is IOptionalLicenciaEntity entidadOpcional)
+                    {
+                        if (entidadOpcional.IdLicencia != null && entidadOpcional.IdLicencia != _userContext.IdLicencia)
+                            return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
+                    }
+                    else
+                    {
+                        // Strict EntityBaseWithLicencia: strict equality check
+                        if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
+                            return OperationResult<T>.Failure("No se encontró el registro", "NOT_FOUND");
+                    }
                 }
 
                 return OperationResult<T>.SuccessResult(entity);
@@ -117,10 +137,20 @@ namespace AgroForm.Business.Services
                 if (!validationResult.Success)
                     return OperationResult<T>.Failure(validationResult.ErrorMessage);
 
-                // Multi-tenancy automático para IdLicencia vía Global Filter y SaveChanges
-                // Asignamos explícitamente los campos que NO son automáticos o que dependen de la lógica
-                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                // Multi-tenancy: Assign IdLicencia based on entity type
+                // For IOptionalLicenciaEntity: SuperAdmin creates globals (NULL), regular users create owned records
+                if (entity is IOptionalLicenciaEntity entidadOpcional)
+                {
+                    // Only assign license if user has a license context (not SuperAdmin creating globals)
+                    if (!_userContext.IsSuperAdmin || _userContext.IdLicencia.HasValue)
+                    {
+                        entidadOpcional.IdLicencia = _userContext.IdLicencia;
+                    }
+                }
+                else if (entity is EntityBaseWithLicencia entidadConLicencia)
+                {
                     entidadConLicencia.IdLicencia = _userContext.IdLicencia;
+                }
 
                 if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
                     entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
@@ -153,8 +183,18 @@ namespace AgroForm.Business.Services
                     if (!validationResult.Success)
                         return OperationResult<List<T>>.Failure($"Error de validacion en el registro: {validationResult.ErrorMessage}", "VALIDATION_ERROR");
 
-                    if (entity is EntityBaseWithLicencia entidadConLicencia)
+                    // For IOptionalLicenciaEntity: SuperAdmin creates globals, regular users create owned records
+                    if (entity is IOptionalLicenciaEntity entidadOpcional)
+                    {
+                        if (!_userContext.IsSuperAdmin || _userContext.IdLicencia.HasValue)
+                        {
+                            entidadOpcional.IdLicencia = _userContext.IdLicencia;
+                        }
+                    }
+                    else if (entity is EntityBaseWithLicencia entidadConLicencia)
+                    {
                         entidadConLicencia.IdLicencia = _userContext.IdLicencia;
+                    }
 
                     if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
                         entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
@@ -187,8 +227,16 @@ namespace AgroForm.Business.Services
                 entity.RegistrationUser = original.RegistrationUser;
                 entity.RegistrationDate = original.RegistrationDate;
 
-                if (entity is EntityBaseWithLicencia entidadConLicencia)
+                // For IOptionalLicenciaEntity: preserve original IdLicencia (don't overwrite globals)
+                if (entity is IOptionalLicenciaEntity entidadOpcional)
+                {
+                    var originalOpcional = (IOptionalLicenciaEntity)original;
+                    entidadOpcional.IdLicencia = originalOpcional.IdLicencia;
+                }
+                else if (entity is EntityBaseWithLicencia entidadConLicencia)
+                {
                     entidadConLicencia.IdLicencia = _userContext.IdLicencia;
+                }
 
                 if (entity is IEntityBaseWithCampania entidadConCampania && _userContext.IdCampaña.HasValue)
                     entidadConCampania.IdCampania = _userContext.IdCampaña.Value;
@@ -246,8 +294,17 @@ namespace AgroForm.Business.Services
                 // Multi-tenancy: verificar que la entidad pertenezca a la licencia actual
                 if (entity is EntityBaseWithLicencia entidadConLicencia)
                 {
-                    if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
-                        return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
+                    // For IOptionalLicenciaEntity: allow deleting own records only (not globals created by others)
+                    if (entity is IOptionalLicenciaEntity entidadOpcional)
+                    {
+                        if (entidadOpcional.IdLicencia != _userContext.IdLicencia)
+                            return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
+                    }
+                    else
+                    {
+                        if (entidadConLicencia.IdLicencia != _userContext.IdLicencia)
+                            return OperationResult.Failure("El registro que intenta eliminar no existe.", "NOT_FOUND");
+                    }
                 }
 
                 await _repository.DeleteAsync(entity);
@@ -297,7 +354,16 @@ namespace AgroForm.Business.Services
             // Filtrar por licencia si la entidad hereda de EntityBaseWithLicencia
             if (typeof(EntityBaseWithLicencia).IsAssignableFrom(typeof(T)))
             {
-                query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                // For IOptionalLicenciaEntity: bring globals (IdLicencia IS NULL) + own records
+                if (typeof(IOptionalLicenciaEntity).IsAssignableFrom(typeof(T)))
+                {
+                    query = query.Where(e => EF.Property<int?>(e, "IdLicencia") == null
+                        || EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                }
+                else
+                {
+                    query = query.Where(e => EF.Property<int>(e, "IdLicencia") == _userContext.IdLicencia);
+                }
             }
 
             return query;

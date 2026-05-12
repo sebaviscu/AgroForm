@@ -134,7 +134,6 @@ namespace AgroForm.Tests.Services
             services.AddScoped<IRegistroClimaService, RegistroClimaService>();
             services.AddScoped<ITipoActividadService, TipoActividadService>();
             services.AddScoped<IUsuarioService, UsuarioService>();
-            services.AddScoped<IVariedadService, VariedadService>();
             services.AddScoped<ICicloCultivoService, CicloCultivoService>();
             services.AddScoped<IReportService, ReportService>();
 

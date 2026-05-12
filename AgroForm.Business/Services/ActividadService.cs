@@ -467,7 +467,6 @@ namespace AgroForm.Business.Services
                         return await repoSembra.Query()
                             .Include(s => s.TipoActividad)
                             .Include(s => s.Cultivo)
-                            .Include(s => s.Variedad)
                             .Include(s => s.MetodoSiembra)
                             .Include(s => s.Moneda)
                             .Include(s => s.Lote)

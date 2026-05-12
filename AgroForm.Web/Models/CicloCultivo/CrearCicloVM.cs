@@ -11,8 +11,6 @@ namespace AgroForm.Web.Models.CicloCultivo
         [Required]
         public int IdCultivo { get; set; }
 
-        public int? IdVariedad { get; set; }
-
         public EpocaSiembra? Epoca { get; set; }
     }
 }

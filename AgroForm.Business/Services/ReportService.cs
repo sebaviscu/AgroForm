@@ -428,9 +428,6 @@ namespace AgroForm.Business.Services
                             .ThenInclude(cc => cc.Cultivo)
                     .Include(c => c.Lotes)
                         .ThenInclude(l => l.CicloCultivos)
-                            .ThenInclude(cc => cc.Variedad)
-                    .Include(c => c.Lotes)
-                        .ThenInclude(l => l.CicloCultivos)
                             .ThenInclude(cc => cc.Campania)
                     .Include(c => c.Lotes)
                         .ThenInclude(l => l.CicloCultivos)
@@ -587,7 +584,6 @@ namespace AgroForm.Business.Services
                     {
                         Lote = lote.Nombre,
                         Nombre = g.Key,
-                        Variedad = g.First().Variedad?.Nombre,
                         SuperficieHa = lote.SuperficieHectareas ?? 0,
                         CantidadCiclos = g.Count(),
                         CantidadInactivos = g.Count(cc => cc.FechaFin != null),

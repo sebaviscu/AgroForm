@@ -75,9 +75,6 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.CicloCultivos)
                         .ThenInclude(cc => cc.Cultivo)
-                .Include(c => c.Lotes)
-                    .ThenInclude(l => l.CicloCultivos)
-                        .ThenInclude(cc => cc.Variedad)
                 .Include(_ => _.Gastos)
                 .FirstOrDefaultAsync(c => c.Id == idCampania);
 
