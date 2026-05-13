@@ -18,13 +18,17 @@ namespace AgroForm.Web.Controllers
         private readonly ILogger<AccessController> _logger;
         private readonly IUsuarioService _userService;
         private readonly ICampaniaService _campaniaService;
+        private readonly ILicenciaService _licenciaService;
+        private readonly IUserContext _userContext;
         private readonly IWebHostEnvironment _env;
 
-        public AccessController(ILogger<AccessController> logger, IUsuarioService userService, ICampaniaService campaniaService, IWebHostEnvironment env)
+        public AccessController(ILogger<AccessController> logger, IUsuarioService userService, ICampaniaService campaniaService, ILicenciaService licenciaService, IUserContext userContext, IWebHostEnvironment env)
         {
             _logger = logger;
             _userService = userService;
             _campaniaService = campaniaService;
+            _licenciaService = licenciaService;
+            _userContext = userContext;
             _env = env;
         }
 
@@ -150,6 +154,29 @@ namespace AgroForm.Web.Controllers
             //}
 
             var user = await _userService.GetUserByEmailAsync(email);
+            
+            if (user == null)
+            {
+                ViewBag.Error = "Usuario no encontrado";
+                return View();
+            }
+
+            // Validar que la licencia esté activa (excepto para SuperAdmin)
+            if (!user.SuperAdmin)
+            {
+                if (!user.IdLicencia.HasValue)
+                {
+                    ViewBag.Error = "Usuario sin licencia asignada. Contacte al administrador.";
+                    return View();
+                }
+
+                var licenciaResult = await _licenciaService.GetByIdAsync(user.IdLicencia.Value);
+                if (!licenciaResult.Success || !licenciaResult.Data.Activo)
+                {
+                    ViewBag.Error = "Su licencia está deshabilitada. Contacte al administrador.";
+                    return View();
+                }
+            }
             
             // Buscar campaña actual
             var campaniaResult = await _campaniaService.GetCurrentByLicencia(user.IdLicencia);

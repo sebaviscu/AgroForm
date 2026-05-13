@@ -118,11 +118,11 @@ namespace AgroForm.Business.Services
 
             // Obtener cosechas para calcular producción
             var cosechas = lotes.SelectMany(_ => _.Cosechas).ToList();
-            reporte.ToneladasProducidas = cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
+            reporte.ToneladasProducidas = cosechas.Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0;
 
 
             // Superficie y producción
-            reporte.SuperficieTotalHa = cosechas.Sum(c => c.SuperficieCosechadaHa) ?? 0;
+            reporte.SuperficieTotalHa = cosechas.Sum(c => c.SuperficieCosechada) ?? 0;
 
 
             reporte.CostoCosechasArs = cosechas.Sum(_ => _.CostoARS.GetValueOrDefault());
@@ -187,7 +187,7 @@ namespace AgroForm.Business.Services
                 var lotesGrupo = grupo.Select(x => x.Lote).ToList();
                 var laboresGrupo = lotesGrupo.SelectMany(l => l.Cosechas).ToList();
                 var superficieTotal = lotesGrupo.Sum(l => l.SuperficieHectareas ?? 0);
-                var toneladasTotal = laboresGrupo.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
+                var toneladasTotal = laboresGrupo.Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0;
                 var rendimiento = toneladasTotal > 0 && superficieTotal > 0 ? toneladasTotal / superficieTotal : 0;
 
                 var resumen = new ResumenCultivo
@@ -227,7 +227,7 @@ namespace AgroForm.Business.Services
                     SuperficieHa = lotesCampo.Sum(l => l.SuperficieHectareas ?? 0),
                     ToneladasProducidas = lotesCampo
                         .SelectMany(l => l.Cosechas)
-                        .Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                        .Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0,
                     CostoTotalArs = lotesCampo.Sum(l => l.CostoTotalLaboresArs),
                     CostoTotalUsd = lotesCampo.Sum(l => l.CostoTotalLaboresUsd),
                     Lotes = lotesCampo.SelectMany(l => ObtenerResumenLotesPorCiclo(l)).ToList()
@@ -252,9 +252,9 @@ namespace AgroForm.Business.Services
                     var cosechasCiclo = lote.Cosechas.Where(c => c.IdCicloCultivo == ciclo.Id).ToList();
                     var siembrasCiclo = lote.Siembras.Where(s => s.IdCicloCultivo == ciclo.Id).ToList();
 
-                    var toneladasProducidas = cosechasCiclo.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0;
-                    var superficieSembrada = siembrasCiclo.Any() ? siembrasCiclo.Sum(s => s.SuperficieHa ?? 0) : lote.SuperficieHectareas ?? 0;
-                    var superficieCosechada = cosechasCiclo.Sum(c => c.SuperficieCosechadaHa) ?? 0;
+                    var toneladasProducidas = cosechasCiclo.Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0;
+                    var superficieSembrada = siembrasCiclo.Any() ? siembrasCiclo.Sum(s => s.Superficie ?? 0) : lote.SuperficieHectareas ?? 0;
+                    var superficieCosechada = cosechasCiclo.Sum(c => c.SuperficieCosechada) ?? 0;
                     var superficieEfectiva = superficieCosechada > 0 ? superficieCosechada : superficieSembrada;
 
                     // Calcular costos del ciclo filtrando por IdCicloCultivo
@@ -302,11 +302,11 @@ namespace AgroForm.Business.Services
                     NombreLote = lote.Nombre,
                     Cultivo = lote.Siembras.FirstOrDefault()?.Cultivo?.Nombre ?? "Sin cultivo",
                     SuperficieHa = lote.SuperficieHectareas ?? 0,
-                    ToneladasProducidas = lote.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0,
+                    ToneladasProducidas = lote.Cosechas.Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0,
                     CostoTotalArs = lote.CostoTotalLaboresArs,
                     CostoTotalUsd = lote.CostoTotalLaboresUsd,
                     RendimientoHa = lote.SuperficieHectareas > 0 ?
-                        (lote.Cosechas.Sum(c => c.RendimientoTonHa * c.SuperficieCosechadaHa) ?? 0) / lote.SuperficieHectareas ?? 0 : 0
+                        (lote.Cosechas.Sum(c => c.Rendimiento * c.SuperficieCosechada) ?? 0) / lote.SuperficieHectareas ?? 0 : 0
                 });
             }
 

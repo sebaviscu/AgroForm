@@ -1,5 +1,6 @@
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
+using AgroForm.Model.Unidades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
@@ -47,6 +48,10 @@ namespace AgroForm.Data.DBContext
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
 
+        public DbSet<UnidadMedida> UnidadesMedida { get; set; }
+        public DbSet<CampoLaborUnidad> CamposLaborUnidad { get; set; }
+        public DbSet<CampoLaborUnidadPermitida> CamposLaborUnidadPermitida { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -70,6 +75,11 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Longitud).HasColumnType("decimal(18,8)");
 
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Campania>(entity =>
@@ -78,6 +88,11 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Lote>(entity =>
@@ -87,6 +102,12 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.SuperficieHectareas).HasColumnType("decimal(10,2)");
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.HasOne(l => l.Campo)
                     .WithMany(c => c.Lotes)
@@ -105,6 +126,12 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Milimetros).HasColumnType("decimal(10,2)");
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.HasOne(r => r.Campo)
                     .WithMany(l => l.RegistrosClima)
@@ -125,6 +152,11 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
                 entity.Property(e => e.Color).HasMaxLength(20);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<EstadoFenologico>(entity =>
@@ -155,7 +187,7 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(lc => lc.Licencia)
                     .WithMany()
                     .HasForeignKey(lc => lc.IdLicencia)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(lc => lc.Cultivo)
                     .WithMany(c => c.LicenciasCultivos)
@@ -171,6 +203,17 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // LicenciasCatalogos - Visibility side table
@@ -187,7 +230,7 @@ namespace AgroForm.Data.DBContext
                 entity.HasOne(lc => lc.Licencia)
                     .WithMany()
                     .HasForeignKey(lc => lc.IdLicencia)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(lc => lc.Catalogo)
                     .WithMany(c => c.LicenciasCatalogos)
@@ -201,6 +244,12 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("CicloCultivos");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.Property(e => e.Epoca)
                     .IsRequired(false);
@@ -231,8 +280,21 @@ namespace AgroForm.Data.DBContext
                 // Propiedades base de Actividad
 
                 // Propiedades específicas
-                entity.Property(e => e.SuperficieHa).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.DensidadSemillaKgHa).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Superficie).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Densidad).HasColumnType("decimal(10,2)");
+
+                // FK Unidades
+                entity.HasOne(e => e.UnidadSuperficie)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadSuperficie)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadSuperficie);
+
+                entity.HasOne(e => e.UnidadDensidad)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadDensidad)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadDensidad);
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -289,8 +351,21 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
 
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
                 entity.Property(e => e.HorasRiego).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.VolumenAguaM3).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.VolumenAgua).HasColumnType("decimal(10,2)");
+
+                // FK Unidad
+                entity.HasOne(e => e.UnidadVolumenAgua)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadVolumenAgua)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadVolumenAgua);
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -346,8 +421,27 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
 
-                entity.Property(e => e.CantidadKgHa).HasColumnType("decimal(10,2)");
-                entity.Property(e => e.DosisKgHa).HasColumnType("decimal(10,2)");
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+                entity.Property(e => e.Cantidad).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Dosis).HasColumnType("decimal(10,2)");
+
+                // FK Unidades
+                entity.HasOne(e => e.UnidadCantidad)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadCantidad)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadCantidad);
+
+                entity.HasOne(e => e.UnidadDosis)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadDosis)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadDosis);
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -407,8 +501,33 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
 
-                entity.Property(e => e.VolumenLitrosHa).HasColumnType("decimal(10,2)");
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+                entity.Property(e => e.Volumen).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.Dosis).HasColumnType("decimal(10,2)");
+
+                // FK Unidades
+                entity.HasOne(e => e.UnidadVolumen)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadVolumen)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadVolumen);
+
+                entity.HasOne(e => e.UnidadDosis)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadDosis)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadDosis);
                 entity.Property(e => e.CondicionesClimaticas).HasMaxLength(200);
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
@@ -456,6 +575,12 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("Monitoreos");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -507,6 +632,12 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("AnalisisSuelos");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.Property(e => e.ProfundidadCm).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.PH).HasColumnType("decimal(5,2)");
@@ -567,9 +698,28 @@ namespace AgroForm.Data.DBContext
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
 
-                entity.Property(e => e.RendimientoTonHa).HasColumnType("decimal(10,2)");
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+
+                entity.Property(e => e.Rendimiento).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.HumedadGrano).HasColumnType("decimal(5,2)");
-                entity.Property(e => e.SuperficieCosechadaHa).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.SuperficieCosechada).HasColumnType("decimal(10,2)");
+
+                // FK Unidades
+                entity.HasOne(e => e.UnidadRendimiento)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadRendimiento)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadRendimiento);
+
+                entity.HasOne(e => e.UnidadSuperficieCosechada)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadSuperficieCosechada)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.IdUnidadSuperficieCosechada);
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -615,6 +765,12 @@ namespace AgroForm.Data.DBContext
                 entity.ToTable("OtrasLabores");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+
 
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
@@ -707,6 +863,11 @@ namespace AgroForm.Data.DBContext
 
                 entity.HasIndex(e => new { e.Email, e.IdLicencia }).IsUnique();
                 entity.HasIndex(e => e.IdLicencia);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<TipoActividad>(entity =>
@@ -784,6 +945,74 @@ namespace AgroForm.Data.DBContext
                     .WithOne(c => c.ReporteCierreCampania)
                     .HasForeignKey<ReporteCierreCampania>(rc => rc.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(rc => rc.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ===============================
+            // Configuración de Unidades de Medida
+            // ===============================
+            modelBuilder.Entity<UnidadMedida>(entity =>
+            {
+                entity.ToTable("UnidadesMedida");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Sigla).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Categoria)
+                    .HasConversion<int>()
+                    .HasColumnType("int");
+                entity.Property(e => e.DimensionBase)
+                    .HasConversion<int>()
+                    .HasColumnType("int");
+                entity.Property(e => e.FactorConversion)
+                    .HasColumnType("decimal(18,6)")
+                    .IsRequired();
+                entity.Property(e => e.Orden).HasColumnType("int");
+                entity.Property(e => e.Activo).HasDefaultValue(true);
+
+                entity.HasIndex(e => e.Categoria);
+                entity.HasIndex(e => e.DimensionBase);
+                entity.HasIndex(e => e.Sigla).IsUnique().HasFilter("[Activo] = 1");
+            });
+
+            modelBuilder.Entity<CampoLaborUnidad>(entity =>
+            {
+                entity.ToTable("CamposLaborUnidad");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.NombreCampo).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.NombrePropiedad).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Etiqueta).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.Requerido).HasDefaultValue(false);
+
+                entity.HasOne(e => e.TipoActividad)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdTipoActividad)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.IdTipoActividad);
+            });
+
+            modelBuilder.Entity<CampoLaborUnidadPermitida>(entity =>
+            {
+                entity.ToTable("CamposLaborUnidadPermitida");
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.CampoLaborUnidad)
+                    .WithMany(c => c.UnidadesPermitidas)
+                    .HasForeignKey(e => e.IdCampoLaborUnidad)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.UnidadMedida)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdUnidadMedida)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.IdCampoLaborUnidad);
+                entity.HasIndex(e => e.IdUnidadMedida);
             });
 
             modelBuilder.Entity<Gasto>(entity =>
@@ -814,6 +1043,10 @@ namespace AgroForm.Data.DBContext
                     .HasForeignKey(e => e.IdCampania)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne<Licencia>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLicencia)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

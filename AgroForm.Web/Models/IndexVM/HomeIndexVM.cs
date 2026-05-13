@@ -43,12 +43,12 @@ namespace AgroForm.Web.Models.IndexVM
         public void CargarCultivosDesdeSiembras(List<Siembra> siembras)
         {
             var cultivosAgrupados = siembras
-                .Where(s => s.SuperficieHa.HasValue && s.SuperficieHa > 0)
+                .Where(s => s.Superficie.HasValue && s.Superficie > 0)
                 .GroupBy(s => s.Cultivo.Nombre)
                 .Select(grupo => new SiembraVM
                 {
                     CultivoNombre = grupo.Key,
-                    SuperficieHa = grupo.Sum(s => s.SuperficieHa ?? 0)
+                    SuperficieHa = grupo.Sum(s => s.Superficie ?? 0)
                 })
                 .OrderByDescending(s => s.SuperficieHa)
                 .ToList();

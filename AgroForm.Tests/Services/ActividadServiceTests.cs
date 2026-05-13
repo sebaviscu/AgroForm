@@ -57,8 +57,8 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
-                DensidadSemillaKgHa = 80,
+                Superficie = 100,
+                Densidad = 80,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote,
@@ -107,8 +107,8 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
-                DensidadSemillaKgHa = 80,
+                Superficie = 100,
+                Densidad = 80,
                 RegistrationUser = TestUserAuth.UserName,
                 RegistrationDate = TimeHelper.GetArgentinaTime()
             };
@@ -125,7 +125,7 @@ namespace AgroForm.Tests.Services
             // Verificar que se guardó en la base de datos
             var siembrasGuardadas = await DbContext.Set<Siembra>().ToListAsync();
             Assert.Single(siembrasGuardadas);
-            Assert.Equal(100, siembrasGuardadas.First().SuperficieHa);
+            Assert.Equal(100, siembrasGuardadas.First().Superficie);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace AgroForm.Tests.Services
                 IdTipoActividad = 1,
                 IdLicencia = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
+                Superficie = 100,
                 Cultivo = cultivo,
                 Campania = campania,
                 RegistrationUser = TestUserAuth.UserName,
@@ -192,7 +192,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
+                Superficie = 100,
                 Cultivo = cultivo,
                 Campania = campania1,
                 Lote = lote,
@@ -209,7 +209,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 200,
+                Superficie = 200,
                 Cultivo = cultivo,
                 Campania = campania2,
                 Lote = lote,
@@ -257,7 +257,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
+                Superficie = 100,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote1,
@@ -274,7 +274,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 200,
+                Superficie = 200,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote2,
@@ -324,7 +324,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
+                Superficie = 100,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote1,
@@ -341,7 +341,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 200,
+                Superficie = 200,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote2,
@@ -358,7 +358,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 300,
+                Superficie = 300,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote3,
@@ -406,8 +406,8 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
-                DensidadSemillaKgHa = 80,
+                Superficie = 100,
+                Densidad = 80,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote,
@@ -425,8 +425,8 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 150, // Valor actualizado
-                DensidadSemillaKgHa = 90, // Valor actualizado
+                Superficie = 150, // Valor actualizado
+                Densidad = 90, // Valor actualizado
                 RegistrationUser = TestUserAuth.UserName,
                 RegistrationDate = TimeHelper.GetArgentinaTime()
             };
@@ -439,8 +439,8 @@ namespace AgroForm.Tests.Services
             Assert.NotNull(result.Data);
             var siembraResult = result.Data as Siembra;
             Assert.NotNull(siembraResult);
-            Assert.Equal(150, siembraResult.SuperficieHa);
-            Assert.Equal(90, siembraResult.DensidadSemillaKgHa);
+            Assert.Equal(150, siembraResult.Superficie);
+            Assert.Equal(90, siembraResult.Densidad);
         }
 
         [Fact]
@@ -467,7 +467,7 @@ namespace AgroForm.Tests.Services
                 IdCultivo = 1,
                 IdTipoActividad = 1,
                 Fecha = DateTime.Now,
-                SuperficieHa = 100,
+                Superficie = 100,
                 Cultivo = cultivo,
                 Campania = campania,
                 Lote = lote,

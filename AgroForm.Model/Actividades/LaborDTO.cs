@@ -31,6 +31,14 @@ namespace AgroForm.Model.Actividades
         public decimal? CostoARS { get; set; }
         public decimal? CostoUSD { get; set; }
 
+        public int? IdUnidadVolumenAgua { get; set; }
+        public int? IdUnidadCantidad { get; set; }
+        public int? IdUnidadDosis { get; set; }
+        public int? IdUnidadSuperficie { get; set; }
+        public int? IdUnidadDensidad { get; set; }
+        public int? IdUnidadRendimiento { get; set; }
+        public int? IdUnidadSuperficieCosechada { get; set; }
+
         public string IconoTipoActividad { get; set; } = string.Empty;
         public string IconoColorTipoActividad { get; set; } = string.Empty;
 

@@ -1,4 +1,7 @@
-﻿using AgroForm.Business.Contracts;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
@@ -13,12 +16,18 @@ namespace AgroForm.Business.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ReportService> _logger;
         private readonly IUserContext _userContext;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ReportService(IUnitOfWork unitOfWork, ILogger<ReportService> logger, IUserContext userContext)
+        public ReportService(
+            IUnitOfWork unitOfWork,
+            ILogger<ReportService> logger,
+            IUserContext userContext,
+            IHttpClientFactory httpClientFactory)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _userContext = userContext;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<OperationResult<List<ReporteComparativaCampoDto>>> GetComparativaCamposAsync(
@@ -122,18 +131,18 @@ namespace AgroForm.Business.Services
                         continue;
 
                     var totalFertKgHa = todasLasFertilizaciones
-                        .Where(f => f.CantidadKgHa.HasValue)
-                        .Sum(f => f.CantidadKgHa!.Value);
+                        .Where(f => f.Cantidad.HasValue)
+                        .Sum(f => f.Cantidad!.Value);
 
                     var totalPulvLtsHa = todasLasPulverizaciones
-                        .Where(p => p.VolumenLitrosHa.HasValue)
-                        .Sum(p => p.VolumenLitrosHa!.Value);
+                        .Where(p => p.Volumen.HasValue)
+                        .Sum(p => p.Volumen!.Value);
 
                     var costosARS = ObtenerCostosARS(lote, todosLosCiclos);
                     var costosUSD = ObtenerCostosUSD(lote, todosLosCiclos);
 
-                    var rendimientoTonHa = ultimaCosecha?.RendimientoTonHa;
-                    var superficieHa = lote.SuperficieHectareas ?? ultimaSiembra?.SuperficieHa ?? 0;
+                    var rendimientoTonHa = ultimaCosecha?.Rendimiento;
+                    var superficieHa = lote.SuperficieHectareas ?? ultimaSiembra?.Superficie ?? 0;
                     decimal? rendimientoTotal = rendimientoTonHa.HasValue && superficieHa > 0
                         ? rendimientoTonHa.Value * superficieHa
                         : null;
@@ -350,9 +359,9 @@ namespace AgroForm.Business.Services
                             Campania = g.Key,
                             Cultivo = g.First().Cultivo?.Nombre,
                             RendimientoTonHa = g.SelectMany(cc => cc.Cosechas)
-                                .Where(c => c.RendimientoTonHa.HasValue)
+                                .Where(c => c.Rendimiento.HasValue)
                                 .DefaultIfEmpty()
-                                .Average(c => c?.RendimientoTonHa)
+                                .Average(c => c?.Rendimiento)
                         })
                         .Where(r => r.RendimientoTonHa.HasValue)
                         .OrderByDescending(r => r.Campania)
@@ -377,7 +386,7 @@ namespace AgroForm.Business.Services
                         CultivoPrincipal = ultimaSiembra?.Cultivo?.Nombre ?? "Sin cultivo",
                         CostoTotalARS = totalARS,
                         CostoPorHaARS = Math.Round(costoPorHaARS, 2),
-                        RendimientoTonHa = ultimaCosecha?.RendimientoTonHa,
+                        RendimientoTonHa = ultimaCosecha?.Rendimiento,
                         RentabilidadProyectada = null,
                         CantidadLabores = cantidadLabores,
                         CantidadAlertas = cantidadAlertas,
@@ -466,6 +475,14 @@ namespace AgroForm.Business.Services
                 // Determinar Campaña activa
                 int? idCampaniaEfectiva = idCampania ?? _userContext.IdCampaña;
 
+                // Obtener la entidad Campania para usar FechaInicio/FechaFin en cálculos históricos
+                Campania? campaniaSeleccionada = null;
+                if (idCampaniaEfectiva.HasValue)
+                {
+                    campaniaSeleccionada = await _unitOfWork.Repository<Campania>()
+                        .GetByIdAsync(idCampaniaEfectiva.Value);
+                }
+
                 // Obtener todos los lotes del campo
                 var lotes = campo.Lotes.ToList();
 
@@ -498,7 +515,7 @@ namespace AgroForm.Business.Services
                     .ToList();
 
                 // --- 2.1 Resumen Ejecutivo ---
-                reporte.ResumenEjecutivo = BuildResumenEjecutivo(campo, lotes, activosCiclos, registrosClima);
+                reporte.ResumenEjecutivo = BuildResumenEjecutivo(campo, lotes, activosCiclos, registrosClima, campaniaSeleccionada);
 
                 // --- 2.2 Timeline Agronómico ---
                 var tiposActividad = await _unitOfWork.Repository<TipoActividad>().Query()
@@ -507,10 +524,11 @@ namespace AgroForm.Business.Services
                 reporte.Timeline = await BuildTimelineAsync(todosCiclos, activosCiclos, idCampaniaEfectiva, tipoActividadDict);
 
                 // --- 2.3 Evolución del Cultivo ---
-                reporte.EvolucionCultivo = BuildEvolucionCultivo(activosCiclos, todosCiclos);
+                reporte.EvolucionCultivo = BuildEvolucionCultivo(activosCiclos, todosCiclos, campaniaSeleccionada);
 
-                // --- 2.4 Análisis Climático ---
-                reporte.AnalisisClimatico = BuildAnalisisClimatico(registrosClima);
+                // --- 2.4 Análisis Climático (DB + Open-Meteo) ---
+                var datosMeteorologicos = await ObtenerDatosOpenMeteoAsync(campo.Latitud, campo.Longitud);
+                reporte.AnalisisClimatico = BuildAnalisisClimatico(registrosClima, datosMeteorologicos, campaniaSeleccionada);
 
                 // --- 2.5 Análisis de Suelo ---
                 reporte.AnalisisSuelo = BuildAnalisisSuelo(activosCiclos);
@@ -527,6 +545,11 @@ namespace AgroForm.Business.Services
 
                 // --- 2.9 Historial Multi-Campaña ---
                 reporte.HistorialMultiCampania = BuildHistorialMultiCampania(todosCiclos, lotes);
+
+                // --- Metadatos de campaña seleccionada ---
+                reporte.IdCampaniaSeleccionada = idCampaniaEfectiva;
+                reporte.NombreCampaniaSeleccionada = campaniaSeleccionada?.Nombre;
+                reporte.EsCampaniaActual = !idCampania.HasValue || idCampania == _userContext.IdCampaña;
 
                 return OperationResult<ReporteCampoIntegralDto>.SuccessResult(reporte);
             }
@@ -546,7 +569,8 @@ namespace AgroForm.Business.Services
             Campo campo,
             List<Lote> lotes,
             List<CicloCultivo> activosCiclos,
-            List<RegistroClima> registrosClima)
+            List<RegistroClima> registrosClima,
+            Campania? campaniaSeleccionada = null)
         {
             var resumen = new ResumenEjecutivoDto
             {
@@ -608,7 +632,9 @@ namespace AgroForm.Business.Services
             if (ultimaSiembra != null)
             {
                 resumen.FechaSiembra = ultimaSiembra.Fecha;
-                resumen.DiasDesdeSiembra = (int)(DateTime.UtcNow.Date - ultimaSiembra.Fecha.Date).TotalDays;
+                // Usar FechaFin de la campaña si es histórica, si no UtcNow
+                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? DateTime.UtcNow.Date;
+                resumen.DiasDesdeSiembra = (int)(fechaReferencia - ultimaSiembra.Fecha.Date).TotalDays;
             }
 
             // Última lluvia
@@ -619,7 +645,8 @@ namespace AgroForm.Business.Services
 
             if (ultimaLluvia != null)
             {
-                var diasSinLluvia = (int)(DateTime.UtcNow.Date - ultimaLluvia.Fecha.Date).TotalDays;
+                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? DateTime.UtcNow.Date;
+                var diasSinLluvia = (int)(fechaReferencia - ultimaLluvia.Fecha.Date).TotalDays;
                 resumen.UltimaLluvia = diasSinLluvia <= 1
                     ? "Hoy"
                     : $"Hace {diasSinLluvia} días ({ultimaLluvia.Milimetros}mm)";
@@ -671,9 +698,9 @@ namespace AgroForm.Business.Services
             // Scores
             resumen.ScoreProductividad = activosCiclos
                 .SelectMany(cc => cc.Cosechas)
-                .Where(c => c.RendimientoTonHa.HasValue)
+                .Where(c => c.Rendimiento.HasValue)
             .DefaultIfEmpty()
-                .Average(c => c?.RendimientoTonHa) switch
+                .Average(c => c?.Rendimiento) switch
                 {
                     null => 50,
                     < 2 => 30,
@@ -682,10 +709,58 @@ namespace AgroForm.Business.Services
                     _ => 95
                 };
 
-            resumen.ScoreHumedad = registrosClima.Any()
+            // Filtrar registros climáticos por rango de campaña si es histórica
+            var registrosFiltrados = registrosClima.AsEnumerable();
+            if (campaniaSeleccionada != null)
+            {
+                if (campaniaSeleccionada.FechaInicio != default)
+                    registrosFiltrados = registrosFiltrados.Where(r => r.Fecha >= campaniaSeleccionada.FechaInicio);
+                if (campaniaSeleccionada.FechaFin.HasValue)
+                    registrosFiltrados = registrosFiltrados.Where(r => r.Fecha <= campaniaSeleccionada.FechaFin.Value);
+            }
+            var registrosFiltradosList = registrosFiltrados.ToList();
+
+            resumen.ScoreHumedad = registrosFiltradosList.Any()
                 ? 100 - (int)Math.Min(
-                    registrosClima.Count(r => r.TipoClima == TipoClima.Lluvia && r.Milimetros > 0) * 5, 70)
+                    registrosFiltradosList.Count(r => r.TipoClima == TipoClima.Lluvia && r.Milimetros > 0) * 5, 70)
                 : 50;
+
+            // Índice Hídrico: basado en balance hídrico
+            if (campaniaSeleccionada != null && campaniaSeleccionada.FechaFin.HasValue)
+            {
+                // Campaña histórica: usar todo el rango de la campaña
+                var lluviasEnCampania = registrosFiltradosList
+                    .Where(r => r.TipoClima == TipoClima.Lluvia)
+                    .Sum(r => r.Milimetros);
+                // Ajustar umbrales para período completo (~6 meses)
+                if (lluviasEnCampania >= 400)
+                    resumen.ScoreHidrico = 90;
+                else if (lluviasEnCampania >= 250)
+                    resumen.ScoreHidrico = 70;
+                else if (lluviasEnCampania >= 150)
+                    resumen.ScoreHidrico = 50;
+                else if (lluviasEnCampania >= 80)
+                    resumen.ScoreHidrico = 30;
+                else
+                    resumen.ScoreHidrico = registrosFiltradosList.Any() ? 15 : 50;
+            }
+            else
+            {
+                // Campaña actual o "Todas": últimos 30 días (comportamiento original)
+                var lluviasRecientes = registrosClima
+                    .Where(r => r.TipoClima == TipoClima.Lluvia && r.Fecha >= DateTime.UtcNow.Date.AddDays(-30))
+                    .Sum(r => r.Milimetros);
+                if (lluviasRecientes >= 80)
+                    resumen.ScoreHidrico = 90;
+                else if (lluviasRecientes >= 50)
+                    resumen.ScoreHidrico = 70;
+                else if (lluviasRecientes >= 30)
+                    resumen.ScoreHidrico = 50;
+                else if (lluviasRecientes >= 15)
+                    resumen.ScoreHidrico = 30;
+                else
+                    resumen.ScoreHidrico = registrosClima.Any() ? 15 : 50;
+            }
 
             resumen.RiesgoActual = resumen.ScoreSaludCultivo < 40 ? "Alto"
                 : resumen.ScoreSaludCultivo < 65 ? "Medio"
@@ -737,8 +812,8 @@ namespace AgroForm.Business.Services
                 var (icono, color) = GetIconoYColor(tipo, defaultIcono, defaultColor);
                 foreach (var c in ciclo.Cosechas)
                 {
-                    var rendimiento = c.RendimientoTonHa.HasValue
-                        ? $" - {c.RendimientoTonHa} tn/ha"
+                    var rendimiento = c.Rendimiento.HasValue
+                        ? $" - {c.Rendimiento} tn/ha"
                         : "";
                     eventos.Add(new TimelineEventoDto
                     {
@@ -766,7 +841,7 @@ namespace AgroForm.Business.Services
                         TipoActividad = tipo,
                         Icono = icono,
                         Color = color,
-                        Descripcion = $"{tipo} - {(l.TipoFertilizante?.Nombre ?? "Sin especificar")} {(l.CantidadKgHa.HasValue ? $"({l.CantidadKgHa} kg/ha)" : "")}",
+                        Descripcion = $"{tipo} - {(l.TipoFertilizante?.Nombre ?? "Sin especificar")} {(l.Cantidad.HasValue ? $"({l.Cantidad} kg/ha)" : "")}",
                         Lote = ciclo.Lote?.Nombre,
                         CicloCultivo = $"{ciclo.Cultivo?.Nombre} {ciclo.Campania?.Nombre}",
                     });
@@ -785,7 +860,7 @@ namespace AgroForm.Business.Services
                         TipoActividad = tipo,
                         Icono = icono,
                         Color = color,
-                        Descripcion = $"{tipo} - {(p.ProductoAgroquimico?.Nombre ?? "Sin producto")} {(p.VolumenLitrosHa.HasValue ? $"({p.VolumenLitrosHa} L/ha)" : "")}",
+                        Descripcion = $"{tipo} - {(p.ProductoAgroquimico?.Nombre ?? "Sin producto")} {(p.Volumen.HasValue ? $"({p.Volumen} L/ha)" : "")}",
                         Lote = ciclo.Lote?.Nombre,
                         CicloCultivo = $"{ciclo.Cultivo?.Nombre} {ciclo.Campania?.Nombre}",
                     });
@@ -823,7 +898,7 @@ namespace AgroForm.Business.Services
                         TipoActividad = tipo,
                         Icono = icono,
                         Color = color,
-                        Descripcion = $"{tipo} - {(r.VolumenAguaM3.HasValue ? $"{r.VolumenAguaM3} m³" : "Sin volumen")}",
+                        Descripcion = $"{tipo} - {(r.VolumenAgua.HasValue ? $"{r.VolumenAgua} m³" : "Sin volumen")}",
                         Lote = ciclo.Lote?.Nombre,
                         CicloCultivo = $"{ciclo.Cultivo?.Nombre} {ciclo.Campania?.Nombre}",
                     });
@@ -909,7 +984,8 @@ namespace AgroForm.Business.Services
 
         private EvolucionCultivoDto BuildEvolucionCultivo(
             List<CicloCultivo> activosCiclos,
-            List<CicloCultivo> todosCiclos)
+            List<CicloCultivo> todosCiclos,
+            Campania? campaniaSeleccionada = null)
         {
             var evolucion = new EvolucionCultivoDto();
 
@@ -927,7 +1003,10 @@ namespace AgroForm.Business.Services
             if (siembras.Any())
             {
                 var primeraSiembra = siembras.First().Fecha;
-                var ultimaFecha = cosechas.Any() ? cosechas.Last().Fecha : DateTime.UtcNow;
+                // Usar FechaFin de campaña o fecha de última cosecha, nunca UtcNow para campañas históricas
+                var ultimaFecha = cosechas.Any()
+                    ? cosechas.Last().Fecha
+                    : (campaniaSeleccionada?.FechaFin ?? DateTime.UtcNow);
                 var totalDias = (int)(ultimaFecha - primeraSiembra).TotalDays;
 
                 if (totalDias > 0)
@@ -955,17 +1034,16 @@ namespace AgroForm.Business.Services
                             Fecha = fecha,
                             NDVI = ndvi,
                             Temperatura = null,
-                            Precipitacion = null,
-                            Humedad = null
+                            Precipitacion = null
                         });
                     }
                 }
             }
 
-            // Comparativa entre campañas
+            // Comparativa entre campañas (ordenada cronológicamente por IdCampania)
             var ciclosPorCampania = todosCiclos
                 .GroupBy(cc => cc.IdCampania)
-                .OrderByDescending(g => g.First().Campania?.Nombre)
+                .OrderByDescending(g => g.Key) // Usar IdCampania (secuencial) en vez de nombre alfabético
                 .ToList();
 
             if (ciclosPorCampania.Count >= 2)
@@ -973,60 +1051,151 @@ namespace AgroForm.Business.Services
                 var actual = ciclosPorCampania.First();
                 var anterior = ciclosPorCampania.Skip(1).First();
 
+                // Calcular NDVI promedio para cada campaña basado en datos de evolución
+                // Simulamos NDVI para la campaña actual y anterior usando las siembras
+                decimal? ndviActual = CalcularNdviPromedio(actual.SelectMany(cc => cc.Siembras).ToList());
+                decimal? ndviAnterior = CalcularNdviPromedio(anterior.SelectMany(cc => cc.Siembras).ToList());
+
                 evolucion.Comparativa = new ComparativaEvolucionDto
                 {
                     CampaniaAnterior = anterior.First().Campania?.Nombre ?? "Anterior",
-                    NDVIPromedioActual = null,
-                    NDVIPromedioAnterior = null,
+                    NDVIPromedioActual = ndviActual,
+                    NDVIPromedioAnterior = ndviAnterior,
                     RendimientoActual = actual
                         .SelectMany(cc => cc.Cosechas)
-                        .Where(c => c.RendimientoTonHa.HasValue)
+                        .Where(c => c.Rendimiento.HasValue)
                         .DefaultIfEmpty()
-                        .Average(c => c?.RendimientoTonHa),
+                        .Average(c => c?.Rendimiento),
                     RendimientoAnterior = anterior
                         .SelectMany(cc => cc.Cosechas)
-                        .Where(c => c.RendimientoTonHa.HasValue)
+                        .Where(c => c.Rendimiento.HasValue)
                         .DefaultIfEmpty()
-                        .Average(c => c?.RendimientoTonHa)
+                        .Average(c => c?.Rendimiento)
                 };
             }
 
             return evolucion;
         }
 
-        private AnalisisClimaticoDto BuildAnalisisClimatico(List<RegistroClima> registrosClima)
+        /// <summary>
+        /// Calcula un NDVI promedio simulado basado en las fechas de siembra
+        /// </summary>
+        private static decimal? CalcularNdviPromedio(List<Siembra> siembras)
+        {
+            if (!siembras.Any()) return null;
+
+            var valores = new List<decimal>();
+            foreach (var siembra in siembras)
+            {
+                var dias = (int)(DateTime.UtcNow.Date - siembra.Fecha.Date).TotalDays;
+                if (dias < 0) continue;
+
+                decimal ndvi;
+                if (dias < 30)
+                    ndvi = Math.Round(0.2m + (dias / 30m) * 0.4m, 2);
+                else if (dias < 90)
+                    ndvi = Math.Round(0.6m + ((dias - 30) / 60m) * 0.3m, 2);
+                else if (dias < 150)
+                    ndvi = Math.Round(0.9m - ((dias - 90) / 60m) * 0.5m, 2);
+                else
+                    ndvi = Math.Round(0.4m, 2);
+
+                valores.Add(ndvi);
+            }
+
+            return valores.Any() ? Math.Round(valores.Average(), 2) : null;
+        }
+
+        private AnalisisClimaticoDto BuildAnalisisClimatico(
+            List<RegistroClima> registrosClima,
+            OpenMeteoResponse? openMeteoData = null,
+            Campania? campaniaSeleccionada = null)
         {
             var analisis = new AnalisisClimaticoDto();
 
+            // Si es una campaña histórica, marcar que los datos meteorológicos actuales no corresponden
+            analisis.EsHistorico = campaniaSeleccionada != null
+                && campaniaSeleccionada.FechaFin.HasValue
+                && campaniaSeleccionada.FechaFin.Value < DateTime.UtcNow;
+
+            // Open-Meteo: current conditions + daily forecast
+            if (openMeteoData?.Current != null)
+            {
+                var current = openMeteoData.Current;
+                analisis.TempPromedio = (decimal?)current.Temperature2m;
+                analisis.HumedadRelativa = (decimal?)current.RelativeHumidity2m;
+                analisis.SensacionTermica = (decimal?)current.ApparentTemperature;
+                analisis.DescripcionClima = ObtenerDescripcionClima(current.WeatherCode);
+                analisis.IconoClima = ObtenerIconoClima(current.WeatherCode);
+            }
+            if (openMeteoData?.Daily != null && openMeteoData.Daily.Temperature2mMax?.Count > 0)
+            {
+                analisis.TempMaxima = (decimal?)openMeteoData.Daily.Temperature2mMax[0];
+            }
+            if (openMeteoData?.Daily != null && openMeteoData.Daily.Temperature2mMin?.Count > 0)
+            {
+                analisis.TempMinima = (decimal?)openMeteoData.Daily.Temperature2mMin[0];
+            }
+            if (openMeteoData?.Daily != null && openMeteoData.Daily.PrecipitationProbabilityMax?.Count > 0)
+            {
+                analisis.ProbabilidadLluvia = (decimal?)openMeteoData.Daily.PrecipitationProbabilityMax[0];
+            }
+
             if (!registrosClima.Any())
             {
-                analisis.BalanceHidrico = "Sin datos";
+                analisis.BalanceHidrico = openMeteoData != null ? "Normal" : "Sin datos";
                 return analisis;
             }
 
             var lluvias = registrosClima.Where(r => r.TipoClima == TipoClima.Lluvia).ToList();
 
-            // Lluvia acumulada (últimos 30 días)
-            var ultimos30Dias = DateTime.UtcNow.Date.AddDays(-30);
-            analisis.LluviaAcumulada = lluvias
-                .Where(r => r.Fecha >= ultimos30Dias)
-                .Sum(r => r.Milimetros);
+            // Determinar rango de fechas para filtros climáticos
+            if (campaniaSeleccionada != null && campaniaSeleccionada.FechaFin.HasValue)
+            {
+                // Campaña histórica: usar rango completo de la campaña
+                var inicio = campaniaSeleccionada.FechaInicio;
+                var fin = campaniaSeleccionada.FechaFin.Value;
 
-            // días sin lluvia
-            var ultimaLluvia = lluvias
-                .OrderByDescending(r => r.Fecha)
-                .FirstOrDefault();
-            analisis.DiasSinLluvia = ultimaLluvia != null
-                ? (int)(DateTime.UtcNow.Date - ultimaLluvia.Fecha.Date).TotalDays
-                : 999;
+                analisis.LluviaAcumulada = lluvias
+                    .Where(r => r.Fecha >= inicio && r.Fecha <= fin)
+                    .Sum(r => r.Milimetros);
 
-            // Heladas (granizo)
-            analisis.CantidadHeladas = registrosClima.Count(r => r.TipoClima == TipoClima.Granizo);
+                analisis.LluviaTotalCampania = analisis.LluviaAcumulada;
 
-            // Balance hÃ­drico
+                analisis.DiasSinLluvia = lluvias.Any()
+                    ? (int)(fin - lluvias.OrderByDescending(r => r.Fecha).First().Fecha).TotalDays
+                    : 999;
+
+                // Heladas (granizo) en el período
+                analisis.CantidadHeladas = registrosClima
+                    .Count(r => r.TipoClima == TipoClima.Granizo
+                        && r.Fecha >= inicio && r.Fecha <= fin);
+            }
+            else
+            {
+                // Campaña actual o "Todas": últimos 30 días (comportamiento original)
+                var ultimos30Dias = DateTime.UtcNow.Date.AddDays(-30);
+                analisis.LluviaAcumulada = lluvias
+                    .Where(r => r.Fecha >= ultimos30Dias)
+                    .Sum(r => r.Milimetros);
+
+                analisis.LluviaTotalCampania = analisis.LluviaAcumulada;
+
+                var ultimaLluvia = lluvias
+                    .OrderByDescending(r => r.Fecha)
+                    .FirstOrDefault();
+                analisis.DiasSinLluvia = ultimaLluvia != null
+                    ? (int)(DateTime.UtcNow.Date - ultimaLluvia.Fecha.Date).TotalDays
+                    : 999;
+
+                // Heladas (granizo)
+                analisis.CantidadHeladas = registrosClima.Count(r => r.TipoClima == TipoClima.Granizo);
+            }
+
+            // Balance hídrico (combina datos de DB + Open-Meteo)
             if (analisis.LluviaAcumulada < 20)
             {
-                analisis.BalanceHidrico = "DÃ©ficit hÃ­drico";
+                analisis.BalanceHidrico = "Déficit hídrico";
                 analisis.EstresHidrico = "Alto";
             }
             else if (analisis.LluviaAcumulada < 50)
@@ -1041,11 +1210,11 @@ namespace AgroForm.Business.Services
             }
             else
             {
-                analisis.BalanceHidrico = "Exceso hÃ­drico";
+                analisis.BalanceHidrico = "Exceso hídrico";
                 analisis.EstresHidrico = "Alto";
             }
 
-            // Registros climÃ¡ticos detallados
+            // Registros climáticos detallados
             analisis.Registros = registrosClima
                 .OrderByDescending(r => r.Fecha)
                 .Take(90)
@@ -1064,7 +1233,7 @@ namespace AgroForm.Business.Services
         {
             var analisis = new AnalisisSueloDto();
 
-            // Obtener el Ãºltimo anÃ¡lisis de suelo
+            // Obtener el último análisis de suelo
             var ultimoAnalisis = activosCiclos
                 .SelectMany(cc => cc.AnalisisSuelos)
                 .OrderByDescending(a => a.Fecha)
@@ -1077,52 +1246,52 @@ namespace AgroForm.Business.Services
             analisis.ProfundidadCm = ultimoAnalisis.ProfundidadCm;
             analisis.Textura = ultimoAnalisis.Textura;
 
-            // Interpretar cada parÃ¡metro - solo advertir, no recomendar aplicar
+            // Interpretar cada parámetro - solo advertir, no recomendar aplicar
             analisis.PH = InterpretarParametro("pH", ultimoAnalisis.PH, "",
-                v => v < 5.5m ? ("Ãcido", "Bajo", "pH bajo - monitorear condiciones del suelo")
-                    : v <= 7.0m ? ("Ã“ptimo", "Ã“ptimo", "pH en rango Ã³ptimo")
+                v => v < 5.5m ? ("Ácido", "Bajo", "pH bajo - monitorear condiciones del suelo")
+                    : v <= 7.0m ? ("Óptimo", "Óptimo", "pH en rango óptimo")
                     : ("Alcalino", "Alto", "pH elevado - monitorear disponibilidad de nutrientes"));
 
             analisis.MateriaOrganica = InterpretarParametro("MO", ultimoAnalisis.MateriaOrganica, "%",
-                v => v < 2m ? ("Bajo", "Bajo", "Materia orgÃ¡nica baja - monitorear fertilidad del suelo")
-                    : v <= 5m ? ("Medio", "Medio", "Nivel adecuado de materia orgÃ¡nica")
-                    : ("Alto", "Alto", "Nivel Ã³ptimo de materia orgÃ¡nica"));
+                v => v < 2m ? ("Bajo", "Bajo", "Materia orgánica baja - monitorear fertilidad del suelo")
+                    : v <= 5m ? ("Medio", "Medio", "Nivel adecuado de materia orgánica")
+                    : ("Alto", "Alto", "Nivel óptimo de materia orgánica"));
 
             analisis.Nitrogeno = InterpretarParametro("N", ultimoAnalisis.Nitrogeno, "ppm",
-                v => v < 15m ? ("Bajo", "Bajo", "NitrÃ³geno bajo - monitorear desarrollo del cultivo")
-                    : v <= 30m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de nitrÃ³geno adecuado")
-                    : ("Alto", "Alto", "Exceso de nitrÃ³geno - monitorear posible impacto ambiental"));
+                v => v < 15m ? ("Bajo", "Bajo", "Nitrógeno bajo - monitorear desarrollo del cultivo")
+                    : v <= 30m ? ("Óptimo", "Óptimo", "Nivel de nitrógeno adecuado")
+                    : ("Alto", "Alto", "Exceso de nitrógeno - monitorear posible impacto ambiental"));
 
             analisis.Fosforo = InterpretarParametro("P", ultimoAnalisis.Fosforo, "ppm",
-                v => v < 10m ? ("Bajo", "Bajo", "FÃ³sforo bajo - monitorear disponibilidad para el cultivo")
-                    : v <= 20m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de fÃ³sforo adecuado")
-                    : ("Alto", "Alto", "Nivel elevado de fÃ³sforo - monitorear"));
+                v => v < 10m ? ("Bajo", "Bajo", "Fósforo bajo - monitorear disponibilidad para el cultivo")
+                    : v <= 20m ? ("Óptimo", "Óptimo", "Nivel de fósforo adecuado")
+                    : ("Alto", "Alto", "Nivel elevado de fósforo - monitorear"));
 
             analisis.Potasio = InterpretarParametro("K", ultimoAnalisis.Potasio, "meq/100g",
                 v => v < 0.3m ? ("Bajo", "Bajo", "Potasio bajo - monitorear")
-                    : v <= 0.7m ? ("Ã“ptimo", "Ã“ptimo", "Nivel de potasio adecuado")
+                    : v <= 0.7m ? ("Óptimo", "Óptimo", "Nivel de potasio adecuado")
                     : ("Alto", "Alto", "Nivel elevado de potasio - verificar balance con otros nutrientes"));
 
             analisis.ConductividadElectrica = InterpretarParametro("CE", ultimoAnalisis.ConductividadElectrica, "dS/m",
                 v => v < 0.5m ? ("Muy baja", "Bajo", "Salinidad muy baja - monitorear disponibilidad de nutrientes")
-                    : v <= 1.5m ? ("Normal", "Ã“ptimo", "Salinidad adecuada")
+                    : v <= 1.5m ? ("Normal", "Óptimo", "Salinidad adecuada")
                     : ("Alta", "Alto", "Salinidad elevada - monitorear impacto en el cultivo"));
 
             analisis.CIC = InterpretarParametro("CIC", ultimoAnalisis.CIC, "meq/100g",
-                v => v < 10m ? ("Baja", "Bajo", "CIC baja - monitorear retenciÃ³n de nutrientes")
+                v => v < 10m ? ("Baja", "Bajo", "CIC baja - monitorear retención de nutrientes")
                     : v <= 25m ? ("Media", "Medio", "CIC adecuada")
-                    : ("Alta", "Alto", "CIC alta - buena retenciÃ³n de nutrientes"));
+                    : ("Alta", "Alto", "CIC alta - buena retención de nutrientes"));
 
-            // Generar advertencias generales (solo para parÃ¡metros bajos)
+            // Generar advertencias generales (solo para parámetros bajos)
             var todosParametros = new[] {
-                (analisis.PH, "pH"),
-                (analisis.MateriaOrganica, "Materia OrgÃ¡nica"),
-                (analisis.Nitrogeno, "NitrÃ³geno"),
-                (analisis.Fosforo, "FÃ³sforo"),
-                (analisis.Potasio, "Potasio"),
-                (analisis.ConductividadElectrica, "Conductividad ElÃ©ctrica"),
-                (analisis.CIC, "CIC")
-            };
+        (analisis.PH, "pH"),
+        (analisis.MateriaOrganica, "Materia Orgánica"),
+        (analisis.Nitrogeno, "Nitrógeno"),
+        (analisis.Fosforo, "Fósforo"),
+        (analisis.Potasio, "Potasio"),
+        (analisis.ConductividadElectrica, "Conductividad Eléctrica"),
+        (analisis.CIC, "CIC")
+    };
 
             foreach (var (param, nombre) in todosParametros)
             {
@@ -1247,9 +1416,9 @@ namespace AgroForm.Business.Services
                 .OrderByDescending(c => c.Fecha)
                 .FirstOrDefault();
 
-            if (ultimaCosecha?.RendimientoTonHa.HasValue == true && superficieTotal > 0)
+            if (ultimaCosecha?.Rendimiento.HasValue == true && superficieTotal > 0)
             {
-                var produccionTotal = ultimaCosecha.RendimientoTonHa.Value * superficieTotal;
+                var produccionTotal = ultimaCosecha.Rendimiento.Value * superficieTotal;
                 // Precio estimado de referencia (esto deberÃ­a venir de una config)
                 const decimal precioReferenciaARS = 250000; // $ARS por tonelada
                 const decimal precioReferenciaUSD = 250;    // USD por tonelada
@@ -1281,17 +1450,17 @@ namespace AgroForm.Business.Services
 
             if (ultimaCosecha != null)
             {
-                rendimiento.RendimientoTonHa = ultimaCosecha.RendimientoTonHa;
+                rendimiento.RendimientoTonHa = ultimaCosecha.Rendimiento;
                 rendimiento.HumedadCosecha = ultimaCosecha.HumedadGrano;
-                rendimiento.SuperficieCosechadaHa = ultimaCosecha.SuperficieCosechadaHa;
+                rendimiento.SuperficieCosechadaHa = ultimaCosecha.SuperficieCosechada;
                 rendimiento.FechaCosecha = ultimaCosecha.Fecha;
 
                 // producción total
-                var supCosechada = ultimaCosecha.SuperficieCosechadaHa ?? 0;
-                if (ultimaCosecha.RendimientoTonHa.HasValue && supCosechada > 0)
-                    rendimiento.ProduccionTotalTon = Math.Round(ultimaCosecha.RendimientoTonHa.Value * supCosechada, 2);
-                else if (ultimaCosecha.RendimientoTonHa.HasValue)
-                    rendimiento.ProduccionTotalTon = ultimaCosecha.RendimientoTonHa;
+                var supCosechada = ultimaCosecha.SuperficieCosechada ?? 0;
+                if (ultimaCosecha.Rendimiento.HasValue && supCosechada > 0)
+                    rendimiento.ProduccionTotalTon = Math.Round(ultimaCosecha.Rendimiento.Value * supCosechada, 2);
+                else if (ultimaCosecha.Rendimiento.HasValue)
+                    rendimiento.ProduccionTotalTon = ultimaCosecha.Rendimiento;
             }
 
             // HistÃ³rico de rendimientos
@@ -1300,15 +1469,15 @@ namespace AgroForm.Business.Services
                 {
                     Nombre = cc.Campania?.Nombre,
                     Cultivo = cc.Cultivo?.Nombre,
-                    c.RendimientoTonHa
+                    c.Rendimiento
                 }))
-                .Where(c => c.RendimientoTonHa.HasValue)
+                .Where(c => c.Rendimiento.HasValue)
                 .GroupBy(c => new { c.Nombre, c.Cultivo })
                 .Select(g => new DatoRendimientoHistorico
                 {
                     Campania = g.Key.Nombre ?? "N/A",
                     Cultivo = g.Key.Cultivo,
-                    RendimientoTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2)
+                    RendimientoTonHa = Math.Round(g.Average(c => c.Rendimiento!.Value), 2)
                 })
                 .OrderByDescending(h => h.Campania)
                 .ToList();
@@ -1319,11 +1488,11 @@ namespace AgroForm.Business.Services
         }
 
         private List<AlertaDto> BuildAlertas(
-            ResumenEjecutivoDto resumen,
-            AnalisisClimaticoDto clima,
-            AnalisisSueloDto suelo,
-            RendimientoCosechaDto rendimiento,
-            List<RegistroClima> registrosClima)
+    ResumenEjecutivoDto resumen,
+    AnalisisClimaticoDto clima,
+    AnalisisSueloDto suelo,
+    RendimientoCosechaDto rendimiento,
+    List<RegistroClima> registrosClima)
         {
             var alertas = new List<AlertaDto>();
 
@@ -1336,21 +1505,21 @@ namespace AgroForm.Business.Services
                     Severidad = clima.DiasSinLluvia.Value > 14 ? "Alta" : "Media",
                     Mensaje = $"{clima.DiasSinLluvia} días sin precipitaciones significativas (>5mm)",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar necesidad de riego complementario. Monitorear estrÃ©s hÃ­drico en el cultivo.",
+                    Recomendacion = "Evaluar necesidad de riego complementario. Monitorear estrés hídrico en el cultivo.",
                     Icono = "ph-warning-circle"
                 });
             }
 
-            // 2. Alerta de exceso hÃ­drico
+            // 2. Alerta de exceso hídrico
             if (clima.LluviaAcumulada.HasValue && clima.LluviaAcumulada.Value > 100)
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Exceso hÃ­drico",
+                    Tipo = "Exceso hídrico",
                     Severidad = "Alta",
                     Mensaje = $"Lluvia acumulada de {clima.LluviaAcumulada.Value}mm en los últimos 30 días",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Verificar drenaje del lote. Monitorear apariciÃ³n de enfermedades fÃºngicas.",
+                    Recomendacion = "Verificar drenaje del lote. Monitorear aparición de enfermedades fúngicas.",
                     Icono = "ph-warning"
                 });
             }
@@ -1360,11 +1529,11 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "NDVI crÃ­tico",
+                    Tipo = "NDVI crítico",
                     Severidad = "Alta",
                     Mensaje = $"NDVI estimado en {resumen.NDVIPromedio.Value}, indica baja vitalidad del cultivo",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar causa: dÃ©ficit hÃ­drico, plaga, enfermedad o deficiencia nutricional.",
+                    Recomendacion = "Evaluar causa: déficit hídrico, plaga, enfermedad o deficiencia nutricional.",
                     Icono = "ph-flask"
                 });
             }
@@ -1378,7 +1547,7 @@ namespace AgroForm.Business.Services
                     Severidad = "Alta",
                     Mensaje = $"Se registraron {clima.CantidadHeladas} eventos de granizo/helada",
                     Fecha = DateTime.UtcNow,
-                    Recomendacion = "Evaluar daÃ±os en el cultivo. Considerar seguros agrÃ­colas para prÃ³xima Campaña.",
+                    Recomendacion = "Evaluar daños en el cultivo. Considerar seguros agrícolas para próxima campaña.",
                     Icono = "ph-snowflake"
                 });
             }
@@ -1397,7 +1566,7 @@ namespace AgroForm.Business.Services
                     {
                         Tipo = "Bajo rendimiento",
                         Severidad = "Media",
-                        Mensaje = $"Rendimiento actual ({rendimiento.RendimientoTonHa} tn/ha) está por debajo del 70% del histÃ³rico ({promedioHistorico:N2} tn/ha)",
+                        Mensaje = $"Rendimiento actual ({rendimiento.RendimientoTonHa} tn/ha) está por debajo del 70% del histórico ({promedioHistorico:N2} tn/ha)",
                         Fecha = DateTime.UtcNow,
                         Recomendacion = "Analizar causas del bajo rendimiento: calidad de semilla, manejo, clima o suelo.",
                         Icono = "ph-trend-down"
@@ -1405,12 +1574,12 @@ namespace AgroForm.Business.Services
                 }
             }
 
-            // 6. Alerta de parÃ¡metros de suelo
+            // 6. Alerta de parámetros de suelo
             if (suelo.PH?.Nivel == "Bajo")
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Suelo Ã¡cido",
+                    Tipo = "Suelo ácido",
                     Severidad = "Media",
                     Mensaje = $"pH del suelo en {suelo.PH.Valor:N1} - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
@@ -1423,9 +1592,9 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Deficiencia de NitrÃ³geno",
+                    Tipo = "Deficiencia de Nitrógeno",
                     Severidad = "Media",
-                    Mensaje = $"Nivel de NitrÃ³geno: {suelo.Nitrogeno.Valor:N0} ppm - Nivel bajo",
+                    Mensaje = $"Nivel de Nitrógeno: {suelo.Nitrogeno.Valor:N0} ppm - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
                     Recomendacion = suelo.Nitrogeno.Advertencia,
                     Icono = "ph-flask"
@@ -1436,9 +1605,9 @@ namespace AgroForm.Business.Services
             {
                 alertas.Add(new AlertaDto
                 {
-                    Tipo = "Deficiencia de FÃ³sforo",
+                    Tipo = "Deficiencia de Fósforo",
                     Severidad = "Media",
-                    Mensaje = $"Nivel de FÃ³sforo: {suelo.Fosforo.Valor:N0} ppm - Nivel bajo",
+                    Mensaje = $"Nivel de Fósforo: {suelo.Fosforo.Valor:N0} ppm - Nivel bajo",
                     Fecha = suelo.FechaAnalisis,
                     Recomendacion = suelo.Fosforo.Advertencia,
                     Icono = "ph-flask"
@@ -1475,9 +1644,9 @@ namespace AgroForm.Business.Services
                         + cc.Pulverizaciones.Count + cc.Riegos.Count + cc.Monitoreos.Count
                         + cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.SiloBolsas.Count),
                     RendimientoTonHa = todasLasCosechas
-                        .Where(c => c.RendimientoTonHa.HasValue)
+                        .Where(c => c.Rendimiento.HasValue)
                         .DefaultIfEmpty()
-                        .Average(c => c?.RendimientoTonHa)
+                        .Average(c => c?.Rendimiento)
                 };
 
                 // Costos
@@ -1651,32 +1820,32 @@ namespace AgroForm.Business.Services
                 var kpis = new RendimientoCosechaKpiDto();
 
                 // Rendimiento promedio
-                var conRendimiento = todasLasCosechas.Where(c => c.RendimientoTonHa.HasValue).ToList();
+                var conRendimiento = todasLasCosechas.Where(c => c.Rendimiento.HasValue).ToList();
                 kpis.TotalLotes = todasLasCosechas.Select(c => c.IdLote).Distinct().Count();
                 kpis.LotesConRendimiento = conRendimiento.Select(c => c.IdLote).Distinct().Count();
 
                 if (conRendimiento.Any())
                 {
-                    kpis.RendimientoPromedioTonHa = Math.Round(conRendimiento.Average(c => c.RendimientoTonHa!.Value), 2);
+                    kpis.RendimientoPromedioTonHa = Math.Round(conRendimiento.Average(c => c.Rendimiento!.Value), 2);
 
                     // Mejor rendimiento
-                    var mejor = conRendimiento.OrderByDescending(c => c.RendimientoTonHa).First();
-                    kpis.RendimientoMaximoTonHa = mejor.RendimientoTonHa;
+                    var mejor = conRendimiento.OrderByDescending(c => c.Rendimiento).First();
+                    kpis.RendimientoMaximoTonHa = mejor.Rendimiento;
                     kpis.LoteMejorRendimiento = mejor.Lote?.Nombre;
 
                     // Peor rendimiento
-                    var peor = conRendimiento.OrderBy(c => c.RendimientoTonHa).First();
-                    kpis.RendimientoMinimoTonHa = peor.RendimientoTonHa;
+                    var peor = conRendimiento.OrderBy(c => c.Rendimiento).First();
+                    kpis.RendimientoMinimoTonHa = peor.Rendimiento;
                     kpis.LotePeorRendimiento = peor.Lote?.Nombre;
                 }
 
                 // producción total
                 kpis.ProduccionTotalTon = Math.Round(
-                    conRendimiento.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2);
+                    conRendimiento.Sum(c => (c.Rendimiento ?? 0) * (c.SuperficieCosechada ?? 0)), 2);
 
                 // Superficie total cosechada
                 kpis.SuperficieTotalCosechadaHa = Math.Round(
-                    todasLasCosechas.Sum(c => c.SuperficieCosechadaHa ?? 0), 2);
+                    todasLasCosechas.Sum(c => c.SuperficieCosechada ?? 0), 2);
 
                 // Humedad promedio
                 var conHumedad = todasLasCosechas.Where(c => c.HumedadGrano.HasValue).ToList();
@@ -1684,16 +1853,16 @@ namespace AgroForm.Business.Services
                     kpis.HumedadPromedio = Math.Round(conHumedad.Average(c => c.HumedadGrano!.Value), 1);
 
                 // Costo promedio por hectÃ¡rea
-                var conCosto = todasLasCosechas.Where(c => c.CostoARS.HasValue && c.SuperficieCosechadaHa.HasValue && c.SuperficieCosechadaHa > 0).ToList();
+                var conCosto = todasLasCosechas.Where(c => c.CostoARS.HasValue && c.SuperficieCosechada.HasValue && c.SuperficieCosechada > 0).ToList();
                 if (conCosto.Any())
                     kpis.CostoPromedioPorHa = Math.Round(
-                        conCosto.Sum(c => c.CostoARS!.Value) / conCosto.Sum(c => c.SuperficieCosechadaHa!.Value), 2);
+                        conCosto.Sum(c => c.CostoARS!.Value) / conCosto.Sum(c => c.SuperficieCosechada!.Value), 2);
 
                 // VariaciÃ³n vs Campaña anterior
                 var campañas = todasLasCosechas
-                    .Where(c => c.CicloCultivo?.Campania != null && c.RendimientoTonHa.HasValue)
+                    .Where(c => c.CicloCultivo?.Campania != null && c.Rendimiento.HasValue)
                     .GroupBy(c => c.CicloCultivo.Campania!.Nombre ?? "N/A")
-                    .Select(g => new { Campania = g.Key, Promedio = g.Average(c => c.RendimientoTonHa!.Value) })
+                    .Select(g => new { Campania = g.Key, Promedio = g.Average(c => c.Rendimiento!.Value) })
                     .OrderByDescending(g => g.Campania)
                     .ToList();
 
@@ -1724,11 +1893,11 @@ namespace AgroForm.Business.Services
                     Campo = c.Lote?.Campo?.Nombre ?? "N/A",
                     Cultivo = c.CicloCultivo?.Cultivo?.Nombre,
                     Campania = c.CicloCultivo?.Campania?.Nombre,
-                    RendimientoTonHa = c.RendimientoTonHa,
-                    ProduccionTotalTon = c.RendimientoTonHa.HasValue && c.SuperficieCosechadaHa.HasValue
-                        ? Math.Round(c.RendimientoTonHa.Value * c.SuperficieCosechadaHa.Value, 2)
+                    RendimientoTonHa = c.Rendimiento,
+                    ProduccionTotalTon = c.Rendimiento.HasValue && c.SuperficieCosechada.HasValue
+                        ? Math.Round(c.Rendimiento.Value * c.SuperficieCosechada.Value, 2)
                         : null,
-                    SuperficieCosechadaHa = c.SuperficieCosechadaHa,
+                    SuperficieCosechadaHa = c.SuperficieCosechada,
                     HumedadGrano = c.HumedadGrano,
                     FechaCosecha = c.Fecha,
                     Costo = c.Costo,
@@ -1793,14 +1962,14 @@ namespace AgroForm.Business.Services
 
                 // 7. Rendimiento por cultivo (para gráfico de torta)
                 var rendimientoPorCultivo = todasLasCosechas
-                    .Where(c => c.CicloCultivo?.Cultivo?.Nombre != null && c.RendimientoTonHa.HasValue && c.SuperficieCosechadaHa.HasValue)
+                    .Where(c => c.CicloCultivo?.Cultivo?.Nombre != null && c.Rendimiento.HasValue && c.SuperficieCosechada.HasValue)
                     .GroupBy(c => c.CicloCultivo.Cultivo!.Nombre!)
                     .Select(g => new DatoRendimientoPorCultivo
                     {
                         Cultivo = g.Key,
-                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
-                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
-                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.Rendimiento!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechada ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.Rendimiento ?? 0) * (c.SuperficieCosechada ?? 0)), 2),
                         CantidadLotes = g.Select(c => c.IdLote).Distinct().Count(),
                         Color = ObtenerColorCultivo(g.Key)
                     })
@@ -1809,14 +1978,14 @@ namespace AgroForm.Business.Services
 
                 // 8. Rendimiento por Campaña (para gráfico de barras)
                 var rendimientoPorCampania = todasLasCosechas
-                    .Where(c => c.CicloCultivo?.Campania?.Nombre != null && c.RendimientoTonHa.HasValue)
+                    .Where(c => c.CicloCultivo?.Campania?.Nombre != null && c.Rendimiento.HasValue)
                     .GroupBy(c => c.CicloCultivo.Campania!.Nombre!)
                     .Select(g => new DatoRendimientoPorCampania
                     {
                         Campania = g.Key,
-                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
-                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
-                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.Rendimiento!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechada ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.Rendimiento ?? 0) * (c.SuperficieCosechada ?? 0)), 2),
                         CantidadCosechas = g.Count()
                     })
                     .OrderBy(d => d.Campania)
@@ -1824,14 +1993,14 @@ namespace AgroForm.Business.Services
 
                 // 9. Rendimiento por campo (para gráfico de barras horizontal)
                 var rendimientoPorCampo = todasLasCosechas
-                    .Where(c => c.Lote?.Campo?.Nombre != null && c.RendimientoTonHa.HasValue)
+                    .Where(c => c.Lote?.Campo?.Nombre != null && c.Rendimiento.HasValue)
                     .GroupBy(c => c.Lote!.Campo!.Nombre!)
                     .Select(g => new DatoRendimientoPorCampo
                     {
                         Campo = g.Key,
-                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
-                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2),
-                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.RendimientoTonHa ?? 0) * (c.SuperficieCosechadaHa ?? 0)), 2),
+                        RendimientoPromedioTonHa = Math.Round(g.Average(c => c.Rendimiento!.Value), 2),
+                        SuperficieTotalHa = Math.Round(g.Sum(c => c.SuperficieCosechada ?? 0), 2),
+                        ProduccionTotalTon = Math.Round(g.Sum(c => (c.Rendimiento ?? 0) * (c.SuperficieCosechada ?? 0)), 2),
                         CantidadLotes = g.Select(c => c.IdLote).Distinct().Count()
                     })
                     .OrderByDescending(d => d.RendimientoPromedioTonHa)
@@ -1839,18 +2008,18 @@ namespace AgroForm.Business.Services
 
                 // 10. Evolución histórica (para gráfico de líneas: rendimiento + humedad)
                 var evolucion = todasLasCosechas
-                    .Where(c => c.RendimientoTonHa.HasValue && c.CicloCultivo?.Campania?.Nombre != null)
+                    .Where(c => c.Rendimiento.HasValue && c.CicloCultivo?.Campania?.Nombre != null)
                     .GroupBy(c => new { Campania = c.CicloCultivo.Campania!.Nombre!, Cultivo = c.CicloCultivo.Cultivo?.Nombre ?? "N/A" })
                     .Select(g => new DatoEvolucionRendimiento
                     {
                         Periodo = $"{g.Key.Campania} - {g.Key.Cultivo}",
                         Campania = g.Key.Campania,
                         Cultivo = g.Key.Cultivo,
-                        RendimientoTonHa = Math.Round(g.Average(c => c.RendimientoTonHa!.Value), 2),
+                        RendimientoTonHa = Math.Round(g.Average(c => c.Rendimiento!.Value), 2),
                         HumedadPromedio = g.Where(c => c.HumedadGrano.HasValue).Any()
                             ? Math.Round(g.Where(c => c.HumedadGrano.HasValue).Average(c => c.HumedadGrano!.Value), 1)
                             : null,
-                        SuperficieHa = Math.Round(g.Sum(c => c.SuperficieCosechadaHa ?? 0), 2)
+                        SuperficieHa = Math.Round(g.Sum(c => c.SuperficieCosechada ?? 0), 2)
                     })
                     .OrderBy(d => d.Campania)
                     .ThenBy(d => d.Cultivo)
@@ -2239,8 +2408,8 @@ namespace AgroForm.Business.Services
                         TipoProducto = "Agroquímico",
                         Dosis = p.Dosis,
                         UnidadDosis = "Lts/Ha",
-                        CantidadTotal = p.VolumenLitrosHa.HasValue && superficieHa.HasValue
-                            ? Math.Round(p.VolumenLitrosHa.Value * superficieHa.Value, 2)
+                        CantidadTotal = p.Volumen.HasValue && superficieHa.HasValue
+                            ? Math.Round(p.Volumen.Value * superficieHa.Value, 2)
                             : null,
                         UnidadCantidad = "Litros",
                         CostoARS = p.CostoARS,
@@ -2286,12 +2455,12 @@ namespace AgroForm.Business.Services
                         Cultivo = f.CicloCultivo?.Cultivo?.Nombre,
                         ProductoAplicado = productoNombre,
                         TipoProducto = "Fertilizante",
-                        Dosis = f.DosisKgHa ?? f.CantidadKgHa,
+                        Dosis = f.Dosis ?? f.Cantidad,
                         UnidadDosis = "Kg/Ha",
-                        CantidadTotal = f.CantidadKgHa.HasValue && superficieHa.HasValue
-                            ? Math.Round(f.CantidadKgHa.Value * superficieHa.Value, 2)
-                            : (f.DosisKgHa.HasValue && superficieHa.HasValue
-                                ? Math.Round(f.DosisKgHa.Value * superficieHa.Value, 2)
+                        CantidadTotal = f.Cantidad.HasValue && superficieHa.HasValue
+                            ? Math.Round(f.Cantidad.Value * superficieHa.Value, 2)
+                            : (f.Dosis.HasValue && superficieHa.HasValue
+                                ? Math.Round(f.Dosis.Value * superficieHa.Value, 2)
                                 : null),
                         UnidadCantidad = "Kg",
                         CostoARS = f.CostoARS,
@@ -2781,6 +2950,166 @@ namespace AgroForm.Business.Services
 
             return indicadores;
         }
+
+        // ============================================================
+        // Open-Meteo API Integration
+        // ============================================================
+
+        private async Task<OpenMeteoResponse?> ObtenerDatosOpenMeteoAsync(double? latitud, double? longitud)
+        {
+            if (latitud == null || longitud == null)
+                return null;
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var url = $"https://api.open-meteo.com/v1/forecast" +
+                    $"?latitude={latitud.Value.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture)}" +
+                    $"&longitude={longitud.Value.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture)}" +
+                    $"&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code" +
+                    $"&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max" +
+                    $"&timezone=auto" +
+                    $"&forecast_days=3";
+
+                var response = await client.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Open-Meteo API returned {StatusCode} for lat={Lat}, lon={Lon}",
+                        response.StatusCode, latitud, longitud);
+                    return null;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<OpenMeteoResponse>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al obtener datos de Open-Meteo para lat={Lat}, lon={Lon}",
+                    latitud, longitud);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convierte WMO Weather Code (https://open-meteo.com/en/docs#weathervariables)
+        /// a una descripción legible en español.
+        /// </summary>
+        private static string ObtenerDescripcionClima(int? weatherCode)
+        {
+            return weatherCode switch
+            {
+                0 => "Cielo despejado",
+                1 => "Mayormente despejado",
+                2 => "Parcialmente nublado",
+                3 => "Nublado",
+                45 => "Niebla",
+                48 => "Niebla con escarcha",
+                51 => "Llovizna ligera",
+                53 => "Llovizna moderada",
+                55 => "Llovizna densa",
+                56 => "Llovizna helada ligera",
+                57 => "Llovizna helada densa",
+                61 => "Lluvia ligera",
+                63 => "Lluvia moderada",
+                65 => "Lluvia fuerte",
+                66 => "Lluvia helada ligera",
+                67 => "Lluvia helada fuerte",
+                71 => "Nevada ligera",
+                73 => "Nevada moderada",
+                75 => "Nevada fuerte",
+                77 => "Granizos de nieve",
+                80 => "Chubascos ligeros",
+                81 => "Chubascos moderados",
+                82 => "Chubascos violentos",
+                85 => "Chubascos de nieve ligeros",
+                86 => "Chubascos de nieve fuertes",
+                95 => "Tormenta eléctrica",
+                96 => "Tormenta con granizo ligero",
+                99 => "Tormenta con granizo fuerte",
+                _ => "Condición no disponible"
+            };
+        }
+
+        /// <summary>
+        /// Obtiene un icono Phosphor representativo según el WMO Weather Code.
+        /// </summary>
+        private static string ObtenerIconoClima(int? weatherCode)
+        {
+            return weatherCode switch
+            {
+                0 => "ph-sun",
+                1 => "ph-sun-dim",
+                2 => "ph-cloud-sun",
+                3 => "ph-cloud",
+                >= 45 and <= 48 => "ph-cloud-fog",
+                >= 51 and <= 57 => "ph-cloud-drizzle",
+                >= 61 and <= 67 => "ph-cloud-rain",
+                >= 71 and <= 77 => "ph-snowflake",
+                >= 80 and <= 82 => "ph-cloud-showers-heavy",
+                >= 85 and <= 86 => "ph-snowflake",
+                >= 95 => "ph-cloud-lightning",
+                _ => "ph-question"
+            };
+        }
+    }
+
+    // ============================================================
+    // Open-Meteo Response Models
+    // ============================================================
+
+    public class OpenMeteoResponse
+    {
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        [JsonPropertyName("generationtime_ms")]
+        public double? GenerationTimeMs { get; set; }
+        [JsonPropertyName("utc_offset_seconds")]
+        public int? UtcOffsetSeconds { get; set; }
+        public string? Timezone { get; set; }
+        [JsonPropertyName("timezone_abbreviation")]
+        public string? TimezoneAbbreviation { get; set; }
+        public double? Elevation { get; set; }
+        [JsonPropertyName("current_units")]
+        public object? CurrentUnits { get; set; }
+        public OpenMeteoCurrent? Current { get; set; }
+        [JsonPropertyName("daily_units")]
+        public object? DailyUnits { get; set; }
+        public OpenMeteoDaily? Daily { get; set; }
+    }
+
+    public class OpenMeteoCurrent
+    {
+        public string? Time { get; set; }
+        public int? Interval { get; set; }
+        [JsonPropertyName("temperature_2m")]
+        public double? Temperature2m { get; set; }
+        [JsonPropertyName("relative_humidity_2m")]
+        public double? RelativeHumidity2m { get; set; }
+        [JsonPropertyName("apparent_temperature")]
+        public double? ApparentTemperature { get; set; }
+        public double? Precipitation { get; set; }
+        [JsonPropertyName("weather_code")]
+        public int? WeatherCode { get; set; }
+    }
+
+    public class OpenMeteoDaily
+    {
+        public List<string>? Time { get; set; }
+        [JsonPropertyName("temperature_2m_max")]
+        public List<double>? Temperature2mMax { get; set; }
+        [JsonPropertyName("temperature_2m_min")]
+        public List<double>? Temperature2mMin { get; set; }
+        [JsonPropertyName("temperature_2m_mean")]
+        public List<double>? Temperature2mMean { get; set; }
+        [JsonPropertyName("precipitation_sum")]
+        public List<double>? PrecipitationSum { get; set; }
+        [JsonPropertyName("precipitation_probability_max")]
+        public List<double>? PrecipitationProbabilityMax { get; set; }
     }
 }
 

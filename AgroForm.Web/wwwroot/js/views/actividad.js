@@ -163,6 +163,13 @@ function configurarModoEdicionActividad(actividad, tipoActividadNombre) {
     } else {
         $('#actividadId').val(actividad.id);
     }
+
+    // Cargar los ciclos del lote y seleccionar el ciclo asociado a esta labor
+    if (actividad.idLote) {
+        setTimeout(function () {
+            cargarCiclosPorLote(actividad.idLote, actividad.idCicloCultivo);
+        }, 500);
+    }
 }
 
 // Función para cargar datos específicos según el tipo de actividad
@@ -183,25 +190,38 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
 
         case 5:
             if (datosEspecificos.horasRiego != null) $('#horasRiego').val(datosEspecificos.horasRiego);
-            if (datosEspecificos.volumenAguaM3 != null) $('#volumenAguaM3').val(datosEspecificos.volumenAguaM3);
+            // Entity returns VolumenAgua, display in volumenAguaM3 input
+            if (datosEspecificos.volumenAgua != null) $('#volumenAguaM3').val(datosEspecificos.volumenAgua);
             if (datosEspecificos.costo != null) $('#costoRiegoTotal').val(datosEspecificos.costo);
             if (datosEspecificos.idMetodoRiego != null) setSelectWhenReady('#idMetodoRiego', datosEspecificos.idMetodoRiego);
             if (datosEspecificos.idFuenteAgua != null) setSelectWhenReady('#idFuenteAgua', datosEspecificos.idFuenteAgua);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoRiego').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+            // Unidad selector for el volumen de agua
+            if (datosEspecificos.idUnidadVolumenAgua != null) {
+                setUnidadSelectorValue('volumenAguaM3', datosEspecificos.idUnidadVolumenAgua);
+            }
             break;
 
         case 4:
-            if (datosEspecificos.cantidadKgHa != null) $('#cantidadKgHa').val(datosEspecificos.cantidadKgHa);
-            if (datosEspecificos.dosisKgHa != null) $('#dosisKgHa').val(datosEspecificos.dosisKgHa);
+            // Entity returns Cantidad (not CantidadKgHa), Dosis (not DosisKgHa)
+            if (datosEspecificos.cantidad != null) $('#cantidadKgHa').val(datosEspecificos.cantidad);
+            if (datosEspecificos.dosis != null) $('#dosisKgHa').val(datosEspecificos.dosis);
             if (datosEspecificos.costo != null) $('#costoFertilizado').val(datosEspecificos.costo);
             if (datosEspecificos.idNutriente != null) setSelectWhenReady('idNutriente', datosEspecificos.idNutriente);
             if (datosEspecificos.idTipoFertilizante != null) setSelectWhenReady('idTipoFertilizante', datosEspecificos.idTipoFertilizante);
             if (datosEspecificos.idMetodoAplicacion != null) setSelectWhenReady('idMetodoAplicacion', datosEspecificos.idMetodoAplicacion);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoFertilizacion').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+            // Unidad selectors for cantidad and dosis
+            if (datosEspecificos.idUnidadCantidad != null) {
+                setUnidadSelectorValue('cantidadKgHa', datosEspecificos.idUnidadCantidad);
+            }
+            if (datosEspecificos.idUnidadDosis != null) {
+                setUnidadSelectorValue('dosisKgHa', datosEspecificos.idUnidadDosis);
+            }
             break;
 
         case 3:
-            if (datosEspecificos.volumenLitrosHa != null) $('#volumenLitrosHa').val(datosEspecificos.volumenLitrosHa);
+            if (datosEspecificos.volumen != null) $('#volumenLitrosHa').val(datosEspecificos.volumen);
             if (datosEspecificos.dosis != null) $('#dosisPulverizacion').val(datosEspecificos.dosis);
             if (datosEspecificos.condicionesClimaticas != null) $('#condicionesClimaticas').val(datosEspecificos.condicionesClimaticas);
             if (datosEspecificos.idProductoAgroquimico != null) setSelectWhenReady('#idProductoAgroquimico', datosEspecificos.idProductoAgroquimico);
@@ -210,9 +230,50 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             break;
 
         case 6:
-            if (datosEspecificos.idMonitoreo != null) setSelectWhenReady('#idMonitoreo', datosEspecificos.idMonitoreo);
-            if (datosEspecificos.idTipoMonitoreo != null) setSelectWhenReady('#idTipoMonitoreo', datosEspecificos.idTipoMonitoreo);
-            if (datosEspecificos.idEstadoFenologico != null) setSelectWhenReady('#idEstadoFenologico', datosEspecificos.idEstadoFenologico);
+            // Set monitoreo type using native val()+change to trigger AJAX load of idTipoMonitoreo options
+            if (datosEspecificos.idMonitoreo != null) {
+                var $monSel = $('#idMonitoreo');
+                $monSel.val(datosEspecificos.idMonitoreo);
+                // Dispatch native change event so cargarCatalogos loads idTipoMonitoreo options
+                $monSel[0].dispatchEvent(new Event('change'));
+            }
+
+            // Poll until idTipoMonitoreo options are loaded (cargarCatalogos AJAX is async)
+            if (datosEspecificos.idTipoMonitoreo != null) {
+                (function(tipoValue) {
+                    var retryTipo = setInterval(function() {
+                        var el = document.getElementById('idTipoMonitoreo');
+                        if (el && el._choicesInstance) {
+                            var activeItems = el._choicesInstance._store ? el._choicesInstance._store.activeItems : null;
+                            if (activeItems && activeItems.length > 0) {
+                                el._choicesInstance.removeActiveItems();
+                                el._choicesInstance.setChoiceByValue(String(tipoValue));
+                                clearInterval(retryTipo);
+                            }
+                        }
+                    }, 100);
+                    setTimeout(function() { clearInterval(retryTipo); }, 8000);
+                })(datosEspecificos.idTipoMonitoreo);
+            }
+
+            // Poll until idEstadoFenologico options are loaded (cargarEstadosFenologicos AJAX is async, depends on ciclo load)
+            if (datosEspecificos.idEstadoFenologico != null) {
+                (function(efValue) {
+                    var retryEF = setInterval(function() {
+                        var el = document.getElementById('idEstadoFenologico');
+                        if (el && el._choicesInstance) {
+                            var activeItems = el._choicesInstance._store ? el._choicesInstance._store.activeItems : null;
+                            if (activeItems && activeItems.length > 0) {
+                                el._choicesInstance.removeActiveItems();
+                                el._choicesInstance.setChoiceByValue(String(efValue));
+                                clearInterval(retryEF);
+                            }
+                        }
+                    }, 100);
+                    setTimeout(function() { clearInterval(retryEF); }, 8000);
+                })(datosEspecificos.idEstadoFenologico);
+            }
+
             if (datosEspecificos.costo != null) $('#costoMonitoreoTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoMonitoreo').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
@@ -233,9 +294,10 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             break;
 
         case 7:
-            if (datosEspecificos.rendimientoTonHa != null) $('#rendimientoTonHa').val(datosEspecificos.rendimientoTonHa);
+            // Entity returns Rendimiento (not RendimientoTonHa), SuperficieCosechada (not SuperficieCosechadaHa)
+            if (datosEspecificos.rendimiento != null) $('#rendimientoTonHa').val(datosEspecificos.rendimiento);
             if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
-            if (datosEspecificos.superficieCosechadaHa != null) $('#superficieCosechadaHa').val(datosEspecificos.superficieCosechadaHa);
+            if (datosEspecificos.superficieCosechada != null) $('#superficieCosechadaHa').val(datosEspecificos.superficieCosechada);
             if (datosEspecificos.costo != null) $('#costoCosechaTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoCosecha').prop('checked', !!datosEspecificos.esDolar).trigger('change');
 
@@ -256,6 +318,30 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.costo != null) $('#costoSiloBolsaTotal').val(datosEspecificos.costo);
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiloBolsa').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
+    }
+}
+
+/**
+ * Sets the value of a unidad selector (Choices.js instance) by finding it
+ * as the sibling .unidad-selector within the same .input-group as the given inputId.
+ * @param {string} inputId - The ID of the numeric input field (without #)
+ * @param {number|string} value - The value to set on the unidad selector
+ */
+function setUnidadSelectorValue(inputId, value) {
+    if (value == null) return;
+    var selector = $('#' + inputId).closest('.input-group').find('.unidad-selector');
+    if (selector.length === 0) return;
+    var element = selector[0];
+    var strValue = value.toString();
+    if (element._choicesInstance) {
+        try {
+            element._choicesInstance.setChoiceByValue(strValue);
+        } catch (e) {
+            // Fallback: set native value directly
+            selector.val(strValue);
+        }
+    } else {
+        selector.val(strValue);
     }
 }
 

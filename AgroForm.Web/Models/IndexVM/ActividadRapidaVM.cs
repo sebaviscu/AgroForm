@@ -29,6 +29,9 @@ namespace AgroForm.Web.Models.IndexVM
         public string? TipoActividad { get; set; }
         public DatosEspecificosVM? DatosEspecificos { get; set; }
 
+        // Configuración de unidades de medida (serializada como JSON)
+        public string? UnidadesConfigJson { get; set; }
+
         // Gestión de CicloCultivo
         public int? IdCicloCultivo { get; set; }
         public List<CicloCultivoVM>? CiclosActivos { get; set; }
@@ -40,27 +43,32 @@ namespace AgroForm.Web.Models.IndexVM
         public bool? EsDolar { get; set; }
 
         // Siembra
-        public decimal? SuperficieHa { get; set; }
-        public decimal? DensidadSemillaKgHa { get; set; }
+        public decimal? Superficie { get; set; }
+        public int? IdUnidadSuperficie { get; set; }
+        public decimal? Densidad { get; set; }
+        public int? IdUnidadDensidad { get; set; }
         public int IdCultivo { get; set; }
         public int? IdMetodoSiembra { get; set; }
 
         // Riego
         public decimal? HorasRiego { get; set; }
-        public decimal? VolumenAguaM3 { get; set; }
+        public decimal? VolumenAgua { get; set; }
+        public int? IdUnidadVolumenAgua { get; set; }
         public int? IdMetodoRiego { get; set; }
         public int? IdFuenteAgua { get; set; }
 
         // Fertilización
-        public decimal? CantidadKgHa { get; set; }
-        public decimal? DosisKgHa { get; set; }
+        public decimal? Cantidad { get; set; }
+        public int? IdUnidadCantidad { get; set; }
+        public decimal? Dosis { get; set; }
+        public int? IdUnidadDosis { get; set; }
         public int? IdNutriente { get; set; }
         public int? IdTipoFertilizante { get; set; }
         public int? IdMetodoAplicacion { get; set; }
 
         // Pulverización
-        public decimal? VolumenLitrosHa { get; set; }
-        public decimal? Dosis { get; set; }
+        public decimal? Volumen { get; set; }
+        public int? IdUnidadVolumen { get; set; }
         public string? CondicionesClimaticas { get; set; }
         public int? IdProductoAgroquimico { get; set; }
 
@@ -82,9 +90,11 @@ namespace AgroForm.Web.Models.IndexVM
         public int? IdLaboratorio { get; set; }
 
         // Cosecha
-        public decimal? RendimientoTonHa { get; set; }
+        public decimal? Rendimiento { get; set; }
+        public int? IdUnidadRendimiento { get; set; }
         public decimal? HumedadGrano { get; set; }
-        public decimal? SuperficieCosechadaHa { get; set; }
+        public decimal? SuperficieCosechada { get; set; }
+        public int? IdUnidadSuperficieCosechada { get; set; }
 
         // Silo Bolsa
         public string? Codigo { get; set; }

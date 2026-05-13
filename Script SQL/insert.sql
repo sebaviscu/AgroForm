@@ -383,3 +383,133 @@ VALUES
 
 -- Otros
 (99, 'Otro tipo de registro', 'Elemento no clasificado', 1, GETDATE(), 'admin');
+
+-- ============================================
+-- SEED DATA: Sistema de Unidades de Medida
+-- ============================================
+
+-- UnidadesMedida (27 registros con IDs explícitos)
+SET IDENTITY_INSERT UnidadesMedida ON;
+INSERT INTO UnidadesMedida (Id, Nombre, Sigla, Categoria, DimensionBase, FactorConversion, Orden, Activo)
+VALUES
+-- PesoPorSuperficie (Categoria 4, DimensionBase 4)
+(1,  'Kilogramo por Hectárea',     'Kg/Ha',    4, 4, 1.0,       1, 1),
+(7,  'Tonelada por Hectárea',      'Tn/Ha',    4, 4, 1000.0,    2, 1),
+(8,  'Gramo por Hectárea',         'g/Ha',     4, 4, 0.001,     3, 1),
+(11, 'Libra por Acre',             'Lb/ac',    4, 4, 1.12085,   4, 1),
+
+-- Peso (Categoria 2, DimensionBase 1)
+(2,  'Kilogramo',                   'Kg',       2, 1, 1.0,       1, 1),
+(12, 'Gramo',                       'g',        2, 1, 0.001,     2, 1),
+(25, 'Tonelada',                    'Tn',       2, 1, 1000.0,    3, 1),
+
+-- VolumenPorSuperficie (Categoria 5, DimensionBase 5)
+(3,  'Litro por Hectárea',         'Lt/Ha',    5, 5, 1.0,       1, 1),
+(9,  'Mililitro por Hectárea',     'mL/Ha',    5, 5, 0.001,     2, 1),
+(10, 'Centímetro Cúbico por Hectárea', 'cc/Ha', 5, 5, 0.001,    3, 1),
+(23, 'Metro Cúbico por Hectárea',  'm³/Ha',    5, 5, 1000.0,    4, 1),
+
+-- Volumen (Categoria 3, DimensionBase 3)
+(4,  'Litro',                       'Lt',       3, 3, 1.0,       1, 1),
+(5,  'Metro Cúbico',               'm³',       3, 3, 1000.0,    2, 1),
+
+-- Superficie (Categoria 1, DimensionBase 2)
+(6,  'Hectárea',                    'Ha',       1, 2, 1.0,       1, 1),
+(24, 'Acre',                        'ac',       1, 2, 0.404686,  2, 1),
+
+-- Concentracion (Categoria 6, DimensionBase 6 y 7)
+(15, 'Kilogramo por 100 Litros',    'Kg/100L',  6, 6, 1.0,       1, 1),
+(16, 'Litro por 100 Litros',       'L/100L',    6, 7, 1.0,       2, 1),
+(17, 'Centímetro Cúbico por 100 Litros', 'cc/100L', 6, 7, 1.0,   3, 1),
+(18, 'Mililitro por 100 Litros',   'mL/100L',   6, 7, 1.0,       4, 1),
+(19, 'Gramo por 100 Litros',       'g/100L',    6, 6, 1.0,       5, 1),
+
+-- Conteo (Categoria 8, DimensionBase 8 y 9)
+(13, 'Unidad por Hectárea',        'Ud/Ha',    8, 9, 1.0,       1, 1),
+(14, 'Dosis por Hectárea',         'Dosis/Ha', 8, 9, 1.0,       2, 1),
+(20, 'Unidad',                      'Ud',       8, 8, 1.0,       3, 1),
+(27, 'Semilla por Hectárea',       'Sem/Ha',   8, 9, 1.0,       4, 1),
+
+-- Lineal (Categoria 7, DimensionBase 10)
+(26, 'Semilla por Metro',          'Sem/m',    7, 10, 1.0,      1, 1),
+
+-- Longitud (Categoria 9, DimensionBase 11)
+(21, 'Milímetro',                   'mm',       9, 11, 1.0,      1, 1),
+(22, 'Pulgada',                     'in',       9, 11, 25.4,     2, 1);
+SET IDENTITY_INSERT UnidadesMedida OFF;
+GO
+
+-- CamposLaborUnidad (9 registros con IDs explícitos)
+SET IDENTITY_INSERT CamposLaborUnidad ON;
+INSERT INTO CamposLaborUnidad (Id, IdTipoActividad, NombreCampo, NombrePropiedad, Etiqueta, Requerido, Orden, Activo)
+VALUES
+(1, 2, 'Densidad',   'Densidad',          'Densidad de siembra', 0, 1, 1),  -- Siembra
+(2, 2, 'Superficie', 'Superficie',         'Superficie sembrada', 0, 2, 1), -- Siembra
+(3, 3, 'Volumen',    'Volumen',            'Volumen de aplicación', 0, 1, 1), -- Pulverización
+(4, 3, 'Dosis',      'Dosis',             'Dosis del producto', 0, 2, 1),    -- Pulverización
+(5, 4, 'Cantidad',   'Cantidad',           'Cantidad aplicada', 0, 1, 1),    -- Fertilización
+(6, 4, 'Dosis',      'Dosis',             'Dosis del fertilizante', 0, 2, 1), -- Fertilización
+(7, 5, 'Volumen',    'VolumenAgua',        'Volumen de agua', 0, 1, 1),      -- Riego
+(8, 7, 'Rendimiento','Rendimiento',        'Rendimiento del cultivo', 0, 1, 1), -- Cosecha
+(9, 7, 'Superficie', 'SuperficieCosechada','Superficie cosechada', 0, 2, 1); -- Cosecha
+SET IDENTITY_INSERT CamposLaborUnidad OFF;
+GO
+
+-- CamposLaborUnidadPermitida (37 registros)
+INSERT INTO CamposLaborUnidadPermitida (IdCampoLaborUnidad, IdUnidadMedida, EsPredeterminado, Orden)
+VALUES
+-- Siembra → Densidad (Campo 1) — Default: Kg/Ha
+(1, 1,  1, 1),  -- Kg/Ha
+(1, 7,  0, 2),  -- Tn/Ha
+(1, 8,  0, 3),  -- g/Ha
+(1, 11, 0, 4),  -- Lb/ac
+(1, 26, 0, 5),  -- Sem/m
+(1, 27, 0, 6),  -- Sem/Ha
+(1, 13, 0, 7),  -- Ud/Ha
+
+-- Siembra → Superficie (Campo 2) — Default: Ha
+(2, 6,  1, 1),  -- Ha
+(2, 24, 0, 2),  -- ac
+
+-- Pulverización → Volumen (Campo 3) — Default: Lt/Ha
+(3, 3,  1, 1),  -- Lt/Ha
+(3, 9,  0, 2),  -- mL/Ha
+(3, 10, 0, 3),  -- cc/Ha
+(3, 23, 0, 4),  -- m³/Ha
+
+-- Pulverización → Dosis (Campo 4) — Default: Lt/Ha
+(4, 3,  1, 1),  -- Lt/Ha
+(4, 1,  0, 2),  -- Kg/Ha
+(4, 9,  0, 3),  -- mL/Ha
+(4, 10, 0, 4),  -- cc/Ha
+(4, 8,  0, 5),  -- g/Ha
+(4, 7,  0, 6),  -- Tn/Ha
+(4, 23, 0, 7),  -- m³/Ha
+
+-- Fertilización → Cantidad (Campo 5) — Default: Kg
+(5, 2,  1, 1),  -- Kg
+(5, 12, 0, 2),  -- g
+(5, 25, 0, 3),  -- Tn
+
+-- Fertilización → Dosis (Campo 6) — Default: Kg/Ha
+(6, 1,  1, 1),  -- Kg/Ha
+(6, 7,  0, 2),  -- Tn/Ha
+(6, 8,  0, 3),  -- g/Ha
+(6, 11, 0, 4),  -- Lb/ac
+(6, 3,  0, 5),  -- Lt/Ha
+
+-- Riego → Volumen (Campo 7) — Default: m³
+(7, 5,  1, 1),  -- m³
+(7, 21, 0, 2),  -- mm
+(7, 4,  0, 3),  -- Lt
+(7, 23, 0, 4),  -- m³/Ha
+
+-- Cosecha → Rendimiento (Campo 8) — Default: Tn/Ha
+(8, 7,  1, 1),  -- Tn/Ha
+(8, 1,  0, 2),  -- Kg/Ha
+(8, 11, 0, 3),  -- Lb/ac
+
+-- Cosecha → Superficie (Campo 9) — Default: Ha
+(9, 6,  1, 1),  -- Ha
+(9, 24, 0, 2);  -- ac
+GO

@@ -7,7 +7,7 @@ $(document).ready(function () {
         order: [[5, 'desc']],
         pageLength: 25,
         columnDefs: [
-            { orderable: false, targets: [9] }
+            { orderable: false, targets: [8] }
         ]
     });
 

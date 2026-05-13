@@ -16,5 +16,6 @@ namespace AgroForm.Model
         void SetSimulatedLicencia(int? licenciaId);
         void SetSimulatedCampania(int? campaniaId);
         void ClearSimulation();
+        void SetLoginProcess(bool isInLogin);
     }
 }

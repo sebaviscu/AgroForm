@@ -238,14 +238,46 @@
                 html: $(this).data('bs-html') === true || $(this).data('bs-html') === 'true'
             });
         });
+
+        // Initialize Bootstrap tooltips for dynamically added elements
+        $('[data-bs-toggle="tooltip"]').each(function() {
+            var existing = bootstrap.Tooltip.getInstance(this);
+            if (existing) existing.dispose();
+            new bootstrap.Tooltip(this);
+        });
     }
 
+
+    // Helper: calculate days elapsed from a date
+    function diasDesde(dateStr) {
+        if (!dateStr) return null;
+        var d = new Date(dateStr);
+        if (isNaN(d.getTime())) return null;
+        var now = new Date();
+        var dDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var diffMs = nowDate - dDate;
+        return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    }
 
     // Función para crear elemento de actividad
     function crearActividadElement(actividad) {
         var fecha = new Date(actividad.fecha).toLocaleDateString();
         var icono = actividad.iconoTipoActividad || 'ph ph-activity';
         var colorIcono = actividad.iconoColorTipoActividad;
+
+        // Calculate days elapsed for tooltip
+        var days = diasDesde(actividad.fecha);
+        var tooltipTitle = '';
+        if (days !== null) {
+            if (days === 0) {
+                tooltipTitle = 'Hoy';
+            } else if (days === 1) {
+                tooltipTitle = 'Ayer';
+            } else {
+                tooltipTitle = 'Hace ' + days + ' días';
+            }
+        }
 
         var $actividadDiv = $('<div>', {
             class: 'actividad-item border-start border-3 border-primary ps-2 py-1 mb-2'
@@ -296,7 +328,10 @@
         $contentContainer.append(fila1Html);
 
         var $fechaContainer = $('<div>', {
-            class: 'actividad-fecha flex-shrink-0 ms-2 small text-muted'
+            class: 'actividad-fecha flex-shrink-0 ms-2 small text-muted',
+            'data-bs-toggle': tooltipTitle ? 'tooltip' : undefined,
+            'data-bs-placement': 'left',
+            title: tooltipTitle || undefined
         }).text(fecha);
 
         $flexContainer.append($iconContainer, $contentContainer, $fechaContainer);

@@ -15,6 +15,7 @@ namespace AgroForm.Web.Utilities
         private int? _simulatedLicenciaId;
         private int? _simulatedCampaniaId;
         private bool _simulationLoaded;
+        private bool _isInLoginProcess;
 
         private const string SimLicenciaSessionKey = "SimulacionLicenciaId";
         private const string SimCampaniaSessionKey = "SimulacionCampaniaId";
@@ -24,14 +25,24 @@ namespace AgroForm.Web.Utilities
             _httpContextAccessor = httpContextAccessor;
         }
 
+        public void SetLoginProcess(bool isInLogin)
+        {
+            _isInLoginProcess = isInLogin;
+        }
+
         public int? IdLicencia 
         {
             get 
             {
                 LoadSimulationFromSessionIfNeeded();
+                
                 // Si ya tenemos un valor simulado, retornarlo
                 if (_simulatedLicenciaId.HasValue)
                     return _simulatedLicenciaId;
+                
+                // Si estamos en proceso de login, no usar fallback hardcoded
+                if (_isInLoginProcess)
+                    return null; // Dejar que el servicio maneje sin filtro de licencia
                 
                 // Retornar el ID real del usuario
                 return User.IdLicencia;
@@ -87,13 +98,13 @@ namespace AgroForm.Web.Utilities
                 }
                 else
                 {
-                    // Fallback para cuando no hay usuario autenticado (hardcoded login mentioned by user)
+                    // Cuando no hay usuario autenticado, retornar valores nulos
                     _user = new UserAuth
                     {
-                        IdLicencia = 1,
-                        IdCampaña = 1,
-                        UserName = "System",
-                        IdUsuario = 1
+                        IdLicencia = null,
+                        IdCampaña = null,
+                        UserName = null,
+                        IdUsuario = 0
                     };
                 }
 

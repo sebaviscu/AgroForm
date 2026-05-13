@@ -368,6 +368,12 @@ namespace AgroForm.Business.Services
 
             return query;
         }
+
+        public virtual IQueryable<T> GetQueryWithoutFilters()
+        {
+            // Método exclusivo para login: accede directamente al repositorio sin filtros de licencia
+            return _repository.Query().IgnoreQueryFilters();
+        }
     }
 
     public abstract class ClaimBase

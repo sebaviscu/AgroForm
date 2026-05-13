@@ -12,5 +12,7 @@ namespace AgroForm.Data.DBContext
         IGenericRepository<T> Repository<T>() where T : class;
 
         Task<int> SaveAsync();
+
+        Microsoft.EntityFrameworkCore.DbContext Context { get; }
     }
 }

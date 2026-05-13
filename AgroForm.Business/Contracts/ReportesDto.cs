@@ -61,6 +61,21 @@ namespace AgroForm.Business.Contracts
         public RendimientoCosechaDto RendimientoCosecha { get; set; } = new();
         public List<AlertaDto> Alertas { get; set; } = new();
         public List<HistorialCampaniaDto> HistorialMultiCampania { get; set; } = new();
+
+        /// <summary>
+        /// ID de la campaña seleccionada para el reporte (null = Todas)
+        /// </summary>
+        public int? IdCampaniaSeleccionada { get; set; }
+
+        /// <summary>
+        /// Nombre de la campaña seleccionada
+        /// </summary>
+        public string? NombreCampaniaSeleccionada { get; set; }
+
+        /// <summary>
+        /// Indica si la campaña seleccionada es la actual del sistema
+        /// </summary>
+        public bool EsCampaniaActual { get; set; }
     }
 
     /// <summary>
@@ -90,6 +105,7 @@ namespace AgroForm.Business.Contracts
         public int ScoreProductividad { get; set; }
         public int ScoreSaludCultivo { get; set; }
         public int ScoreHumedad { get; set; }
+        public int ScoreHidrico { get; set; }
         public int ScoreRiesgo { get; set; }
     }
 
@@ -159,10 +175,25 @@ namespace AgroForm.Business.Contracts
         public decimal? TempMinima { get; set; }
         public decimal? TempMaxima { get; set; }
         public decimal? TempPromedio { get; set; }
+        public decimal? HumedadRelativa { get; set; }
+        public decimal? SensacionTermica { get; set; }
+        public string? DescripcionClima { get; set; }
+        public string? IconoClima { get; set; }
         public int? CantidadHeladas { get; set; }
         public string BalanceHidrico { get; set; } = "Normal";
         public string EstresHidrico { get; set; } = "Sin estrés";
         public List<DatoClimatico> Registros { get; set; } = new();
+        public decimal? ProbabilidadLluvia { get; set; }
+
+        /// <summary>
+        /// Indica si los datos meteorológicos actuales (Open-Meteo) no corresponden a la campaña seleccionada
+        /// </summary>
+        public bool EsHistorico { get; set; }
+
+        /// <summary>
+        /// Precipitación total acumulada en el período de la campaña seleccionada
+        /// </summary>
+        public decimal? LluviaTotalCampania { get; set; }
     }
 
     public class DatoClimatico

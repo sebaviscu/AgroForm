@@ -18,6 +18,8 @@ namespace AgroForm.Data.DBContext
             _context = context;
         }
 
+        public Microsoft.EntityFrameworkCore.DbContext Context => _context;
+
         public async Task<int> SaveAsync()
         {
             return await _context.SaveChangesAsync();

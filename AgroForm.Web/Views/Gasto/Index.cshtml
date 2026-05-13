@@ -13,6 +13,27 @@
         <partial name="_MonedaSelector" />
     </div>
 
+    <!-- Filtro de categoría para gráficos -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold small text-muted">
+                    <i class="ph ph-funnel me-1"></i>Mostrar:
+                </span>
+                <div class="btn-group btn-group-sm" role="group" id="filtroCategoria">
+                    <input type="radio" class="btn-check" name="filtroCategoria" id="filtroAmbos" value="ambos" checked>
+                    <label class="btn btn-outline-secondary" for="filtroAmbos">Ambos</label>
+
+                    <input type="radio" class="btn-check" name="filtroCategoria" id="filtroGastos" value="gastos">
+                    <label class="btn btn-outline-secondary" for="filtroGastos">Solo gastos</label>
+
+                    <input type="radio" class="btn-check" name="filtroCategoria" id="filtroLabores" value="labores">
+                    <label class="btn btn-outline-secondary" for="filtroLabores">Solo labores</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tarjetas de Resumen -->
     <div class="row mb-4">
         <!-- Card 1: Lista de gastos agrupados -->

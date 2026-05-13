@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AgroForm.Model.Unidades;
 
 namespace AgroForm.Model.Actividades
 {
@@ -12,6 +13,9 @@ namespace AgroForm.Model.Actividades
         public decimal? CostoARS { get; set; }
         public decimal? CostoUSD { get; set; }
         public decimal? HorasRiego { get; set; }
+        public decimal? VolumenAgua { get; set; }
+        public int? IdUnidadVolumenAgua { get; set; }
+        public UnidadMedida? UnidadVolumenAgua { get; set; }
         public decimal? VolumenAguaM3 { get; set; }
 
         public int IdCampania { get; set; }

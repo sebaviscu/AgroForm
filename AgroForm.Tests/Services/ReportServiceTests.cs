@@ -84,7 +84,7 @@ namespace AgroForm.Tests.Services
                 IdCampania = 1,
                 IdMoneda = 1,
                 Fecha = TimeHelper.GetArgentinaTime().AddDays(-60),
-                SuperficieHa = 50,
+                Superficie = 50,
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
                 RegistrationUser = TestUserAuth.UserName
             };

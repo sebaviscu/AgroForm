@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AgroForm.Model.Unidades;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Model.Actividades
 {
@@ -11,8 +13,15 @@ namespace AgroForm.Model.Actividades
 
         public DateTime Fecha { get; set; }
         public string Observacion { get; set; } = string.Empty;
+        public decimal? Superficie { get; set; }
+        public int? IdUnidadSuperficie { get; set; }
+        public UnidadMedida? UnidadSuperficie { get; set; }
         public decimal? SuperficieHa { get; set; }
+        public decimal? Densidad { get; set; }
+        public int? IdUnidadDensidad { get; set; }
+        public UnidadMedida? UnidadDensidad { get; set; }
         public decimal? DensidadSemillaKgHa { get; set; }
+        public EpocaSiembra? Epoca { get; set; }
         public decimal? Costo { get; set; }
         public decimal? CostoARS { get; set; }
         public decimal? CostoUSD { get; set; }

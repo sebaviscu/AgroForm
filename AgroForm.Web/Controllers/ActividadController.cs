@@ -24,9 +24,10 @@ namespace AgroForm.Web.Controllers
         private readonly IMonedaService _monedaService;
         private readonly ICampaniaService _campaniaService;
         private readonly ICicloCultivoService _cicloCultivoService;
+        private readonly IUnidadMedidaService _unidadMedidaService;
         protected string CurrentUser => HttpContext?.User?.Identity?.Name ?? "Anonimo";
 
-        public ActividadController(ILogger<ActividadController> logger, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService, ICicloCultivoService cicloCultivoService)
+        public ActividadController(ILogger<ActividadController> logger, IActividadService service, ICampoService campoService, IMonedaService monedaService, ICampaniaService campaniaService, ICicloCultivoService cicloCultivoService, IUnidadMedidaService unidadMedidaService)
         {
             _logger = logger;
             _service = service;
@@ -34,6 +35,7 @@ namespace AgroForm.Web.Controllers
             _monedaService = monedaService;
             _campaniaService = campaniaService;
             _cicloCultivoService = cicloCultivoService;
+            _unidadMedidaService = unidadMedidaService;
         }
 
         public async Task<IActionResult> Index()
@@ -97,7 +99,7 @@ namespace AgroForm.Web.Controllers
 
                 var tipoCambioUSD = await _monedaService.ObtenerTipoCambioActualAsync();
 
-                var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
+                var actividad = await ArmarLaborAsync(model, user, tipoCambioUSD.TipoCambioReferencia);
 
                 var result = await _service.UpdateActividadAsync(actividad);
 
@@ -115,48 +117,109 @@ namespace AgroForm.Web.Controllers
             }
         }
 
-        private ILabor ArmarLabor(ActividadRapidaVM model, UserAuth user, decimal tipoCambioUSD)
+        private async Task<ILabor> ArmarLaborAsync(ActividadRapidaVM model, UserAuth user, decimal tipoCambioUSD)
         {
             ILabor actividad = null;
 
             switch ((TipoActividadEnum)model.TipoIdActividad)
             {
                 case TipoActividadEnum.Siembra:
-                    actividad = new Siembra
+                    var siembra = new Siembra
                     {
-                        SuperficieHa = model.DatosEspecificos?.SuperficieHa,
-                        DensidadSemillaKgHa = model.DatosEspecificos?.DensidadSemillaKgHa,
+                        Superficie = model.DatosEspecificos?.Superficie,
+                        IdUnidadSuperficie = model.DatosEspecificos?.IdUnidadSuperficie,
+                        Densidad = model.DatosEspecificos?.Densidad,
+                        IdUnidadDensidad = model.DatosEspecificos?.IdUnidadDensidad,
                         IdMetodoSiembra = model.DatosEspecificos?.IdMetodoSiembra,
                         IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la siembra")
                     };
+
+                    // Calcular SuperficieHa (valor canónico = hectáreas)
+                    if (siembra.Superficie.HasValue && siembra.IdUnidadSuperficie.HasValue)
+                    {
+                        var unidadSuperficie = await _unidadMedidaService.GetByIdAsync(siembra.IdUnidadSuperficie.Value);
+                        if (unidadSuperficie != null)
+                            siembra.SuperficieHa = UnidadConversionHelper.ACanonico(siembra.Superficie.Value, unidadSuperficie);
+                    }
+
+                    // Calcular DensidadSemillaKgHa (valor canónico = kg/ha)
+                    if (siembra.Densidad.HasValue && siembra.IdUnidadDensidad.HasValue)
+                    {
+                        var unidadDensidad = await _unidadMedidaService.GetByIdAsync(siembra.IdUnidadDensidad.Value);
+                        if (unidadDensidad != null)
+                            siembra.DensidadSemillaKgHa = UnidadConversionHelper.ACanonico(siembra.Densidad.Value, unidadDensidad);
+                    }
+
+                    // Obtener Epoca desde el CicloCultivo asociado
+                    if (model.IdCicloCultivo.HasValue)
+                    {
+                        var ciclo = await _cicloCultivoService.GetByIdAsync(model.IdCicloCultivo.Value);
+                        if (ciclo?.Data != null)
+                            siembra.Epoca = ciclo.Data.Epoca;
+                    }
+
+                    actividad = siembra;
                     break;
 
                 case TipoActividadEnum.Riego:
-                    actividad = new Riego
+                    var riego = new Riego
                     {
                         HorasRiego = model.DatosEspecificos?.HorasRiego,
-                        VolumenAguaM3 = model.DatosEspecificos?.VolumenAguaM3,
+                        VolumenAgua = model.DatosEspecificos?.VolumenAgua,
+                        IdUnidadVolumenAgua = model.DatosEspecificos?.IdUnidadVolumenAgua,
                         IdMetodoRiego = model.DatosEspecificos?.IdMetodoRiego,
                         IdFuenteAgua = model.DatosEspecificos?.IdFuenteAgua
                     };
+
+                    // Calcular VolumenAguaM3 (valor canónico = metros cúbicos)
+                    if (riego.VolumenAgua.HasValue && riego.IdUnidadVolumenAgua.HasValue)
+                    {
+                        var unidadVolumen = await _unidadMedidaService.GetByIdAsync(riego.IdUnidadVolumenAgua.Value);
+                        if (unidadVolumen != null)
+                            riego.VolumenAguaM3 = UnidadConversionHelper.ACanonico(riego.VolumenAgua.Value, unidadVolumen);
+                    }
+
+                    actividad = riego;
                     break;
 
                 case TipoActividadEnum.Fertilizado:
-                    actividad = new Fertilizacion
+                    var fertilizacion = new Fertilizacion
                     {
-                        CantidadKgHa = model.DatosEspecificos?.CantidadKgHa,
-                        DosisKgHa = model.DatosEspecificos?.DosisKgHa,
+                        Cantidad = model.DatosEspecificos?.Cantidad,
+                        IdUnidadCantidad = model.DatosEspecificos?.IdUnidadCantidad,
+                        Dosis = model.DatosEspecificos?.Dosis,
+                        IdUnidadDosis = model.DatosEspecificos?.IdUnidadDosis,
                         IdNutriente = model.DatosEspecificos?.IdNutriente,
                         IdTipoFertilizante = model.DatosEspecificos?.IdTipoFertilizante,
                         IdMetodoAplicacion = model.DatosEspecificos?.IdMetodoAplicacion,
                     };
+
+                    // Calcular CantidadKgHa (valor canónico = kg/ha)
+                    if (fertilizacion.Cantidad.HasValue && fertilizacion.IdUnidadCantidad.HasValue)
+                    {
+                        var unidadCantidad = await _unidadMedidaService.GetByIdAsync(fertilizacion.IdUnidadCantidad.Value);
+                        if (unidadCantidad != null)
+                            fertilizacion.CantidadKgHa = UnidadConversionHelper.ACanonico(fertilizacion.Cantidad.Value, unidadCantidad);
+                    }
+
+                    // Calcular DosisKgHa (valor canónico = kg/ha)
+                    if (fertilizacion.Dosis.HasValue && fertilizacion.IdUnidadDosis.HasValue)
+                    {
+                        var unidadDosis = await _unidadMedidaService.GetByIdAsync(fertilizacion.IdUnidadDosis.Value);
+                        if (unidadDosis != null)
+                            fertilizacion.DosisKgHa = UnidadConversionHelper.ACanonico(fertilizacion.Dosis.Value, unidadDosis);
+                    }
+
+                    actividad = fertilizacion;
                     break;
 
                 case TipoActividadEnum.Pulverizacion:
                     actividad = new Pulverizacion
                     {
-                        VolumenLitrosHa = model.DatosEspecificos?.VolumenLitrosHa,
+                        Volumen = model.DatosEspecificos?.Volumen,
+                        IdUnidadVolumen = model.DatosEspecificos?.IdUnidadVolumen,
                         Dosis = model.DatosEspecificos?.Dosis,
+                        IdUnidadDosis = model.DatosEspecificos?.IdUnidadDosis,
                         CondicionesClimaticas = model.DatosEspecificos?.CondicionesClimaticas ?? string.Empty,
                         IdProductoAgroquimico = model.DatosEspecificos?.IdProductoAgroquimico
                     };
@@ -189,13 +252,33 @@ namespace AgroForm.Web.Controllers
                     break;
 
                 case TipoActividadEnum.Cosecha:
-                    actividad = new Cosecha
+                    var cosecha = new Cosecha
                     {
-                        RendimientoTonHa = model.DatosEspecificos?.RendimientoTonHa,
+                        Rendimiento = model.DatosEspecificos?.Rendimiento,
+                        IdUnidadRendimiento = model.DatosEspecificos?.IdUnidadRendimiento,
                         HumedadGrano = model.DatosEspecificos?.HumedadGrano,
-                        SuperficieCosechadaHa = model.DatosEspecificos?.SuperficieCosechadaHa,
+                        SuperficieCosechada = model.DatosEspecificos?.SuperficieCosechada,
+                        IdUnidadSuperficieCosechada = model.DatosEspecificos?.IdUnidadSuperficieCosechada,
                         IdCultivo = model.DatosEspecificos?.IdCultivo ?? throw new Exception("Cultivo es requerido para la cosecha")
                     };
+
+                    // Calcular RendimientoTonHa (valor canónico = ton/ha)
+                    if (cosecha.Rendimiento.HasValue && cosecha.IdUnidadRendimiento.HasValue)
+                    {
+                        var unidadRendimiento = await _unidadMedidaService.GetByIdAsync(cosecha.IdUnidadRendimiento.Value);
+                        if (unidadRendimiento != null)
+                            cosecha.RendimientoTonHa = UnidadConversionHelper.ACanonico(cosecha.Rendimiento.Value, unidadRendimiento);
+                    }
+
+                    // Calcular SuperficieCosechadaHa (valor canónico = hectáreas)
+                    if (cosecha.SuperficieCosechada.HasValue && cosecha.IdUnidadSuperficieCosechada.HasValue)
+                    {
+                        var unidadSuperficie = await _unidadMedidaService.GetByIdAsync(cosecha.IdUnidadSuperficieCosechada.Value);
+                        if (unidadSuperficie != null)
+                            cosecha.SuperficieCosechadaHa = UnidadConversionHelper.ACanonico(cosecha.SuperficieCosechada.Value, unidadSuperficie);
+                    }
+
+                    actividad = cosecha;
                     break;
 
                 case TipoActividadEnum.OtrasLabores:
@@ -307,7 +390,7 @@ namespace AgroForm.Web.Controllers
                         }
                     }
 
-                    var actividad = ArmarLabor(model, user, tipoCambioUSD.TipoCambioReferencia);
+                    var actividad = await ArmarLaborAsync(model, user, tipoCambioUSD.TipoCambioReferencia);
                     actividades.Add(actividad);
                 }
 

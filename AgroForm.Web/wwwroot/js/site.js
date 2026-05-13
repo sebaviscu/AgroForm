@@ -236,45 +236,6 @@ function mostrarMensaje(mensaje, tipo) {
 }
 
 
-//function setSelect2WhenReady(selector, value) {
-//    return new Promise(resolve => {
-
-//        let lastCount = -1;
-//        let stableFor = 0;
-
-//        const interval = setInterval(() => {
-//            const count = $(selector).find("option").length;
-
-//            // Si el número de opciones sigue cambiando
-//            if (count !== lastCount) {
-//                lastCount = count;
-//                stableFor = 0;
-//            } else {
-//                // Sigue igual → sumamos tiempo estable
-//                stableFor += 100;
-//            }
-
-//            // Cuando estuvo 300ms sin cambiar
-//            if (stableFor >= 300 && count > 0) {
-//                clearInterval(interval);
-
-//                $(selector).val(value).trigger('change');
-
-//                resolve(true);
-//            }
-
-//        }, 100);
-
-//        // Timeout 5s
-//        setTimeout(() => {
-//            clearInterval(interval);
-//            resolve(false);
-//        }, 5000);
-//    });
-//}
-
-
-
 function setSelectWhenReady(elementId, value) {
 
     const cleanId = elementId.replace(/^#/, '');

@@ -708,3 +708,221 @@
     background: var(--surface-2);
     color: var(--text-muted);
 }
+
+/* ==========================================================================
+    17. SWEETALERT2 DARK MODE
+    ========================================================================== */
+[data-theme="dark"] .swal2-popup {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55) !important;
+}
+
+[data-theme="dark"] .swal2-title {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .swal2-html-container {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .swal2-input,
+[data-theme="dark"] .swal2-file,
+[data-theme="dark"] .swal2-textarea,
+[data-theme="dark"] .swal2-select {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .swal2-input::placeholder,
+[data-theme="dark"] .swal2-textarea::placeholder {
+    color: rgba(233, 237, 243, 0.5) !important;
+}
+
+[data-theme="dark"] .swal2-input:focus,
+[data-theme="dark"] .swal2-textarea:focus {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+}
+
+[data-theme="dark"] .swal2-validation-message {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .swal2-close {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .swal2-close:hover {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .swal2-timer-progress-bar {
+    background: var(--bs-primary) !important;
+}
+
+[data-theme="dark"] .swal2-loader {
+    border-color: var(--bs-primary) transparent var(--bs-primary) transparent !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(25, 135, 84, 0.5) !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #198754 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-error {
+    border-color: #dc3545 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #dc3545 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-info {
+    border-color: rgba(13, 202, 240, 0.5) !important;
+    color: #0dcaf0 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-question {
+    border-color: rgba(13, 202, 240, 0.5) !important;
+    color: #0dcaf0 !important;
+}
+
+[data-theme="dark"] .swal2-icon.swal2-warning {
+    border-color: rgba(255, 193, 7, 0.5) !important;
+    color: #ffc107 !important;
+}
+
+[data-theme="dark"] .swal2-show {
+    animation: swal2-dark-show 0.3s ease !important;
+}
+
+@keyframes swal2-dark-show {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==========================================================================
+    18. BOOTSTRAP POPOVER DARK MODE
+    ========================================================================== */
+[data-theme="dark"] .popover {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55) !important;
+}
+
+[data-theme="dark"] .popover-header {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-bottom-color: var(--border) !important;
+}
+
+[data-theme="dark"] .popover-body {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .popover .popover-arrow::after {
+    border-right-color: var(--surface) !important;
+    border-left-color: var(--surface) !important;
+    border-top-color: var(--surface) !important;
+    border-bottom-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .bs-popover-top .popover-arrow::after,
+[data-theme="dark"] .bs-popover-auto[data-popper-placement^='top'] .popover-arrow::after {
+    border-top-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .bs-popover-end .popover-arrow::after,
+[data-theme="dark"] .bs-popover-auto[data-popper-placement^='right'] .popover-arrow::after {
+    border-right-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .bs-popover-bottom .popover-arrow::after,
+[data-theme="dark"] .bs-popover-auto[data-popper-placement^='bottom'] .popover-arrow::after {
+    border-bottom-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .bs-popover-start .popover-arrow::after,
+[data-theme="dark"] .bs-popover-auto[data-popper-placement^='left'] .popover-arrow::after {
+    border-left-color: var(--surface) !important;
+}
+
+[data-theme="dark"] .popover-body strong {
+    color: var(--text) !important;
+}
+
+/* Specific popover custom classes */
+[data-theme="dark"] .popover-cultivos {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .popover-cultivos .fw-semibold {
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .popover-cultivos .small {
+    color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+    19. INPUT PLACEHOLDER DARK MODE
+    ========================================================================== */
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] .form-control[type="text"]::placeholder,
+[data-theme="dark"] .form-control[type="search"]::placeholder,
+[data-theme="dark"] .form-control[type="email"]::placeholder,
+[data-theme="dark"] .form-control[type="number"]::placeholder,
+[data-theme="dark"] .form-control[type="password"]::placeholder,
+[data-theme="dark"] .form-control[type="date"]::placeholder,
+[data-theme="dark"] .form-control[type="time"]::placeholder,
+[data-theme="dark"] .form-control[type="datetime-local"]::placeholder,
+[data-theme="dark"] .form-control[type="month"]::placeholder,
+[data-theme="dark"] .form-control[type="week"]::placeholder,
+[data-theme="dark"] .form-control[type="tel"]::placeholder,
+[data-theme="dark"] .form-control[type="url"]::placeholder,
+[data-theme="dark"] textarea.form-control::placeholder,
+[data-theme="dark"] .form-select::placeholder {
+    color: rgba(233, 237, 243, 0.45) !important;
+    opacity: 1 !important;
+}
+
+/* Edge/Chrome/Safari input placeholder */
+[data-theme="dark"] .form-control::-webkit-input-placeholder,
+[data-theme="dark"] textarea.form-control::-webkit-input-placeholder {
+    color: rgba(233, 237, 243, 0.45) !important;
+    opacity: 1 !important;
+}
+
+/* Firefox input placeholder */
+[data-theme="dark"] .form-control::-moz-placeholder,
+[data-theme="dark"] textarea.form-control::-moz-placeholder {
+    color: rgba(233, 237, 243, 0.45) !important;
+    opacity: 1 !important;
+}
+
+/* Internet Explorer placeholder */
+[data-theme="dark"] .form-control:-ms-input-placeholder,
+[data-theme="dark"] textarea.form-control:-ms-input-placeholder {
+    color: rgba(233, 237, 243, 0.45) !important;
+    opacity: 1 !important;
+}
+
+/* Ensure readonly/disabled inputs also have correct placeholder in dark mode */
+[data-theme="dark"] .form-control[readonly]::placeholder,
+[data-theme="dark"] .form-control:disabled::placeholder {
+    color: rgba(233, 237, 243, 0.25) !important;
+}

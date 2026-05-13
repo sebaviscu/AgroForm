@@ -7,6 +7,7 @@ using AgroForm.Web.Models.IndexVM;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.Json;
 
 namespace AgroForm.Web.Components
 {
@@ -15,15 +16,18 @@ namespace AgroForm.Web.Components
         private readonly ITipoActividadService _tipoActividadService;
         private readonly ILoteService _loteService;
         private readonly ICicloCultivoService _cicloCultivoService;
+        private readonly IUnidadMedidaService _unidadMedidaService;
 
         public ActividadRapidaViewComponent(
             ITipoActividadService tipoActividadService,
             ILoteService loteService,
-            ICicloCultivoService cicloCultivoService)
+            ICicloCultivoService cicloCultivoService,
+            IUnidadMedidaService unidadMedidaService)
         {
             _tipoActividadService = tipoActividadService;
             _loteService = loteService;
             _cicloCultivoService = cicloCultivoService;
+            _unidadMedidaService = unidadMedidaService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -49,6 +53,21 @@ namespace AgroForm.Web.Components
                     IconoColorTipoActividad = t.ColorIcono
                 }).ToList() ?? new List<ActividadVM>()
             };
+
+            // Cargar configuraciones de unidades de medida para todos los tipos de actividad
+            if (vm.TiposActividadCompletos != null && vm.TiposActividadCompletos.Any())
+            {
+                var allConfigs = new Dictionary<int, List<CampoUnidadConfigDto>>();
+                foreach (var tipo in vm.TiposActividadCompletos)
+                {
+                    var config = await _unidadMedidaService.GetConfigUnidadesAsync(tipo.IdTipoActividad);
+                    allConfigs[tipo.IdTipoActividad] = config;
+                }
+                vm.UnidadesConfigJson = JsonSerializer.Serialize(allConfigs, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+            }
 
             return View(vm);
         }

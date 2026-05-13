@@ -86,7 +86,8 @@ namespace AgroForm.Model
         {
             Plaga = 10,
             Maleza = 11,
-            Enfermedad = 12
+            Enfermedad = 12,
+            Otro = 99
         }
         public enum TipoPagoLicenciaEnum
         {

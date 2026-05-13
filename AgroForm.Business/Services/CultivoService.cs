@@ -77,7 +77,7 @@ namespace AgroForm.Business.Services
                             && !_unitOfWork.Repository<LicenciasCultivos>().Query()
                                 .Any(lc => lc.IdCultivo == c.Id && lc.IdLicencia == licenciaId && !lc.Activo)));
 
-                var list = await query.OrderBy(c => c.Nombre).ToListAsync();
+                var list = await query.OrderBy(c => c.Orden ?? 999).ThenBy(c => c.Nombre).ToListAsync();
                 return OperationResult<List<Cultivo>>.SuccessResult(list);
             }
             catch (Exception ex)
@@ -100,7 +100,7 @@ namespace AgroForm.Business.Services
                     .Where(c => c.IdLicencia == licenciaId
                         || c.IdLicencia == null);
 
-                var list = await query.OrderBy(c => c.Nombre).ToListAsync();
+                var list = await query.OrderBy(c => c.Orden ?? 999).ThenBy(c => c.Nombre).ToListAsync();
                 return OperationResult<List<Cultivo>>.SuccessResult(list);
             }
             catch (Exception ex)
@@ -227,28 +227,34 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+                var strategy = _unitOfWork.Context.Database.CreateExecutionStrategy();
 
-                // Shift existing items that have orden >= entity.Orden
-                var repo = _unitOfWork.Repository<Cultivo>();
-                var itemsToShift = await repo.Query()
-                    .Where(c => c.Orden >= entity.Orden
-                        && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
-                    .OrderByDescending(c => c.Orden)
-                    .ToListAsync();
-
-                foreach (var item in itemsToShift)
+                return await strategy.ExecuteAsync(async () =>
                 {
-                    item.Orden++;
-                }
+                    // Shift existing items that have orden >= entity.Orden
+                    var repo = _unitOfWork.Repository<Cultivo>();
+                    var itemsToShift = await repo.Query()
+                        .Where(c => c.Orden >= entity.Orden
+                            && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
+                        .OrderByDescending(c => c.Orden)
+                        .ToListAsync();
 
-                // Now create the new entity
-                var result = await base.CreateAsync(entity);
-                if (!result.Success)
+                    foreach (var item in itemsToShift)
+                    {
+                        item.Orden++;
+                    }
+
+                    await repo.UpdateRangeAsync(itemsToShift);
+
+                    // Now create the new entity
+                    var result = await base.CreateAsync(entity);
+                    if (!result.Success)
+                        return result;
+
+                    await _unitOfWork.SaveAsync();
+
                     return result;
-
-                scope.Complete();
-                return result;
+                });
             }
             catch (Exception ex)
             {
@@ -266,63 +272,68 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var repo = _unitOfWork.Repository<Cultivo>();
-                var existing = await repo.GetAsync(c => c.Id == entity.Id);
-                if (existing == null)
-                    return OperationResult<Cultivo>.Failure("El cultivo no existe.", "NOT_FOUND");
+                var strategy = _unitOfWork.Context.Database.CreateExecutionStrategy();
 
-                var oldOrden = existing.Orden;
-                var newOrden = entity.Orden;
-
-                using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-                // If orden changed, handle shifting
-                if (oldOrden != newOrden)
+                return await strategy.ExecuteAsync(async () =>
                 {
-                    if (newOrden < oldOrden)
-                    {
-                        // Moving up: shift items between newOrden and oldOrden-1 up by 1
-                        var itemsToShift = await repo.Query()
-                            .Where(c => c.Orden >= newOrden && c.Orden < oldOrden && c.Id != entity.Id
-                                && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
-                            .OrderByDescending(c => c.Orden)
-                            .ToListAsync();
+                    var repo = _unitOfWork.Repository<Cultivo>();
+                    var existing = await repo.GetAsync(c => c.Id == entity.Id);
+                    if (existing == null)
+                        return OperationResult<Cultivo>.Failure("El cultivo no existe.", "NOT_FOUND");
 
-                        foreach (var item in itemsToShift)
+                    var oldOrden = existing.Orden;
+                    var newOrden = entity.Orden;
+
+                    // If orden changed, handle shifting
+                    if (oldOrden != newOrden)
+                    {
+                        if (newOrden < oldOrden)
                         {
-                            item.Orden++;
+                            // Moving up: shift items between newOrden and oldOrden-1 up by 1
+                            var itemsToShift = await repo.Query()
+                                .Where(c => c.Orden >= newOrden && c.Orden < oldOrden && c.Id != entity.Id
+                                    && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
+                                .OrderByDescending(c => c.Orden)
+                                .ToListAsync();
+
+                            foreach (var item in itemsToShift)
+                            {
+                                item.Orden++;
+                            }
+
+                            await repo.UpdateRangeAsync(itemsToShift);
+                        }
+                        else
+                        {
+                            // Moving down: shift items between oldOrden+1 and newOrden down by 1
+                            var itemsToShift = await repo.Query()
+                                .Where(c => c.Orden > oldOrden && c.Orden <= newOrden && c.Id != entity.Id
+                                    && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
+                                .OrderBy(c => c.Orden)
+                                .ToListAsync();
+
+                            foreach (var item in itemsToShift)
+                            {
+                                item.Orden--;
+                            }
+
+                            await repo.UpdateRangeAsync(itemsToShift);
                         }
                     }
-                    else
-                    {
-                        // Moving down: shift items between oldOrden+1 and newOrden down by 1
-                        var itemsToShift = await repo.Query()
-                            .Where(c => c.Orden > oldOrden && c.Orden <= newOrden && c.Id != entity.Id
-                                && (c.IdLicencia == null || c.IdLicencia == _userContext.IdLicencia))
-                            .OrderBy(c => c.Orden)
-                            .ToListAsync();
 
-                        foreach (var item in itemsToShift)
-                        {
-                            item.Orden--;
-                        }
-                    }
-                }
+                    // Update fields on existing entity
+                    existing.Nombre = entity.Nombre;
+                    existing.Descripcion = entity.Descripcion;
+                    existing.Color = entity.Color;
+                    existing.Orden = newOrden;
+                    existing.ModificationDate = TimeHelper.GetArgentinaTime();
+                    existing.ModificationUser = _userContext.UserName;
 
-                // Update fields on existing entity
-                existing.Nombre = entity.Nombre;
-                existing.Descripcion = entity.Descripcion;
-                existing.Color = entity.Color;
-                existing.Orden = newOrden;
-                existing.ModificationDate = TimeHelper.GetArgentinaTime();
-                existing.ModificationUser = _userContext.UserName;
+                    await repo.UpdateAsync(existing);
+                    await _unitOfWork.SaveAsync();
 
-                await repo.UpdateAsync(existing);
-                await _unitOfWork.SaveAsync();
-
-                scope.Complete();
-
-                return OperationResult<Cultivo>.SuccessResult(existing);
+                    return OperationResult<Cultivo>.SuccessResult(existing);
+                });
             }
             catch (Exception ex)
             {

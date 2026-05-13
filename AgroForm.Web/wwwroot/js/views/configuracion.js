@@ -189,6 +189,7 @@ function toggleCultivo(id, visible, $checkbox) {
                 cultivosData.forEach(function (c) {
                     if (c.id === id) c.isVisible = visible;
                 });
+                mostrarMensaje('Cultivo actualizado correctamente', 'success')
             } else {
                 // Revertir checkbox
                 $checkbox.prop('checked', !visible);
@@ -285,7 +286,7 @@ function guardarCultivo() {
             $('#modalCultivo').modal('hide');
 
             if (response.success) {
-                mostrarExito(isEditing ? 'Cultivo actualizado correctamente' : 'Cultivo creado correctamente');
+                mostrarExito(isEditing ? 'Cultivo actualizado correctamente' : 'Cultivo creado correctamente', 'success');
                 cargarCultivosConfig();
             } else {
                 mostrarError(response.message || 'Error al guardar cultivo');
@@ -604,6 +605,7 @@ function toggleCatalogo(id, visible, $checkbox) {
                 catalogosData.forEach(function (c) {
                     if (c.id === id) c.isVisible = visible;
                 });
+                mostrarMensaje('Catalogo actualizado correctamente', 'success')
             } else {
                 $checkbox.prop('checked', !visible);
                 mostrarError(response.message || 'Error al actualizar visibilidad');
@@ -695,7 +697,7 @@ function guardarCatalogo() {
             $('#modalCatalogo').modal('hide');
 
             if (response.success) {
-                mostrarExito(isEditing ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente');
+                mostrarMensaje(isEditing ? 'Catálogo actualizado correctamente' : 'Catálogo creado correctamente', 'success');
                 cargarCatalogosConfig();
             } else {
                 mostrarError(response.message || 'Error al guardar catálogo');
@@ -711,34 +713,4 @@ function guardarCatalogo() {
             mostrarError(msg);
         }
     });
-}
-
-// ============================================================================
-// UTILIDADES (usando funciones de site.js si existen)
-// ============================================================================
-
-function mostrarExito(mensaje, titulo) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            icon: 'success',
-            title: titulo || 'Éxito',
-            text: mensaje,
-            timer: 2000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
-        });
-    }
-}
-
-function mostrarError(mensaje, titulo) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            icon: 'error',
-            title: titulo || 'Error',
-            text: mensaje,
-            toast: true,
-            position: 'top-end'
-        });
-    }
 }

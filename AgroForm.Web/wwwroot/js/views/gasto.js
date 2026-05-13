@@ -2,13 +2,34 @@
 let graficoTorta;
 let graficoBarras;
 let monedaActual = 'ARS';
-let datosGastosIndex = []; // Datos para los cuadros superiores
+let datosGastosIndex = []; // Datos originales para los cuadros superiores
+let filtroCategoriaActual = 'ambos'; // 'ambos', 'gastos', 'labores'
 
 $(document).ready(function () {
     cargarDatosGastosIndex(); // Cargar datos para los cuadros
     inicializarDataTable();    // Cargar tabla principal
     configurarEventosGrilla();
+    configurarFiltroCategoria();
 });
+
+/**
+ * Devuelve los datos filtrados según la categoría seleccionada.
+ */
+function obtenerDatosFiltrados() {
+    if (filtroCategoriaActual === 'ambos') {
+        return datosGastosIndex;
+    }
+    const esLabor = filtroCategoriaActual === 'labores';
+    return datosGastosIndex.filter(gasto => gasto.esLabor === esLabor);
+}
+
+function configurarFiltroCategoria() {
+    $('input[name="filtroCategoria"]').on('change', function () {
+        filtroCategoriaActual = $(this).val();
+        // Actualizar solo los gráficos y la tabla resumen con los datos filtrados
+        actualizarEstadisticas();
+    });
+}
 
 function cargarDatosGastosIndex() {
     $.ajax({
@@ -46,7 +67,9 @@ function actualizarTablaResumen() {
     const tbody = $('#tbodyResumenGastos');
     tbody.empty();
 
-    if (!datosGastosIndex || datosGastosIndex.length === 0) {
+    const datosFiltrados = obtenerDatosFiltrados();
+
+    if (!datosFiltrados || datosFiltrados.length === 0) {
         tbody.append('<tr><td colspan="2" class="text-center text-muted">No hay datos</td></tr>');
         return;
     }
@@ -54,7 +77,7 @@ function actualizarTablaResumen() {
     // Agrupar gastos por descripción y sumar costos
     const gastosAgrupados = {};
 
-    datosGastosIndex.forEach(gasto => {
+    datosFiltrados.forEach(gasto => {
         const descripcion = gasto.descripcion || 'Sin descripción';
         const costo = monedaActual === 'ARS' ? (gasto.costoARS || 0) : (gasto.costoUSD || 0);
 
@@ -162,12 +185,13 @@ function inicializarGraficos() {
 }
 
 function actualizarGraficoTorta() {
-    if (!graficoTorta || !datosGastosIndex || datosGastosIndex.length === 0) return;
+    const datosFiltrados = obtenerDatosFiltrados();
+    if (!graficoTorta || !datosFiltrados || datosFiltrados.length === 0) return;
 
     // Agrupar gastos por descripción
     const gastosAgrupados = {};
 
-    datosGastosIndex.forEach(gasto => {
+    datosFiltrados.forEach(gasto => {
         const descripcion = gasto.descripcion || 'Sin descripción';
         const costo = monedaActual === 'ARS' ? (gasto.costoARS || 0) : (gasto.costoUSD || 0);
 
@@ -210,12 +234,13 @@ function actualizarGraficoTorta() {
 }
 
 function actualizarGraficoBarras() {
-    if (!graficoBarras || !datosGastosIndex || datosGastosIndex.length === 0) return;
+    const datosFiltrados = obtenerDatosFiltrados();
+    if (!graficoBarras || !datosFiltrados || datosFiltrados.length === 0) return;
 
     // Agrupar gastos por mes
     const gastosPorMes = {};
 
-    datosGastosIndex.forEach(gasto => {
+    datosFiltrados.forEach(gasto => {
         const fecha = new Date(gasto.fecha);
         const mesAnio = `${fecha.getFullYear()}-${(fecha.getMonth() + 1).toString().padStart(2, '0')}`;
         const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });

@@ -163,7 +163,7 @@
 </div>
 
 <!-- TEMPLATES PARA CAMPOS ESPECÍFICOS (ocultos) -->
-<div id="templates" style="display: none;">
+<div id="templates" style="display: none;" data-unidades-config='@Model.UnidadesConfigJson'>
 
     <!-- SIEMBRA -->
     <div id="templateSiembra">
@@ -193,16 +193,28 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="superficieHa" class="form-label">Superficie (Ha)</label>
-                            <input type="number" class="form-control" id="superficieHa" name="SuperficieHa"
-                                   min="0.01" step="0.01">
+                            <label for="superficieHa" class="form-label">Superficie</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="superficieHa" name="Superficie"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Superficie">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="superficieHa" data-nombre-propiedad="Superficie"
+                                        data-id-unidad-input="IdUnidadSuperficie">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="densidadSemillaKgHa" class="form-label">Densidad (Kg/Ha)</label>
-                            <input type="number" class="form-control" id="densidadSemillaKgHa" name="DensidadSemillaKgHa"
-                                   min="0.01" step="0.01">
+                            <label for="densidadSemillaKgHa" class="form-label">Densidad</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="densidadSemillaKgHa" name="Densidad"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Densidad">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="densidadSemillaKgHa" data-nombre-propiedad="Densidad"
+                                        data-id-unidad-input="IdUnidadDensidad">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -245,9 +257,15 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="volumenAguaM3" class="form-label">Volumen Agua (m³)</label>
-                            <input type="number" class="form-control" id="volumenAguaM3" name="VolumenAguaM3"
-                                   min="0.1" step="0.1">
+                            <label for="volumenAguaM3" class="form-label">Volumen Agua</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="volumenAguaM3" name="VolumenAgua"
+                                       min="0.1" step="0.1" data-nombre-propiedad="VolumenAgua">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="volumenAguaM3" data-nombre-propiedad="VolumenAgua"
+                                        data-id-unidad-input="IdUnidadVolumenAgua">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -299,16 +317,28 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="cantidadKgHa" class="form-label">Cantidad (Kg) </label>
-                            <input type="number" class="form-control" id="cantidadKgHa" name="CantidadKgHa"
-                                   min="0.01" step="0.01">
+                            <label for="cantidadKgHa" class="form-label">Cantidad</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="cantidadKgHa" name="Cantidad"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Cantidad">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="cantidadKgHa" data-nombre-propiedad="Cantidad"
+                                        data-id-unidad-input="IdUnidadCantidad">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="dosisKgHa" class="form-label">Dosis (Kg/Ha) </label>
-                            <input type="number" class="form-control" id="dosisKgHa" name="DosisKgHa"
-                                   min="0.01" step="0.01">
+                            <label for="dosisKgHa" class="form-label">Dosis</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="dosisKgHa" name="Dosis"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Dosis">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="dosisKgHa" data-nombre-propiedad="Dosis"
+                                        data-id-unidad-input="IdUnidadDosis">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -367,16 +397,28 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="mb-3">
-                            <label for="volumenLitrosHa" class="form-label">Volumen (Lt)</label>
-                            <input type="number" class="form-control" id="volumenLitrosHa" name="VolumenLitrosHa"
-                                   min="0.01" step="0.01">
+                            <label for="volumenLitrosHa" class="form-label">Volumen</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="volumenLitrosHa" name="Volumen"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Volumen">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="volumenLitrosHa" data-nombre-propiedad="Volumen"
+                                        data-id-unidad-input="IdUnidadVolumen">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="dosisPulverizacion" class="form-label">Dosis</label>
-                            <input type="number" class="form-control" id="dosisPulverizacion" name="DosisPulverizacion"
-                                   min="0.01" step="0.01">
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="dosisPulverizacion" name="Dosis"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Dosis">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="dosisPulverizacion" data-nombre-propiedad="Dosis"
+                                        data-id-unidad-input="IdUnidadDosis">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -466,6 +508,7 @@
                                 <option value="10">Plaga</option>
                                 <option value="11">Maleza</option>
                                 <option value="12">Enfermedad</option>
+                                <option value="99">Otro</option>
                             </select>
                         </div>
                     </div>
@@ -632,9 +675,15 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="rendimientoTonHa" class="form-label">Rendimiento (Ton/Ha)</label>
-                            <input type="number" class="form-control" id="rendimientoTonHa" name="RendimientoTonHa"
-                                   min="0.01" step="0.01">
+                            <label for="rendimientoTonHa" class="form-label">Rendimiento</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="rendimientoTonHa" name="Rendimiento"
+                                       min="0.01" step="0.01" data-nombre-propiedad="Rendimiento">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="rendimientoTonHa" data-nombre-propiedad="Rendimiento"
+                                        data-id-unidad-input="IdUnidadRendimiento">
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -646,9 +695,15 @@
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="superficieCosechadaHa" class="form-label">Superficie Cosechada (Ha)</label>
-                            <input type="number" class="form-control" id="superficieCosechadaHa" name="SuperficieCosechadaHa"
-                                   min="0.01" step="0.01">
+                            <label for="superficieCosechadaHa" class="form-label">Superficie Cosechada</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="superficieCosechadaHa" name="SuperficieCosechada"
+                                       min="0.01" step="0.01" data-nombre-propiedad="SuperficieCosechada">
+                                <select class="form-select unidad-selector" style="max-width: 110px;"
+                                        data-input="superficieCosechadaHa" data-nombre-propiedad="SuperficieCosechada"
+                                        data-id-unidad-input="IdUnidadSuperficieCosechada">
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -25,6 +25,13 @@ $(document).ready(function () {
     $('#btnGenerarReporte').on('click', function () {
         generarReporte();
     });
+
+    // Event: Select campania -> auto-generate report when changed
+    // $('#selectCampania').on('change', function () {
+    //     if (currentCampoId > 0) {
+    //         generarReporte();
+    //     }
+    // });
 });
 
 // Handle idCampo from URL query param (e.g., from "Ver Informe" button in Campos table)
@@ -222,11 +229,6 @@ function renderizarReporte() {
 function renderizarResumenEjecutivo(r) {
     if (!r) return;
 
-    var estadoColor = r.estadoGeneral === 'Excelente' ? '#28a745'
-        : r.estadoGeneral === 'Bueno' ? '#17a2b8'
-        : r.estadoGeneral === 'Regular' ? '#ffc107'
-        : '#dc3545';
-
     // Build multi-crop display with active/inactive visual hint
     var cultivosHtml = '';
     if (r.cultivos && r.cultivos.length > 0) {
@@ -237,7 +239,7 @@ function renderizarResumenEjecutivo(r) {
             var textClass = isActive ? 'text-success' : 'text-secondary';
             cultivosHtml += `<span class="badge ${bgClass} bg-opacity-10 border ${bgClass} border-opacity-25 ${textClass} px-2 py-1 d-inline-flex align-items-center gap-1" style="font-size:0.75rem;white-space:nowrap;">
                 ${c.nombre}
-                <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'} text-white ms-1" style="font-size:0.55rem;">${isActive ? 'Activo' : 'Finalizado'}</span>
+                ${isActive ? '<span class="badge bg-success text-white ms-1" style="font-size:0.55rem;">Activo</span>' : ''}
                 <small class="text-muted" style="font-size:0.65rem;">${formatNum(c.superficieHa, 1)} ha</small>
             </span>`;
         });
@@ -246,12 +248,37 @@ function renderizarResumenEjecutivo(r) {
         cultivosHtml = '<span class="text-muted">Sin cultivos registrados</span>';
     }
 
+    var hasMapData = (r.coordenadasPoligono && r.coordenadasPoligono !== '[]') || (r.latitud && r.longitud);
+
     var html = `
         <div class="row g-3">
-            <div class="col-lg-8">
+            <!-- Scores del Lote - 2x2 grid -->
+            <div class="col-lg-3">
+                <div class="card border h-100">
+                    <div class="card-body text-center d-flex flex-column">
+                        <h6 class="fw-semibold mb-3">Scores del Lote</h6>
+                        <div class="row g-2 flex-grow-1 align-items-center">
+                            <div class="col-6">
+                                ${renderScoreRing(r.scoreProductividad, 'Productividad')}
+                            </div>
+                            <div class="col-6">
+                                ${renderScoreRing(r.scoreSaludCultivo, 'Salud')}
+                            </div>
+                            <div class="col-6">
+                                ${renderScoreRing(r.scoreHumedad, 'Humedad')}
+                            </div>
+                            <div class="col-6">
+                                ${renderScoreRing(r.scoreHidrico != null ? r.scoreHidrico : 50, 'Hídrico', '#0d6efd')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- KPIs - 2x2 grid (4 KPIs) -->
+            <div class="col-lg-5">
                 <div class="row g-3">
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi bg-primary bg-opacity-10 border border-primary border-opacity-25">
+                    <div class="col-md-6 col-6">
+                        <div class="card-kpi bg-primary bg-opacity-10 border border-primary border-opacity-25 h-100">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-primary text-white">
                                     <i class="ph ph-tree"></i>
@@ -264,8 +291,8 @@ function renderizarResumenEjecutivo(r) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi bg-success bg-opacity-10 border border-success border-opacity-25">
+                    <div class="col-md-6 col-6">
+                        <div class="card-kpi bg-success bg-opacity-10 border border-success border-opacity-25 h-100">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-success text-white">
                                     <i class="ph ph-ruler"></i>
@@ -273,13 +300,18 @@ function renderizarResumenEjecutivo(r) {
                                 <div>
                                     <small class="text-muted text-uppercase fw-semibold">Superficie</small>
                                     <h5 class="mb-0 fw-bold">${formatNum(r.superficieHa, 1)} <small>ha</small></h5>
-                                    <small class="text-muted">${r.campania || ''}</small>
+                                    <small class="text-muted">
+                                        ${reporteData.nombreCampaniaSeleccionada || r.campania || ''}
+                                        ${reporteData.esCampaniaActual === false
+                                            ? '<span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Histórica</span>'
+                                            : '<span class="badge bg-success ms-1" style="font-size:0.6rem;">Actual</span>'}
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi bg-info bg-opacity-10 border border-info border-opacity-25">
+                    <div class="col-md-6 col-6">
+                        <div class="card-kpi bg-info bg-opacity-10 border border-info border-opacity-25 h-100">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-info text-white">
                                     <i class="ph ph-calendar"></i>
@@ -292,8 +324,8 @@ function renderizarResumenEjecutivo(r) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                    <div class="col-md-6 col-6">
+                        <div class="card-kpi bg-warning bg-opacity-10 border border-warning border-opacity-25 h-100">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="kpi-icon bg-warning text-white">
                                     <i class="ph ph-cloud-rain"></i>
@@ -306,74 +338,111 @@ function renderizarResumenEjecutivo(r) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi border" style="border-color: ${estadoColor}40 !important;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="kpi-icon text-white" style="background: ${estadoColor};">
-                                    <i class="ph ph-shield-check"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted text-uppercase fw-semibold">Estado General</small>
-                                    <h5 class="mb-0 fw-bold" style="color: ${estadoColor}">${r.estadoGeneral}</h5>
-                                    <small class="text-muted">Riesgo: ${r.riesgoActual}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <div class="card-kpi bg-danger bg-opacity-10 border border-danger border-opacity-25">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="kpi-icon bg-danger text-white">
-                                    <i class="ph ph-warning"></i>
-                                </div>
-                                <div>
-                                    <small class="text-muted text-uppercase fw-semibold">Riesgo Actual</small>
-                                    <h5 class="mb-0 fw-bold">${r.riesgoActual || 'Bajo'}</h5>
-                                    <small class="text-muted">Score: ${r.scoreRiesgo || '-'}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
+            <!-- Map -->
             <div class="col-lg-4">
-                <div class="card border h-100">
-                    <div class="card-body text-center d-flex flex-column">
-                        <h6 class="fw-semibold mb-3">Scores del Lote</h6>
-                        <div class="row g-2 flex-grow-1 align-items-center justify-content-center">
-                            <div class="col-4">
-                                ${renderScoreRing(r.scoreProductividad, 'Productividad')}
-                            </div>
-                            <div class="col-4">
-                                ${renderScoreRing(r.scoreSaludCultivo, 'Salud')}
-                            </div>
-                            <div class="col-4">
-                                ${renderScoreRing(r.scoreHumedad, 'Humedad')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                ${hasMapData ? '<div id="reportMapContainer" class="report-map-container" style="min-height:280px;"></div>' : '<div class="card border h-100 d-flex align-items-center justify-content-center"><div class="card-body text-center text-muted"><i class="ph ph-map-pin display-4 mb-2 d-block"></i>Sin datos de ubicación</div></div>'}
             </div>
         </div>
     `;
 
     $('#resumenEjecutivoContent').html(html);
+
+    // Renderizar mapa si hay datos
+    if (hasMapData) {
+        setTimeout(function () {
+            renderizarMapa(r);
+        }, 100);
+    }
 }
 
-function renderScoreRing(score, label) {
+function renderScoreRing(score, label, customColor) {
     score = score || 0;
     var pct = Math.min(score, 100);
-    var cls = pct >= 80 ? 'score-excellent' : pct >= 60 ? 'score-good' : pct >= 40 ? 'score-regular' : 'score-critical';
+    var cls = customColor ? 'score-custom' : (pct >= 80 ? 'score-excellent' : pct >= 60 ? 'score-good' : pct >= 40 ? 'score-regular' : 'score-critical');
+    var style = customColor ? `background: conic-gradient(${customColor} var(--pct), var(--border) var(--pct));` : '';
     return `
         <div class="text-center">
-            <div class="score-ring ${cls} mx-auto" style="--pct: ${pct}%;">
+            <div class="score-ring ${cls} mx-auto" style="--pct: ${pct}%;${style}">
                 <div class="score-ring-inner">
-                    <span class="fw-bold" style="font-size: 16px;">${pct}</span>
+                    <span class="fw-bold" style="font-size: 14px;">${pct}</span>
                 </div>
             </div>
-            <small class="text-muted mt-1 d-block">${label}</small>
+            <small class="text-muted mt-1 d-block" style="font-size:0.7rem;">${label}</small>
         </div>
     `;
+}
+
+function renderizarMapa(r) {
+    try {
+        var mapEl = document.getElementById('reportMapContainer');
+        if (!mapEl) return;
+
+        // Destroy previous map if exists
+        if (mapEl._leaflet_map) {
+            mapEl._leaflet_map.remove();
+            mapEl._leaflet_map = null;
+        }
+
+        var lat = r.latitud ? parseFloat(r.latitud) : null;
+        var lng = r.longitud ? parseFloat(r.longitud) : null;
+
+        var defaultCenter = lat && lng ? [lat, lng] : [-34.0, -64.0];
+        var map = L.map(mapEl, { zoomControl: true, attributionControl: false }).setView(defaultCenter, lat && lng ? 15 : 5);
+        mapEl._leaflet_map = map;
+
+        // --- Layer 1: OpenStreetMap ---
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+        });
+
+        // --- Layer 2: Esri Satellite ---
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://esri.com">Esri</a>'
+        });
+
+        // Add OSM as default
+        osmLayer.addTo(map);
+
+        // --- Base map layer control (switcher) ---
+        var baseMaps = {
+            'Mapa': osmLayer,
+            'Satélite': satelliteLayer
+        };
+
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+        // --- Field polygon ---
+        var polygonAdded = false;
+        if (r.coordenadasPoligono && r.coordenadasPoligono !== '[]') {
+            try {
+                var coords = JSON.parse(r.coordenadasPoligono);
+                if (coords && coords.length > 0) {
+                    var polygon = L.polygon(coords, {
+                        color: '#198754',
+                        weight: 2,
+                        fillColor: '#198754',
+                        fillOpacity: 0.15
+                    }).addTo(map);
+                    map.fitBounds(polygon.getBounds(), { padding: [20, 20] });
+                    polygonAdded = true;
+                }
+            } catch (e) {
+                console.warn('Error parsing polygon coords:', e);
+            }
+        }
+
+        // Fallback: add marker at lat/lng
+        if (!polygonAdded && lat && lng) {
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('<strong>' + (r.campo || 'Campo') + '</strong><br>Lat: ' + lat.toFixed(4) + '<br>Lng: ' + lng.toFixed(4));
+        }
+    } catch (e) {
+        console.error('Error rendering map:', e);
+    }
 }
 
 // ============================================================
@@ -430,6 +499,79 @@ function renderizarEvolucion(evo) {
 
     var html = '';
 
+    // Compute NDVI stats from the evolution data
+    var ndviPromedio = null;
+    var ndviMaximo = null;
+    var ndviMinimo = null;
+    if (evo.evolucion && evo.evolucion.length > 0) {
+        var valoresNdvi = evo.evolucion
+            .map(function (d) { return d.ndvi; })
+            .filter(function (v) { return v != null; });
+        if (valoresNdvi.length > 0) {
+            ndviPromedio = valoresNdvi.reduce(function (a, b) { return a + b; }, 0) / valoresNdvi.length;
+            ndviMaximo = Math.max.apply(null, valoresNdvi);
+            ndviMinimo = Math.min.apply(null, valoresNdvi);
+        }
+    }
+
+    // NDVI Summary Cards
+    var ndviColor = '#28a745';
+    if (ndviPromedio != null) {
+        if (ndviPromedio < 0.3) ndviColor = '#dc3545';
+        else if (ndviPromedio < 0.5) ndviColor = '#ffc107';
+        else if (ndviPromedio < 0.7) ndviColor = '#17a2b8';
+    }
+
+    var estadoVegetativo = ndviPromedio != null
+        ? (ndviPromedio >= 0.7 ? '🌿 Vigoroso'
+            : ndviPromedio >= 0.5 ? '🌱 Normal'
+            : ndviPromedio >= 0.3 ? '🍂 Moderado'
+            : '⚠️ Débil')
+        : 'Sin datos';
+
+    html += `
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="card text-center h-100" style="border-color: ${ndviColor}40; background: ${ndviColor}10;">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">NDVI Promedio</small>
+                        <h4 class="fw-bold mt-1" style="color: ${ndviColor}">${ndviPromedio != null ? ndviPromedio.toFixed(3) : '-'}</h4>
+                        <div class="ndvi-bar">
+                            <div class="ndvi-bar-fill" style="width: ${ndviPromedio != null ? (ndviPromedio * 100).toFixed(0) : 0}%; background: ${ndviColor};"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card bg-info bg-opacity-10 border-info border-opacity-25 text-center h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">NDVI Máximo</small>
+                        <h4 class="fw-bold text-info mt-1">${ndviMaximo != null ? ndviMaximo.toFixed(3) : '-'}</h4>
+                        <small class="text-muted">Pico vegetativo</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card bg-warning bg-opacity-10 border-warning border-opacity-25 text-center h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">NDVI Mínimo</small>
+                        <h4 class="fw-bold text-warning mt-1">${ndviMinimo != null ? ndviMinimo.toFixed(3) : '-'}</h4>
+                        <small class="text-muted">Valor más bajo</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card text-center h-100" style="border-color: ${ndviColor}40; background: ${ndviColor}10;">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">Estado Vegetativo</small>
+                        <h5 class="fw-bold mt-1" style="color: ${ndviColor}">${estadoVegetativo}</h5>
+                        <small class="text-muted">Basado en NDVI prom.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
     // Comparativa between campaigns
     if (evo.comparativa) {
         var cmp = evo.comparativa;
@@ -438,7 +580,7 @@ function renderizarEvolucion(evo) {
                 <div class="col-md-6">
                     <div class="card bg-success bg-opacity-10 border-success border-opacity-25 h-100">
                         <div class="card-body text-center">
-                            <h6 class="fw-semibold">Campaña Actual</h6>
+                            <h6 class="fw-semibold">${reporteData.nombreCampaniaSeleccionada || 'Campaña Actual'}</h6>
                             <h3 class="fw-bold text-success">${formatNum(cmp.rendimientoActual, 2) || '-'} <small>tn/ha</small></h3>
                             <small class="text-muted">NDVI Prom: ${formatNum(cmp.ndviPromedioActual, 2) || '-'}</small>
                         </div>
@@ -473,7 +615,6 @@ function renderEvolucionChart(datos) {
 
     var labels = datos.map(function (d) { return formatDate(d.fecha); });
     var ndvi = datos.map(function (d) { return d.ndvi != null ? d.ndvi : null; });
-    var humedad = datos.map(function (d) { return d.humedad != null ? d.humedad : null; });
 
     charts.evolucion = new Chart(ctx, {
         type: 'line',
@@ -491,18 +632,6 @@ function renderEvolucionChart(datos) {
                     pointBackgroundColor: 'rgba(40, 167, 69, 1)',
                     yAxisID: 'y'
                 },
-                {
-                    label: 'Humedad (%)',
-                    data: humedad,
-                    borderColor: 'rgba(23, 162, 184, 1)',
-                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 3,
-                    borderDash: [5, 5],
-                    pointBackgroundColor: 'rgba(23, 162, 184, 1)',
-                    yAxisID: 'y1'
-                }
             ]
         },
         options: {
@@ -517,10 +646,7 @@ function renderEvolucionChart(datos) {
                 tooltip: {
                     callbacks: {
                         label: function (ctx) {
-                            if (ctx.dataset.label === 'NDVI') {
-                                return 'NDVI: ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(3) : '-');
-                            }
-                            return ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) + '%' : '-');
+                            return 'NDVI: ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(3) : '-');
                         }
                     }
                 }
@@ -534,13 +660,6 @@ function renderEvolucionChart(datos) {
                         callback: function (value) { return value.toFixed(2); }
                     }
                 },
-                y1: {
-                    beginAtZero: true,
-                    max: 100,
-                    position: 'right',
-                    grid: { display: false },
-                    title: { display: true, text: 'Humedad (%)' }
-                }
             }
         }
     });
@@ -560,54 +679,80 @@ function renderizarClima(clima) {
         : clima.balanceHidrico === 'Moderado' || clima.balanceHidrico === 'Déficit hídrico' ? '#ffc107'
         : '#dc3545';
 
-    var html = `
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25 text-center h-100">
-                    <div class="card-body">
-                        <i class="ph ph-cloud-rain display-6 text-primary"></i>
-                        <h4 class="fw-bold mt-2">${formatNum(clima.lluviaAcumulada, 1) || '-'}</h4>
-                        <small class="text-muted">Lluvia Acumulada (mm)</small>
+    var hasCurrentConditions = clima.tempPromedio != null;
+
+    var html = '';
+
+    // Open-Meteo: Current Conditions Card
+    if (hasCurrentConditions) {
+        var icono = clima.iconoClima || 'ph-thermometer';
+        var descripcion = clima.descripcionClima || 'Datos actuales';
+        html += `
+            <div class="clima-current-card mb-4">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="text-center" style="min-width: 100px;">
+                        <i class="ph ${icono} display-4 text-primary"></i>
+                        <div class="fw-semibold text-muted small mt-1">${descripcion}</div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="h2 fw-bold mb-0">${formatNum(clima.tempPromedio, 1)}°C</div>
+                        <small class="text-muted">Temperatura actual</small>
+                        <div class="d-flex gap-4 mt-2">
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-drop text-info"></i>
+                                <span>${clima.humedadRelativa != null ? formatNum(clima.humedadRelativa, 0) + '%' : '-'}</span>
+                                <small class="text-muted d-block">Humedad</small>
+                            </div>
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-thermometer text-warning"></i>
+                                <span>${clima.sensacionTermica != null ? formatNum(clima.sensacionTermica, 1) + '°' : '-'}</span>
+                                <small class="text-muted d-block">Sensación térm.</small>
+                            </div>
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-arrow-up text-danger"></i>
+                                <span>${formatNum(clima.tempMaxima, 1) || '-'}°</span>
+                                <small class="text-muted d-block">Máx.</small>
+                            </div>
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-arrow-down text-info"></i>
+                                <span>${formatNum(clima.tempMinima, 1) || '-'}°</span>
+                                <small class="text-muted d-block">Mín.</small>
+                            </div>
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-cloud-rain text-warning"></i>
+                                <span>${clima.probabilidadLluvia != null ? formatNum(clima.probabilidadLluvia, 0) + '%' : '-'}</span>
+                                <small class="text-muted d-block">Prob. Lluvia (24h)</small>
+                            </div>
+                            <div class="clima-mini-stat">
+                                <i class="ph ph-drop" style="color: ${balanceColor}"></i>
+                                <span style="color: ${balanceColor}">${clima.balanceHidrico}</span>
+                                <small class="text-muted d-block">Balance Hídrico</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="card bg-warning bg-opacity-10 border-warning border-opacity-25 text-center h-100">
-                    <div class="card-body">
-                        <i class="ph ph-sun-dim display-6 text-warning"></i>
-                        <h4 class="fw-bold mt-2">${clima.diasSinLluvia != null ? clima.diasSinLluvia + ' días' : '-'}</h4>
-                        <small class="text-muted">Sin Lluvia</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card bg-info bg-opacity-10 border-info border-opacity-25 text-center h-100">
-                    <div class="card-body">
-                        <i class="ph ph-thermometer display-6 text-info"></i>
-                        <h4 class="fw-bold mt-2">${formatNum(clima.tempMinima, 1) || '-'}° / ${formatNum(clima.tempMaxima, 1) || '-'}°</h4>
-                        <small class="text-muted">Temp. Mín / Máx</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card text-center h-100" style="border-color: ${balanceColor}40; background: ${balanceColor}10;">
-                    <div class="card-body">
-                        <i class="ph ph-drop display-6" style="color: ${balanceColor}"></i>
-                        <h4 class="fw-bold mt-2" style="color: ${balanceColor}">${clima.balanceHidrico}</h4>
-                        <small class="text-muted">Balance Hídrico</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+        `;
+    }
+
+    // Historical campaign warning
+    if (clima.esHistorico) {
+        var campaniaNombre = reporteData.nombreCampaniaSeleccionada || 'esta campaña';
+        html += `
+        <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+            <i class="ph ph-clock-counter-clockwise fs-5"></i>
+            <span>
+                <strong>Datos climáticos históricos.</strong> Las condiciones meteorológicas actuales (Open-Meteo) corresponden al día de hoy y no a ${campaniaNombre}.
+                Las precipitaciones y heladas mostradas corresponden al período de la campaña seleccionada.
+            </span>
+        </div>`;
+    }
+
+    html += `
         ${clima.cantidadHeladas > 0 ? `
         <div class="alert alert-danger d-flex align-items-center gap-2">
             <i class="ph ph-snowflake fs-5"></i>
             <span>Se registraron <strong>${clima.cantidadHeladas}</strong> eventos de granizo/helada.</span>
-        </div>` : ''}
-        ${clima.estresHidrico && clima.estresHidrico !== 'Sin estrés' ? `
-        <div class="alert alert-warning d-flex align-items-center gap-2">
-            <i class="ph ph-warning fs-5"></i>
-            <span>Estrés hídrico: <strong>${clima.estresHidrico}</strong></span>
         </div>` : ''}
         <div class="mt-3">
             <h6 class="fw-semibold mb-2">Registros Climáticos</h6>
@@ -631,6 +776,9 @@ function renderizarClima(clima) {
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div class="text-end mb-3">
+            <small class="text-muted"><i class="ph ph-cloud me-1"></i>Datos meteorológicos: Open-Meteo</small>
         </div>
     `;
 
@@ -1623,6 +1771,7 @@ function formatDate(dateStr) {
     var year = d.getFullYear();
     return day + '/' + month + '/' + year;
 }
+
 
 function mostrarMensaje(mensaje, tipo) {
     if (typeof toastr !== 'undefined') {

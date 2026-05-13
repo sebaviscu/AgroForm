@@ -2,6 +2,10 @@
     ViewData["Title"] = "Informe Integral del Campo";
 }
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+
 <div class="container-fluid">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -36,13 +40,17 @@
                 <div class="col-auto">
                     <label for="selectCampania" class="form-label fw-semibold">
                         <i class="ph ph-calendar me-1"></i> Campaña
+                        <i class="ph ph-info text-muted" data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="Seleccione una campaña específica para ver los datos históricos de ese período. Al cambiar la campaña, el informe se regenera automáticamente."></i>
                     </label>
                     <select class="form-select" id="selectCampania" name="idCampania" disabled style="min-width:180px;">
-                        <option value="">Todas las campañas</option>
+                        <option value="">Todas las campañas (vista general)</option>
                     </select>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-primary" id="btnGenerarReporte" disabled>
+                    <button class="btn btn-primary" id="btnGenerarReporte" disabled
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Genera o regenera el informe integral para el campo y campaña seleccionados.">
                         <i class="ph ph-chart-bar me-1"></i> Generar
                     </button>
                 </div>
@@ -414,5 +422,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
     <script src="~/js/views/reporteCampos.js" asp-append-version="true"></script>
+    <script>
+        // Initialize Bootstrap tooltips
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
+        });
+    </script>
 }

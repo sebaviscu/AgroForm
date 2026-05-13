@@ -145,3 +145,38 @@ GO
 CREATE INDEX IX_SiloBolsas_IdLicencia_Fecha ON SiloBolsas (IdLicencia, Fecha);
 GO
 
+-- ============================================
+-- ÍNDICES: FK de Unidades de Medida en tablas de labor
+-- ============================================
+CREATE INDEX IX_Siembras_IdUnidadSuperficie ON Siembras (IdUnidadSuperficie);
+GO
+CREATE INDEX IX_Siembras_IdUnidadDensidad ON Siembras (IdUnidadDensidad);
+GO
+CREATE INDEX IX_Pulverizaciones_IdUnidadVolumen ON Pulverizaciones (IdUnidadVolumen);
+GO
+CREATE INDEX IX_Pulverizaciones_IdUnidadDosis ON Pulverizaciones (IdUnidadDosis);
+GO
+CREATE INDEX IX_Fertilizaciones_IdUnidadCantidad ON Fertilizaciones (IdUnidadCantidad);
+GO
+CREATE INDEX IX_Fertilizaciones_IdUnidadDosis ON Fertilizaciones (IdUnidadDosis);
+GO
+CREATE INDEX IX_Riegos_IdUnidadVolumenAgua ON Riegos (IdUnidadVolumenAgua);
+GO
+CREATE INDEX IX_Cosechas_IdUnidadRendimiento ON Cosechas (IdUnidadRendimiento);
+GO
+CREATE INDEX IX_Cosechas_IdUnidadSuperficieCosechada ON Cosechas (IdUnidadSuperficieCosechada);
+GO
+
+
+-- ============================================
+-- ÍNDICES UNIDADES DE MEDIDA
+-- ============================================
+
+CREATE INDEX IX_UnidadesMedida_Categoria ON UnidadesMedida (Categoria);
+GO
+CREATE INDEX IX_UnidadesMedida_DimensionBase ON UnidadesMedida (DimensionBase);
+GO
+CREATE UNIQUE INDEX IX_CamposLaborUnidadPermitida_Default
+    ON CamposLaborUnidadPermitida (IdCampoLaborUnidad, EsPredeterminado)
+    WHERE EsPredeterminado = 1;
+GO

@@ -50,7 +50,6 @@ function inicializarDataTable() {
             }
         },
         columns: [
-            { data: 'id', width: '80px' },
             {
                 data: 'estadoDisplay',
                 render: function (data, type, row) {
@@ -796,7 +795,7 @@ function guardarCampania() {
         success: function (response) {
             cerrarAlertas();
             if (response.success) {
-                mostrarExito(response.message || (esEdicion ? 'Campaña actualizada correctamente' : 'Campaña creada correctamente'));
+                mostrarExito(response.message || (esEdicion ? 'Campaña actualizada correctamente' : 'Campaña creada correctamente'), 'success');
                 $('#modalCampania').modal('hide');
                 table.ajax.reload();
             } else {

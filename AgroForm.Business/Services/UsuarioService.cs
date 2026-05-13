@@ -35,7 +35,7 @@ namespace AgroForm.Business.Services
 
         public async Task<Usuario?> GetUserByEmailAsync(string email)
         {
-            return await base.GetQuery().IgnoreQueryFilters().SingleOrDefaultAsync(x => x.Email == email);
+            return await base.GetQueryWithoutFilters().SingleOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task<bool> ValidateUserAsync(string email, string password)

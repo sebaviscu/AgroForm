@@ -99,7 +99,7 @@ namespace AgroForm.Business.Services
                         Fecha = s.Fecha,
                         Responsable = s.RegistrationUser,
                         RegistrationDate = s.RegistrationDate,
-                        Detalle = $"Cultivo: {s.Cultivo.Nombre}, Superficie: {s.SuperficieHa} ha, Densidad: {s.DensidadSemillaKgHa} kg/ha",
+                        Detalle = $"Cultivo: {s.Cultivo.Nombre}, Superficie: {s.Superficie}, Densidad: {s.Densidad}",
                         Costo = s.Costo,
                         CostoUSD = s.CostoUSD,
                         CostoARS = s.CostoARS,
@@ -130,7 +130,7 @@ namespace AgroForm.Business.Services
                     Fecha = r.Fecha,
                     Responsable = r.RegistrationUser,
                     RegistrationDate = r.RegistrationDate,
-                    Detalle = $"Horas: {r.HorasRiego}, Volumen: {r.VolumenAguaM3} m³",
+                    Detalle = $"Horas: {r.HorasRiego}, Volumen: {r.VolumenAgua}",
                     Costo = r.Costo,
                     CostoUSD = r.CostoUSD,
                     CostoARS = r.CostoARS,
@@ -161,7 +161,7 @@ namespace AgroForm.Business.Services
                     Fecha = f.Fecha,
                     Responsable = f.RegistrationUser,
                     RegistrationDate = f.RegistrationDate,
-                    Detalle = $"Nutriente: {f.Nutriente.Nombre}, Dosis: {f.DosisKgHa} kg/ha",
+                    Detalle = $"Nutriente: {f.Nutriente.Nombre}, Dosis: {f.Dosis}",
                     Costo = f.Costo,
                     CostoUSD = f.CostoUSD,
                     CostoARS = f.CostoARS,
@@ -193,7 +193,7 @@ namespace AgroForm.Business.Services
                     RegistrationDate = p.RegistrationDate,
                     Responsable = p.RegistrationUser,
                     Detalle = $"Producto: {p.ProductoAgroquimico.Nombre}" +
-                      $"{(p.VolumenLitrosHa.HasValue ? $", Volumen: {p.VolumenLitrosHa:N1} L/ha" : "")}" +
+                      $"{(p.Volumen.HasValue ? $", Volumen: {p.Volumen:N1}" : "")}" +
                       $"{(p.Dosis.HasValue ? $", Dosis: {p.Dosis:N1}" : "")}" +
                       $"{(string.IsNullOrEmpty(p.CondicionesClimaticas) ? "" : $", Cond: {p.CondicionesClimaticas}")}",
                     Costo = p.Costo,
@@ -258,9 +258,9 @@ namespace AgroForm.Business.Services
                     Responsable = c.RegistrationUser,
                     RegistrationDate = c.RegistrationDate,
                     Detalle = $"Cultivo: {c.Cultivo.Nombre}" +
-                      $"{(c.RendimientoTonHa.HasValue ? $", Rendimiento: {c.RendimientoTonHa:N1} ton/ha" : "")}" +
+                      $"{(c.Rendimiento.HasValue ? $", Rendimiento: {c.Rendimiento:N1}" : "")}" +
                       $"{(c.HumedadGrano.HasValue ? $", Humedad: {c.HumedadGrano:N1}%" : "")}" +
-                      $"{(c.SuperficieCosechadaHa.HasValue ? $", Sup: {c.SuperficieCosechadaHa:N1} ha" : "")}",
+                      $"{(c.SuperficieCosechada.HasValue ? $", Sup: {c.SuperficieCosechada:N1}" : "")}",
                     Costo = c.Costo,
                     CostoUSD = c.CostoUSD,
                     CostoARS = c.CostoARS,
@@ -480,6 +480,7 @@ namespace AgroForm.Business.Services
                             .Include(r => r.TipoActividad)
                             .Include(r => r.MetodoRiego)
                             .Include(r => r.FuenteAgua)
+                            .Include(r => r.UnidadVolumenAgua)
                             .Include(r => r.Lote)
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(r => r.Id == idActividad);
@@ -492,6 +493,8 @@ namespace AgroForm.Business.Services
                             .Include(f => f.Nutriente)
                             .Include(f => f.TipoFertilizante)
                             .Include(f => f.MetodoAplicacion)
+                            .Include(f => f.UnidadCantidad)
+                            .Include(f => f.UnidadDosis)
                             .Include(f => f.Lote)
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(f => f.Id == idActividad);
@@ -502,6 +505,8 @@ namespace AgroForm.Business.Services
                             .Include(s => s.Moneda)
                             .Include(p => p.TipoActividad)
                             .Include(p => p.ProductoAgroquimico)
+                            .Include(p => p.UnidadVolumen)
+                            .Include(p => p.UnidadDosis)
                             .Include(p => p.Lote)
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(p => p.Id == idActividad);
@@ -523,6 +528,8 @@ namespace AgroForm.Business.Services
                             .Include(s => s.Moneda)
                             .Include(c => c.TipoActividad)
                             .Include(c => c.Cultivo)
+                            .Include(c => c.UnidadRendimiento)
+                            .Include(c => c.UnidadSuperficieCosechada)
                             .Include(c => c.Lote)
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(c => c.Id == idActividad);

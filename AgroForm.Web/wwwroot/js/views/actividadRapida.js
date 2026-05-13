@@ -56,7 +56,91 @@ $(document).ready(function () {
 
             // Configurar límites basados en superficie sembrada para Cosecha y Silo Bolsa
             configurarLimitesPorSuperficieSembrada(tipoActividadNombre);
+
+            // Inicializar selectores de unidad de medida según tipo de actividad
+            var selectedOption = tipoActividadSelect.find('option:selected');
+            var idTipoActividad = selectedOption.data('id-tipo-actividad');
+            if (idTipoActividad) {
+                inicializarSelectoresUnidad(idTipoActividad);
+            }
         }
+    }
+
+    function actualizarTooltipUnidad(element) {
+        var select = $(element);
+        var selectedOption = select.find('option:selected');
+        var nombre = selectedOption.data('nombre');
+        if (nombre) {
+            // Set tooltip on the Choices.js container (the outer .choices div)
+            var choicesContainer = element.closest('.choices');
+            if (choicesContainer) {
+                choicesContainer.title = nombre;
+            }
+        }
+    }
+
+    function inicializarSelectoresUnidad(tipoActividadId) {
+        var allConfigsStr = $('#templates').attr('data-unidades-config');
+        if (!allConfigsStr || allConfigsStr === '') return;
+
+        var allConfigs = JSON.parse(allConfigsStr);
+        var configs = allConfigs[tipoActividadId.toString()];
+        if (!configs) return;
+
+        configs.forEach(function (config) {
+            var select = $('.unidad-selector[data-nombre-propiedad="' + config.nombrePropiedad + '"]');
+            if (select.length === 0) return;
+
+            // Destroy existing Choices instance before modifying the select
+            var element = select[0];
+            if (element._choicesInstance) {
+                element._choicesInstance.destroy();
+                delete element._choicesInstance;
+            }
+
+            // Save current value if selecting again (e.g., switching tipos)
+            var currentVal = select.val();
+
+            select.empty();
+            config.unidades.forEach(function (unidad) {
+                // Show only the abbreviation (sigla) in the dropdown
+                // Store the full name as data-nombre for tooltip
+                select.append($('<option>', {
+                    value: unidad.id,
+                    text: unidad.sigla,
+                    selected: unidad.esPredeterminado,
+                    'data-nombre': unidad.nombre || unidad.sigla
+                }));
+            });
+
+            // Set default: prefer current value, then predeterminada, then first option
+            if (currentVal && currentVal !== '' && select.find('option[value="' + currentVal + '"]').length) {
+                select.val(currentVal);
+            } else if (config.idUnidadPredeterminada) {
+                select.val(config.idUnidadPredeterminada);
+            }
+
+            // Initialize Choices.js without remove button (required field)
+            if (typeof Choices !== 'undefined') {
+                const instance = new Choices(element, {
+                    searchEnabled: false,
+                    placeholder: true,
+                    shouldSort: false,
+                    placeholderValue: 'Seleccione...',
+                    itemSelectText: '',
+                    removeItemButton: false
+                });
+                element._choicesInstance = instance;
+            }
+
+            // Set tooltip with the full unit name on the Choices container
+            actualizarTooltipUnidad(select);
+
+            // Update tooltip when selection changes (Choices fires 'change' on the native select)
+            select.off('change.actualizarTooltip').on('change.actualizarTooltip', function () {
+                actualizarTooltipUnidad(select);
+            });
+        });
     }
 
     function cargarSwitchMoneda(idSwitch, idLabel) {
@@ -759,13 +843,21 @@ $(document).ready(function () {
     }
 
     // Obtener datos específicos según tipo de actividad
+    function obtenerValorUnidadSelector(inputId) {
+        var selector = $('#' + inputId).closest('.input-group').find('.unidad-selector');
+        var val = selector.val();
+        return val ? parseInt(val) : null;
+    }
+
     function obtenerDatosEspecificos(tipoActividadNombre) {
         var datos = {};
         switch (tipoActividadNombre) {
             case 2: // Siembra
                 datos = {
-                    SuperficieHa: parseFloat($('#superficieHa').val()) || 0,
-                    DensidadSemillaKgHa: parseFloat($('#densidadSemillaKgHa').val()) || 0,
+                    Superficie: parseFloat($('#superficieHa').val()) || null,
+                    IdUnidadSuperficie: obtenerValorUnidadSelector('superficieHa'),
+                    Densidad: parseFloat($('#densidadSemillaKgHa').val()) || null,
+                    IdUnidadDensidad: obtenerValorUnidadSelector('densidadSemillaKgHa'),
                     Costo: parseFloat($('#costoSiembra').val()) || 0,
                     IdCultivo: parseInt($('#idCultivo').val()),
                     IdMetodoSiembra: parseInt($('#idMetodoSiembra').val()),
@@ -775,7 +867,8 @@ $(document).ready(function () {
             case 5: // Riego
                 datos = {
                     HorasRiego: parseFloat($('#horasRiego').val()) || 0,
-                    VolumenAguaM3: parseFloat($('#volumenAguaM3').val()) || 0,
+                    VolumenAgua: parseFloat($('#volumenAguaM3').val()) || null,
+                    IdUnidadVolumenAgua: obtenerValorUnidadSelector('volumenAguaM3'),
                     IdMetodoRiego: parseInt($('#idMetodoRiego').val()),
                     IdFuenteAgua: $('#idFuenteAgua').val() ? parseInt($('#idFuenteAgua').val()) : null,
                     Costo: parseFloat($('#costoRiegoTotal').val()) || 0,
@@ -784,8 +877,10 @@ $(document).ready(function () {
                 break;
             case 4: // Fertilizado
                 datos = {
-                    CantidadKgHa: parseFloat($('#cantidadKgHa').val()) || 0,
-                    DosisKgHa: parseFloat($('#dosisKgHa').val()) || 0,
+                    Cantidad: parseFloat($('#cantidadKgHa').val()) || null,
+                    IdUnidadCantidad: obtenerValorUnidadSelector('cantidadKgHa'),
+                    Dosis: parseFloat($('#dosisKgHa').val()) || null,
+                    IdUnidadDosis: obtenerValorUnidadSelector('dosisKgHa'),
                     Costo: parseFloat($('#costoFertilizado').val()) || 0,
                     IdNutriente: parseInt($('#idNutriente').val()),
                     IdTipoFertilizante: parseInt($('#idTipoFertilizante').val()),
@@ -795,8 +890,10 @@ $(document).ready(function () {
                 break;
             case 3: // Pulverizacion
                 datos = {
-                    VolumenLitrosHa: parseFloat($('#volumenLitrosHa').val()) || 0,
-                    Dosis: parseFloat($('#dosisPulverizacion').val()) || 0,
+                    Volumen: parseFloat($('#volumenLitrosHa').val()) || null,
+                    IdUnidadVolumen: obtenerValorUnidadSelector('volumenLitrosHa'),
+                    Dosis: parseFloat($('#dosisPulverizacion').val()) || null,
+                    IdUnidadDosis: obtenerValorUnidadSelector('dosisPulverizacion'),
                     CondicionesClimaticas: $('#condicionesClimaticas').val() || '',
                     IdProductoAgroquimico: parseInt($('#idProductoAgroquimico').val()),
                     Costo: parseFloat($('#costoPulverizacionTotal').val()) || 0,
@@ -830,9 +927,11 @@ $(document).ready(function () {
                 break;
             case 7: // Cosecha
                 datos = {
-                    RendimientoTonHa: parseFloat($('#rendimientoTonHa').val()) || 0,
+                    Rendimiento: parseFloat($('#rendimientoTonHa').val()) || null,
+                    IdUnidadRendimiento: obtenerValorUnidadSelector('rendimientoTonHa'),
                     HumedadGrano: parseFloat($('#humedadGrano').val()) || 0,
-                    SuperficieCosechadaHa: parseFloat($('#superficieCosechadaHa').val()) || 0,
+                    SuperficieCosechada: parseFloat($('#superficieCosechadaHa').val()) || null,
+                    IdUnidadSuperficieCosechada: obtenerValorUnidadSelector('superficieCosechadaHa'),
                     IdCultivo: parseInt($('#idCultivoCosecha').val()),
                     Costo: parseFloat($('#costoCosechaTotal').val()) || 0,
                     EsDolar: $('#switchMonedaCostoCosecha').is(':checked')
