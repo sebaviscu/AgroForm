@@ -65,7 +65,10 @@ namespace AgroForm.Business.Services
                 if (idLicencia == null)
                     return OperationResult<Campania>.Failure("ID de licencia no proporcionado", "BAD_REQUEST");
 
-                var campania = await GetQuery()
+                // Usamos GetQueryWithoutFilters() porque este método se llama desde el login,
+                // donde el usuario aún no está autenticado y _userContext.IdLicencia es null.
+                // El filtro de licencia ya se aplica explícitamente en el Where() siguiente.
+                var campania = await GetQueryWithoutFilters()
                     .Where(_ => _.EstadosCampania == EnumClass.EstadosCamapaña.EnCurso || _.EstadosCampania == EnumClass.EstadosCamapaña.Planificada)
                     .FirstOrDefaultAsync(_ => _.IdLicencia == idLicencia);
 
