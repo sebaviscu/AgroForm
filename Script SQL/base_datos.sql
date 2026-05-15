@@ -1,4 +1,13 @@
 
+USE master;
+GO
+
+ALTER DATABASE AgroForm SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+GO
+
+DROP DATABASE AgroForm;
+GO
+
 CREATE DATABASE AgroForm;
 
 
@@ -134,7 +143,7 @@ CREATE TABLE LicenciasCultivos (
     CONSTRAINT FK_LicenciasCultivos_Licencias
         FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
     CONSTRAINT FK_LicenciasCultivos_Cultivos
-        FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id) ON DELETE CASCADE
+        FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Catalogos (
@@ -169,7 +178,7 @@ CREATE TABLE LicenciasCatalogos (
     CONSTRAINT FK_LicenciasCatalogos_Licencias
         FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
     CONSTRAINT FK_LicenciasCatalogos_Catalogos
-        FOREIGN KEY (IdCatalogo) REFERENCES Catalogos(Id) ON DELETE CASCADE
+        FOREIGN KEY (IdCatalogo) REFERENCES Catalogos(Id) ON DELETE NO ACTION
 );
 
 CREATE TABLE Lotes (
@@ -184,7 +193,7 @@ CREATE TABLE Lotes (
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL,
     FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE
 );
 
@@ -208,7 +217,7 @@ CREATE TABLE CicloCultivos (
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
     FOREIGN KEY (IdLote) REFERENCES Lotes(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
-    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
+    FOREIGN KEY (IdCampania) REFERENCES Campanias(Id)
 );
 
 
@@ -222,6 +231,20 @@ CREATE TABLE Monedas (
     RegistrationUser NVARCHAR(150) NULL,
     ModificationDate DATETIME NULL,
     ModificationUser NVARCHAR(150) NULL
+);
+
+-- UnidadesMedida
+CREATE TABLE UnidadesMedida (
+    Id INT IDENTITY(1,1) NOT NULL,
+    Nombre NVARCHAR(100) NOT NULL,
+    Sigla NVARCHAR(20) NOT NULL,
+    Categoria INT NOT NULL,
+    DimensionBase INT NOT NULL,
+    FactorConversion DECIMAL(18,6) NOT NULL DEFAULT 1.0,
+    Orden INT NULL,
+    Activo BIT NOT NULL DEFAULT 1,
+    CONSTRAINT PK_UnidadesMedida PRIMARY KEY CLUSTERED (Id ASC),
+    CONSTRAINT CHK_UnidadesMedida_FactorConversion CHECK (FactorConversion > 0)
 );
 
 CREATE TABLE Siembras (
@@ -254,7 +277,7 @@ CREATE TABLE Siembras (
     
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
     FOREIGN KEY (IdMetodoSiembra) REFERENCES Catalogos(Id),
@@ -291,7 +314,7 @@ CREATE TABLE Riegos (
     
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdMetodoRiego) REFERENCES Catalogos(Id),
     FOREIGN KEY (IdFuenteAgua) REFERENCES Catalogos(Id),
@@ -330,7 +353,7 @@ CREATE TABLE Fertilizaciones (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdNutriente) REFERENCES Catalogos(Id),
     FOREIGN KEY (IdTipoFertilizante) REFERENCES Catalogos(Id),
@@ -369,7 +392,7 @@ CREATE TABLE Pulverizaciones (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdProductoAgroquimico) REFERENCES Catalogos(Id),
  FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
@@ -402,7 +425,7 @@ CREATE TABLE Monitoreos (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdEstadoFenologico) REFERENCES EstadosFenologicos(Id),
     FOREIGN KEY (IdTipoMonitoreo) REFERENCES Catalogos(Id),
@@ -441,7 +464,7 @@ CREATE TABLE AnalisisSuelos (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdLaboratorio) REFERENCES Catalogos(Id),
 	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
@@ -477,7 +500,7 @@ CREATE TABLE Cosechas (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id),
 	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
@@ -505,16 +528,16 @@ CREATE TABLE OtrasLabores (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
  FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
    FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id)
 );
 
 -- ============================================
--- TABLA: SiloBolsas
+-- TABLA: Acopios
 -- ============================================
-CREATE TABLE SiloBolsas (
+CREATE TABLE Acopios (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     IdCampania INT NOT NULL,
     IdLicencia INT NOT NULL,
@@ -523,14 +546,31 @@ CREATE TABLE SiloBolsas (
     IdLote INT NOT NULL,
     IdTipoActividad INT NOT NULL,
     IdUsuario INT NULL,
+    TipoAcopio INT NOT NULL DEFAULT 1,
     Codigo NVARCHAR(50) NOT NULL DEFAULT '',
-    Longitud DECIMAL(10,2) NULL,
+    FechaIngreso DATETIME2 NULL,
+    IdCultivo INT NOT NULL,
+    CantidadActualTn DECIMAL(10,2) NULL,
     CapacidadTotalTn DECIMAL(10,2) NULL,
     HumedadGrano DECIMAL(5,2) NULL,
+    Estado NVARCHAR(50) NOT NULL DEFAULT '',
+    Ubicacion NVARCHAR(150) NOT NULL DEFAULT '',
+    -- Silo Bolsa specific
+    Longitud DECIMAL(10,2) NULL,
+    Diametro DECIMAL(10,2) NULL,
+    FechaEmbolsado DATETIME2 NULL,
+    -- Silo specific
+    TipoSilo NVARCHAR(50) NULL,
+    Aireacion BIT NULL,
+    TemperaturaGrano DECIMAL(5,2) NULL,
+    -- Planta Externa specific
+    Empresa NVARCHAR(150) NULL,
+    NumeroContrato NVARCHAR(50) NULL,
+    TarifaAlmacenaje DECIMAL(18,2) NULL,
     Costo DECIMAL(18,2) NULL,
-	CostoARS DECIMAL(18,2) NULL,
+    CostoARS DECIMAL(18,2) NULL,
     CostoUSD DECIMAL(18,2) NULL,
-	IdMoneda INT NOT NULL,
+    IdMoneda INT NOT NULL,
     IdCicloCultivo INT NOT NULL,
     RegistrationDate DATETIME NULL,
     RegistrationUser NVARCHAR(150) NULL,
@@ -539,10 +579,11 @@ CREATE TABLE SiloBolsas (
 
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdLote) REFERENCES Lotes(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id),
-	FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
-    FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id)
+    FOREIGN KEY (IdMoneda) REFERENCES Monedas(Id) ON DELETE NO ACTION,
+    FOREIGN KEY (IdCicloCultivo) REFERENCES CicloCultivos(Id),
+    FOREIGN KEY (IdCultivo) REFERENCES Cultivos(Id)
 );
 
 CREATE TABLE RegistrosClima (
@@ -560,7 +601,7 @@ CREATE TABLE RegistrosClima (
     ModificationUser NVARCHAR(150) NULL,
 	
     FOREIGN KEY (IdCampania) REFERENCES Campanias(Id),
-    FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdCampo) REFERENCES Campos(Id) ON DELETE NO ACTION,
     FOREIGN KEY (IdLicencia) REFERENCES Licencias(Id) ON DELETE CASCADE
 );
 
@@ -606,7 +647,7 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [CostoMonitoreosArs] [decimal](18,2) NOT NULL,
     [CostoFertilizantesArs] [decimal](18,2) NOT NULL,
     [CostoOtrasLaboresArs] [decimal](18,2) NOT NULL,
-    [CostoSiloBolsasArs] [decimal](18,2) NOT NULL,
+    [CostoAcopiosArs] [decimal](18,2) NOT NULL,
     
     [AnalisisSueloUsd] [decimal](18,2) NOT NULL,
     [CostoSiembrasUsd] [decimal](18,2) NOT NULL,
@@ -616,7 +657,7 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     [CostoMonitoreosUsd] [decimal](18,2) NOT NULL,
     [CostoFertilizantesUsd] [decimal](18,2) NOT NULL,
     [CostoOtrasLaboresUsd] [decimal](18,2) NOT NULL,
-    [CostoSiloBolsasUsd] [decimal](18,2) NOT NULL,
+    [CostoAcopiosUsd] [decimal](18,2) NOT NULL,
     
     GastosTotalesArs decimal(18,2) NOT NULL,
 	GastosTotalesUsd decimal(18,2) NOT NULL,
@@ -637,8 +678,8 @@ CREATE TABLE [dbo].[ReporteCierreCampania](
     
     -- Constraints
     CONSTRAINT [PK_ReporteCierreCampania] PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_ReporteCierreCampania_Campania_IdCampania] FOREIGN KEY ([IdCampania]) 
-        REFERENCES [dbo].[Campanias] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_ReporteCierreCampania_Campania_IdCampania] FOREIGN KEY ([IdCampania])
+        REFERENCES [dbo].[Campanias] ([Id]) ON DELETE NO ACTION,
     CONSTRAINT [FK_ReporteCierreCampania_Licencia_IdLicencia] FOREIGN KEY ([IdLicencia])
         REFERENCES [dbo].[Licencias] ([Id]) ON DELETE CASCADE
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY];
@@ -664,49 +705,13 @@ CREATE TABLE Gastos (
     CONSTRAINT FK_Gastos_Monedas FOREIGN KEY (IdMoneda)
         REFERENCES Monedas(Id),
     CONSTRAINT FK_Gastos_Campanias FOREIGN KEY (IdCampania)
-        REFERENCES Campanias(Id) ON DELETE CASCADE,
+        REFERENCES Campanias(Id) ON DELETE NO ACTION,
     CONSTRAINT FK_Gastos_Licencias FOREIGN KEY (IdLicencia)
         REFERENCES Licencias(Id) ON DELETE CASCADE
 );
 
-
-
-
--- Primero, cambiar a otra base de datos
-USE master;
 GO
 
--- Cerrar todas las conexiones a la base de datos AgroForm
-ALTER DATABASE AgroForm SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-GO
-
--- Ahora eliminar la base de datos
-DROP DATABASE AgroForm;
-GO
-
--- ============================================
--- NUEVAS TABLAS: Sistema de Unidades de Medida
--- ============================================
-
--- UnidadesMedida
-CREATE TABLE UnidadesMedida (
-    Id INT IDENTITY(1,1) NOT NULL,
-    Nombre NVARCHAR(100) NOT NULL,
-    Sigla NVARCHAR(20) NOT NULL,
-    Categoria INT NOT NULL,
-    DimensionBase INT NOT NULL,
-    FactorConversion DECIMAL(18,6) NOT NULL DEFAULT 1.0,
-    Orden INT NULL,
-    Activo BIT NOT NULL DEFAULT 1,
-    CONSTRAINT PK_UnidadesMedida PRIMARY KEY CLUSTERED (Id ASC),
-    CONSTRAINT CHK_UnidadesMedida_FactorConversion CHECK (FactorConversion > 0)
-);
-GO
-
-CREATE INDEX IX_UnidadesMedida_Categoria ON UnidadesMedida (Categoria);
-GO
-CREATE INDEX IX_UnidadesMedida_DimensionBase ON UnidadesMedida (DimensionBase);
-GO
 
 -- CamposLaborUnidad
 CREATE TABLE CamposLaborUnidad (
@@ -747,3 +752,74 @@ CREATE UNIQUE INDEX IX_CamposLaborUnidadPermitida_Default
     ON CamposLaborUnidadPermitida (IdCampoLaborUnidad, EsPredeterminado)
     WHERE EsPredeterminado = 1;
 GO
+
+
+CREATE TABLE [dbo].[IndicesSatelitales] (
+        [Id]              INT            IDENTITY(1,1) NOT NULL,
+        [IdLote]          INT            NOT NULL,
+        [IdLicencia]      INT            NULL,
+        [FechaCaptura]    DATE           NOT NULL,
+        [FechaConsulta]   DATETIME2      NOT NULL DEFAULT GETUTCDATE(),
+        [Fuente]          VARCHAR(50)    NOT NULL DEFAULT 'Sentinel-2 (Copernicus)',
+        [ResolucionMts]   INT            NOT NULL DEFAULT 10,
+        [CloudCover]      DECIMAL(5,2)   NULL,
+        [NDVI]            DECIMAL(5,3)   NULL,
+        [NDWI]            DECIMAL(5,3)   NULL,
+        [EVI]             DECIMAL(5,3)   NULL,
+        [NDRE]            DECIMAL(5,3)   NULL,
+        [SAVI]            DECIMAL(5,3)   NULL,
+        [GNDVI]           DECIMAL(5,3)   NULL,
+        [EsValido]        BIT            NOT NULL DEFAULT 1,
+        [IdCampania]      INT            NULL,
+
+        CONSTRAINT [PK_IndicesSatelitales] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [FK_IndicesSatelitales_Lotes] FOREIGN KEY ([IdLote])
+            REFERENCES [dbo].[Lotes] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_IndicesSatelitales_Licencias] FOREIGN KEY ([IdLicencia])
+            REFERENCES [dbo].[Licencias] ([Id]),
+        CONSTRAINT [FK_IndicesSatelitales_Campanias] FOREIGN KEY ([IdCampania])
+            REFERENCES [dbo].[Campanias] ([Id])
+    );
+	
+GO
+
+CREATE TABLE [dbo].[LotesGeometria] (
+        [Id]                       INT            IDENTITY(1,1) NOT NULL,
+        [IdLote]                   INT            NOT NULL,
+        [GeometriaOriginal]        NVARCHAR(MAX)  NOT NULL,
+        [GeometriaSimplificada]    NVARCHAR(MAX)  NOT NULL,
+        [ToleranciaSimplificacion] DECIMAL(10,6)  NULL,
+        [AreaHa]                   DECIMAL(10,4)  NULL,
+        [CentroLat]                DECIMAL(10,7)  NULL,
+        [CentroLng]                DECIMAL(10,7)  NULL,
+        [BoundsJson]               NVARCHAR(500)  NULL,
+        [FechaCalculo]             DATETIME2      NOT NULL DEFAULT GETUTCDATE(),
+
+        CONSTRAINT [PK_LotesGeometria] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [FK_LotesGeometria_Lotes] FOREIGN KEY ([IdLote])
+            REFERENCES [dbo].[Lotes] ([Id]) ON DELETE CASCADE
+    );
+	
+GO
+
+CREATE TABLE [dbo].[LogsConsultasSatelitales] (
+        [Id]              BIGINT         IDENTITY(1,1) NOT NULL,
+        [IdLote]          INT            NULL,
+        [FechaConsulta]   DATETIME2      NOT NULL DEFAULT GETUTCDATE(),
+        [TipoConsulta]    VARCHAR(50)    NOT NULL,
+        [IndiceSolicitado] VARCHAR(50)   NOT NULL,
+        [FechaDesde]      DATE           NULL,
+        [FechaHasta]      DATE           NULL,
+        [Parametros]      NVARCHAR(MAX)  NULL,
+        [DuracionMs]      INT            NULL,
+        [Exitoso]         BIT            NOT NULL DEFAULT 1,
+        [ErrorMessage]    NVARCHAR(500)  NULL,
+        [CostoEstimado]   DECIMAL(10,8)  NULL,  -- Siempre NULL en Copernicus (sin costo unitario)
+        [IdLicencia]      INT            NULL,
+
+        CONSTRAINT [PK_LogsConsultasSatelitales] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+	
+	
+	
+	

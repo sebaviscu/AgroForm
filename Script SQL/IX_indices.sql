@@ -37,7 +37,7 @@ CREATE INDEX IX_Cosechas_IdLicencia ON Cosechas (IdLicencia);
 GO
 CREATE INDEX IX_OtrasLabores_IdLicencia ON OtrasLabores (IdLicencia);
 GO
-CREATE INDEX IX_SiloBolsas_IdLicencia ON SiloBolsas (IdLicencia);
+CREATE INDEX IX_Acopios_IdLicencia ON Acopios (IdLicencia);
 GO
 
 -- ============================================
@@ -60,7 +60,7 @@ CREATE INDEX IX_Cosechas_IdLicencia_IdCampania ON Cosechas (IdLicencia, IdCampan
 GO
 CREATE INDEX IX_OtrasLabores_IdLicencia_IdCampania ON OtrasLabores (IdLicencia, IdCampania);
 GO
-CREATE INDEX IX_SiloBolsas_IdLicencia_IdCampania ON SiloBolsas (IdLicencia, IdCampania);
+CREATE INDEX IX_Acopios_IdLicencia_IdCampania ON Acopios (IdLicencia, IdCampania);
 GO
 CREATE INDEX IX_Lotes_IdLicencia_IdCampania ON Lotes (IdLicencia, IdCampania);
 GO
@@ -87,7 +87,7 @@ CREATE INDEX IX_Cosechas_IdLicencia_IdLote ON Cosechas (IdLicencia, IdLote);
 GO
 CREATE INDEX IX_OtrasLabores_IdLicencia_IdLote ON OtrasLabores (IdLicencia, IdLote);
 GO
-CREATE INDEX IX_SiloBolsas_IdLicencia_IdLote ON SiloBolsas (IdLicencia, IdLote);
+CREATE INDEX IX_Acopios_IdLicencia_IdLote ON Acopios (IdLicencia, IdLote);
 GO
 
 -- ============================================
@@ -142,7 +142,7 @@ CREATE INDEX IX_Cosechas_IdLicencia_Fecha ON Cosechas (IdLicencia, Fecha);
 GO
 CREATE INDEX IX_OtrasLabores_IdLicencia_Fecha ON OtrasLabores (IdLicencia, Fecha);
 GO
-CREATE INDEX IX_SiloBolsas_IdLicencia_Fecha ON SiloBolsas (IdLicencia, Fecha);
+CREATE INDEX IX_Acopios_IdLicencia_Fecha ON Acopios (IdLicencia, Fecha);
 GO
 
 -- ============================================
@@ -176,7 +176,36 @@ CREATE INDEX IX_UnidadesMedida_Categoria ON UnidadesMedida (Categoria);
 GO
 CREATE INDEX IX_UnidadesMedida_DimensionBase ON UnidadesMedida (DimensionBase);
 GO
-CREATE UNIQUE INDEX IX_CamposLaborUnidadPermitida_Default
-    ON CamposLaborUnidadPermitida (IdCampoLaborUnidad, EsPredeterminado)
-    WHERE EsPredeterminado = 1;
+
+
+
+-- ============================================
+-- ÍNDICES SATELITES
+-- ============================================
+
+CREATE NONCLUSTERED INDEX [IX_IndicesSatelitales_Lote_Fecha]
+	ON [dbo].[IndicesSatelitales] ([IdLote], [FechaCaptura] DESC);
 GO
+CREATE NONCLUSTERED INDEX [IX_IndicesSatelitales_Licencia]
+	ON [dbo].[IndicesSatelitales] ([IdLicencia]);
+GO
+CREATE NONCLUSTERED INDEX [IX_IndicesSatelitales_FechaCaptura]
+	ON [dbo].[IndicesSatelitales] ([FechaCaptura]);
+GO
+   CREATE NONCLUSTERED INDEX [IX_LotesGeometria_Lote]
+        ON [dbo].[LotesGeometria] ([IdLote]);
+GO
+CREATE NONCLUSTERED INDEX [IX_LogsConsultasSatelitales_Fecha]
+        ON [dbo].[LogsConsultasSatelitales] ([FechaConsulta] DESC);
+GO
+CREATE NONCLUSTERED INDEX [IX_LogsConsultasSatelitales_Lote]
+        ON [dbo].[LogsConsultasSatelitales] ([IdLote]);
+GO    
+CREATE NONCLUSTERED INDEX [IX_LogsConsultasSatelitales_Tipo]
+        ON [dbo].[LogsConsultasSatelitales] ([TipoConsulta]);
+GO    
+    -- Índice para GetLotesPendientesAsync (filtra por exitoso + licencia)
+CREATE NONCLUSTERED INDEX [IX_LogsConsultasSatelitales_Licencia_Exitoso]
+        ON [dbo].[LogsConsultasSatelitales] ([IdLicencia], [Exitoso])
+        INCLUDE ([IdLote], [FechaConsulta]);
+

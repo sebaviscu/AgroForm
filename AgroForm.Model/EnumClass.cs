@@ -52,8 +52,8 @@ namespace AgroForm.Model
             Cosecha = 7,
             [Display(Name = "Otras Labores")]
             OtrasLabores = 8,
-            [Display(Name = "Silo Bolsa")]
-            SiloBolsa = 9
+            [Display(Name = "Acopio")]
+            Acopio = 9
         }
 
         public enum TipoCatalogoEnum
@@ -107,6 +107,18 @@ namespace AgroForm.Model
             Mantenimiento,
             Impuestos,
             Otros
+        }
+
+        public enum TipoAcopio
+        {
+            [Display(Name = "Silo Bolsa")]
+            SiloBolsa = 1,
+            [Display(Name = "Silo")]
+            Silo = 2,
+            [Display(Name = "Planta Externa")]
+            PlantaExterna = 3,
+            [Display(Name = "Otro")]
+            Otro = 99
         }
 
         public enum EpocaSiembra

@@ -1,5 +1,6 @@
 using AgroForm.Model;
 using AgroForm.Model.Actividades;
+using AgroForm.Model.Satelital;
 using AgroForm.Model.Unidades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -43,10 +44,15 @@ namespace AgroForm.Data.DBContext
         public DbSet<AnalisisSuelo> AnalisisSuelos { get; set; }
         public DbSet<Cosecha> Cosechas { get; set; }
         public DbSet<OtraLabor> OtrasLabores { get; set; }
-        public DbSet<SiloBolsa> SiloBolsas { get; set; }
+        public DbSet<Acopio> Acopios { get; set; }
         public DbSet<CicloCultivo> CicloCultivos { get; set; }
         public DbSet<ReporteCierreCampania> ReportesCierreCampania { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
+
+        // Satelital
+        public DbSet<IndiceSatelital> IndicesSatelitales { get; set; }
+        public DbSet<LoteGeometria> LotesGeometria { get; set; }
+        public DbSet<LogConsultaSatelital> LogsConsultasSatelitales { get; set; }
 
         public DbSet<UnidadMedida> UnidadesMedida { get; set; }
         public DbSet<CampoLaborUnidad> CamposLaborUnidad { get; set; }
@@ -281,7 +287,9 @@ namespace AgroForm.Data.DBContext
 
                 // Propiedades específicas
                 entity.Property(e => e.Superficie).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.SuperficieHa).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.Densidad).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.DensidadSemillaKgHa).HasColumnType("decimal(18,4)");
 
                 // FK Unidades
                 entity.HasOne(e => e.UnidadSuperficie)
@@ -359,6 +367,7 @@ namespace AgroForm.Data.DBContext
 
                 entity.Property(e => e.HorasRiego).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.VolumenAgua).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.VolumenAguaM3).HasColumnType("decimal(18,4)");
 
                 // FK Unidad
                 entity.HasOne(e => e.UnidadVolumenAgua)
@@ -428,7 +437,9 @@ namespace AgroForm.Data.DBContext
 
 
                 entity.Property(e => e.Cantidad).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.CantidadKgHa).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.Dosis).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.DosisKgHa).HasColumnType("decimal(18,4)");
 
                 // FK Unidades
                 entity.HasOne(e => e.UnidadCantidad)
@@ -705,8 +716,10 @@ namespace AgroForm.Data.DBContext
 
 
                 entity.Property(e => e.Rendimiento).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.RendimientoTonHa).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.HumedadGrano).HasColumnType("decimal(5,2)");
                 entity.Property(e => e.SuperficieCosechada).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.SuperficieCosechadaHa).HasColumnType("decimal(18,4)");
 
                 // FK Unidades
                 entity.HasOne(e => e.UnidadRendimiento)
@@ -807,22 +820,37 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<SiloBolsa>(entity =>
+            modelBuilder.Entity<Acopio>(entity =>
             {
-                entity.ToTable("SiloBolsas");
+                entity.ToTable("Acopios");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.IdLicencia);
 
+                entity.Property(e => e.TipoAcopio).IsRequired();
                 entity.Property(e => e.Codigo).HasMaxLength(50);
-                entity.Property(e => e.Longitud).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.CantidadActualTn).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.CapacidadTotalTn).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.HumedadGrano).HasColumnType("decimal(5,2)");
+                entity.Property(e => e.Estado).HasMaxLength(50);
+                entity.Property(e => e.Ubicacion).HasMaxLength(200);
+                entity.Property(e => e.Longitud).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Diametro).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.TipoSilo).HasMaxLength(50);
+                entity.Property(e => e.TemperaturaGrano).HasColumnType("decimal(5,2)");
+                entity.Property(e => e.Empresa).HasMaxLength(150);
+                entity.Property(e => e.NumeroContrato).HasMaxLength(50);
+                entity.Property(e => e.TarifaAlmacenaje).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
 
+                entity.HasOne(a => a.Cultivo)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdCultivo)
+                    .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne(a => a.Lote)
-                    .WithMany(l => l.SiloBolsas)
+                    .WithMany(l => l.Acopios)
                     .HasForeignKey(a => a.IdLote)
                     .OnDelete(DeleteBehavior.Cascade);
 
@@ -847,7 +875,7 @@ namespace AgroForm.Data.DBContext
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.CicloCultivo)
-                    .WithMany(cc => cc.SiloBolsas)
+                    .WithMany(cc => cc.Acopios)
                     .HasForeignKey(a => a.IdCicloCultivo)
                     .OnDelete(DeleteBehavior.Restrict);
             });
@@ -922,8 +950,8 @@ namespace AgroForm.Data.DBContext
                 entity.Property(e => e.CostoMonitoreosUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoOtrasLaboresUsd).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoSiloBolsasArs).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoSiloBolsasUsd).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoAcopiosArs).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoAcopiosUsd).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPorHaArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPorToneladaArs).HasColumnType("decimal(18,4)");
                 entity.Property(e => e.CostoPulverizacionesArs).HasColumnType("decimal(18,4)");
@@ -1047,6 +1075,78 @@ namespace AgroForm.Data.DBContext
                     .WithMany()
                     .HasForeignKey(e => e.IdLicencia)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ===============================
+            // Configuración de Índices Satelitales
+            // ===============================
+            modelBuilder.Entity<IndiceSatelital>(entity =>
+            {
+                entity.ToTable("IndicesSatelitales");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FechaCaptura).HasColumnType("date");
+                entity.Property(e => e.Fuente).HasMaxLength(50).HasDefaultValue("Sentinel-2");
+                entity.Property(e => e.ResolucionMts).HasDefaultValue(10);
+                entity.Property(e => e.CloudCover).HasColumnType("decimal(5,2)");
+                entity.Property(e => e.NDVI).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.NDWI).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.EVI).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.NDRE).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.SAVI).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.GNDVI).HasColumnType("decimal(5,3)");
+                entity.Property(e => e.EsValido).HasDefaultValue(true);
+
+                entity.HasIndex(e => new { e.IdLote, e.FechaCaptura });
+                entity.HasIndex(e => e.IdLicencia);
+                entity.HasIndex(e => e.FechaCaptura);
+
+                entity.HasOne<Lote>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLote)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<LoteGeometria>(entity =>
+            {
+                entity.ToTable("LotesGeometria");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.GeometriaOriginal).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.GeometriaSimplificada).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.ToleranciaSimplificacion).HasColumnType("decimal(10,6)");
+                entity.Property(e => e.AreaHa).HasColumnType("decimal(10,4)");
+                entity.Property(e => e.CentroLat).HasColumnType("decimal(10,7)");
+                entity.Property(e => e.CentroLng).HasColumnType("decimal(10,7)");
+                entity.Property(e => e.BoundsJson).HasMaxLength(500);
+
+                entity.HasIndex(e => e.IdLote);
+
+                entity.HasOne<Lote>()
+                    .WithMany()
+                    .HasForeignKey(e => e.IdLote)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<LogConsultaSatelital>(entity =>
+            {
+                entity.ToTable("LogsConsultasSatelitales");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.TipoConsulta).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.IndiceSolicitado).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.ErrorMessage).HasMaxLength(500);
+                entity.Property(e => e.CostoEstimado).HasColumnType("decimal(10,8)");
+
+                entity.HasIndex(e => e.FechaConsulta);
+                entity.HasIndex(e => e.IdLote);
+                entity.HasIndex(e => e.TipoConsulta);
+            });
+
+            // LaborDTO - used by SqlQueryRaw<LaborDTO> in ActividadService
+            modelBuilder.Entity<LaborDTO>(entity =>
+            {
+                entity.HasNoKey();
+                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
             });
         }
 

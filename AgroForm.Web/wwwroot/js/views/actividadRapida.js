@@ -20,7 +20,7 @@ $(document).ready(function () {
         'Analisis de suelo': '#templateAnalisisSuelo',
         'Otras labores': '#templateOtrasLabores',
         'Cosecha': '#templateCosecha',
-        'Silo Bolsa': '#templateSiloBolsa'
+        'Acopio': '#templateAcopio'
     };
 
     // FUNCIÓN: Cargar campos específicos según tipo de actividad
@@ -36,7 +36,7 @@ $(document).ready(function () {
                 const element = this;
                 // Los selects de cultivo se manejan manualmente con cargarCultivos(),
                 // no deben tener Choices.js porque interfiere con la recarga de opciones
-                if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha') return;
+                if (element.id === 'idCultivo' || element.id === 'idCultivoCosecha' || element.id === 'idCultivoAcopio') return;
                 if (element._choicesInstance) {
                     element._choicesInstance.destroy();
                 }
@@ -54,7 +54,7 @@ $(document).ready(function () {
             // Si hay un ciclo seleccionado con cultivo, auto-completar en Siembra o Cosecha
             autoCompletarCultivoDesdeCiclo(tipoActividadNombre);
 
-            // Configurar límites basados en superficie sembrada para Cosecha y Silo Bolsa
+            // Configurar límites basados en superficie sembrada para Cosecha y Acopio
             configurarLimitesPorSuperficieSembrada(tipoActividadNombre);
 
             // Inicializar selectores de unidad de medida según tipo de actividad
@@ -151,7 +151,7 @@ $(document).ready(function () {
         });
     }
 
-    // FUNCIÓN: Configurar límites basados en superficie sembrada para Cosecha y Silo Bolsa
+    // FUNCIÓN: Configurar límites basados en superficie sembrada para Cosecha y Acopio
     function configurarLimitesPorSuperficieSembrada(tipoActividadNombre) {
         const selectedValue = loteChoicesInstance.getValue(true);
         if (!selectedValue) return;
@@ -172,14 +172,15 @@ $(document).ready(function () {
                 inputSuperficieCosechada.val(superficieSembrada);
                 break;
 
-            case 'Silo Bolsa':
+            case 'Acopio':
                 const inputCapacidadTotal = $('#capacidadTotalTn');
-                // Para Silo Bolsa, usamos la superficie sembrada directamente como capacidad máxima
+                // Para Acopio, usamos la superficie sembrada como referencia de capacidad máxima
                 inputCapacidadTotal.attr('max', superficieSembrada * 2);
                 inputCapacidadTotal.attr('placeholder', `Máximo: ${superficieSembrada} Tn`);
                 inputCapacidadTotal.attr('title', `Capacidad máxima permitida: ${superficieSembrada} Tn (basado en superficie sembrada)`);
-                // Auto-completar con la superficie sembrada
+                // Auto-completar Capacidad Total y Cantidad Actual con la superficie sembrada
                 inputCapacidadTotal.val(superficieSembrada);
+                $('#cantidadActualTn').val(superficieSembrada);
                 break;
         }
     }
@@ -188,26 +189,36 @@ $(document).ready(function () {
     function autoCompletarCultivoDesdeCiclo(tipoActividadNombre) {
         if (!cicloSeleccionadoCultivoId) return;
 
-        setTimeout(function () {
-            if (tipoActividadNombre === 'Siembra') {
-                var $cultivoSelect = $('#idCultivo');
-                if ($cultivoSelect.length && $cultivoSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
-                    $cultivoSelect.val(cicloSeleccionadoCultivoId).trigger('change');
-                    $cultivoSelect.prop('disabled', true);
-                    // Mostrar hint de que el cultivo viene del ciclo
-                    if ($('#hintCultivoCiclo').length === 0) {
-                        $('<small id="hintCultivoCiclo" class="text-success d-block mt-1">' +
-                            '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
-                            .insertAfter($cultivoSelect.closest('.mb-3'));
-                    }
-                }
-            } else if (tipoActividadNombre === 'Cosecha') {
-                var $cultivoCosechaSelect = $('#idCultivoCosecha');
-                if ($cultivoCosechaSelect.length && $cultivoCosechaSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
-                    $cultivoCosechaSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+        if (tipoActividadNombre === 'Siembra') {
+            var $cultivoSelect = $('#idCultivo');
+            if ($cultivoSelect.length && $cultivoSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
+                $cultivoSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                $cultivoSelect.prop('disabled', true);
+                // Mostrar hint de que el cultivo viene del ciclo
+                if ($('#hintCultivoCiclo').length === 0) {
+                    $('<small id="hintCultivoCiclo" class="text-success d-block mt-1">' +
+                        '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
+                        .insertAfter($cultivoSelect.closest('.mb-3'));
                 }
             }
-        }, 300);
+        } else if (tipoActividadNombre === 'Cosecha') {
+            var $cultivoCosechaSelect = $('#idCultivoCosecha');
+            if ($cultivoCosechaSelect.length && $cultivoCosechaSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
+                $cultivoCosechaSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+            }
+        } else if (tipoActividadNombre === 'Acopio') {
+            var $cultivoAcopioSelect = $('#idCultivoAcopio');
+            if ($cultivoAcopioSelect.length && $cultivoAcopioSelect.find('option[value="' + cicloSeleccionadoCultivoId + '"]').length) {
+                $cultivoAcopioSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                $cultivoAcopioSelect.prop('disabled', true);
+                // Mostrar hint de que el cultivo viene del ciclo
+                if ($('#hintCultivoCicloAcopio').length === 0) {
+                    $('<small id="hintCultivoCicloAcopio" class="text-success d-block mt-1">' +
+                        '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
+                        .insertAfter($cultivoAcopioSelect.closest('.mb-3'));
+                }
+            }
+        }
     }
 
     // FUNCIÓN: Cargar datos para selects específicos
@@ -240,8 +251,12 @@ $(document).ready(function () {
             case 'Otras labores':
                 cargarSwitchMoneda("switchMonedaCostoOtraLabor", "labelMonedaCostoOtraLabor");
                 break;
-            case 'Silo Bolsa':
-                cargarSwitchMoneda("switchMonedaCostoSiloBolsa", "labelMonedaCostoSiloBolsa");
+            case 'Acopio':
+                cargarSwitchMoneda("switchMonedaCostoAcopio", "labelMonedaCostoAcopio");
+                // Inicializar selector de TipoAcopio
+                inicializarTipoAcopio();
+                // Cargar cultivos y auto-asignar desde ciclo activo (como Cosecha)
+                cargarCultivos('Acopio');
                 break;
         }
     }
@@ -253,7 +268,7 @@ $(document).ready(function () {
             type: 'GET',
             success: function (result) {
                 if (result.success && result.listObject) {
-                    var selectCultivo = $('#idCultivo, #idCultivoCosecha, #nuevoCicloIdCultivo');
+                    var selectCultivo = $('#idCultivo, #idCultivoCosecha, #idCultivoAcopio, #nuevoCicloIdCultivo');
                     selectCultivo.empty();
                     selectCultivo.append($('<option>', {
                         value: '',
@@ -265,11 +280,16 @@ $(document).ready(function () {
                             text: cultivo.nombre
                         }));
                     });
-                    selectCultivo.val('').trigger('change');
 
-                    // Si se cargó por cambio de actividad, auto-completar desde ciclo
-                    if (tipoActividadOrigen) {
+                    // Si ya hay un ciclo seleccionado con cultivo, auto-completar sin reseteo intermedio
+                    // Esto evita el parpadeo "vacío → lleno" y el retraso del setTimeout previo
+                    if (tipoActividadOrigen && cicloSeleccionadoCultivoId) {
                         autoCompletarCultivoDesdeCiclo(tipoActividadOrigen);
+                    } else {
+                        selectCultivo.val('').trigger('change');
+                        if (tipoActividadOrigen) {
+                            autoCompletarCultivoDesdeCiclo(tipoActividadOrigen);
+                        }
                     }
                 }
             },
@@ -492,6 +512,22 @@ $(document).ready(function () {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
 
             if (selectedValue) {
+                // Deshabilitar selector de ciclo mientras carga
+                var cicloSelect = $('#idCicloCultivo');
+                cicloSelect.empty().append($('<option>', { value: '', text: 'Cargando...' }));
+                cicloSelect.prop('disabled', true);
+                $('#btnNuevoCiclo').prop('disabled', true);
+                $('#btnCerrarCiclo').prop('disabled', true);
+                // Mostrar spinner junto al label "Ciclo de Cultivo" (siempre visible)
+                var label = $('label[for="idCicloCultivo"]');
+                if (!label.find('#cicloLoadingSpinner').length) {
+                    label.append(
+                        '<span id="cicloLoadingSpinner" class="ms-2" style="color:#0d6efd;">' +
+                            '<span class="spinner-border spinner-border-sm" style="color:#0d6efd;" role="status"></span>' +
+                            ' <small style="font-weight:500;">Cargando...</small>' +
+                        '</span>'
+                    );
+                }
                 cargarCiclosPorLote(parseInt(selectedValue));
             } else {
                 var cicloSelect = $('#idCicloCultivo');
@@ -728,7 +764,17 @@ $(document).ready(function () {
                 }
                 break;
 
-            case 'Silo Bolsa':
+            case 'Acopio':
+                // Validar Cantidad Actual (Tn) es obligatoria
+                var cantidadActual = $('#cantidadActualTn').val();
+                if (!cantidadActual || parseFloat(cantidadActual) <= 0) {
+                    $('#cantidadActualTn').addClass('is-invalid');
+                    errorMessage = 'La Cantidad Actual (Tn) es obligatoria y debe ser mayor a 0';
+                    isValid = false;
+                } else {
+                    $('#cantidadActualTn').removeClass('is-invalid');
+                }
+
                 // Validar capacidad total no exceda límite estimado
                 var capacidadMaxString = $('#capacidadTotalTn').attr('max');
                 var capacidadValString = $('#capacidadTotalTn').val();
@@ -943,14 +989,28 @@ $(document).ready(function () {
                     EsDolar: $('#switchMonedaCostoOtraLabor').is(':checked')
                 };
                 break;
-            case 9: // SiloBolsa
+            case 9: // Acopio
                 datos = {
-                    Codigo: $('#codigoSiloBolsa').val() || '',
-                    Longitud: parseFloat($('#longitudSiloBolsa').val()) || null,
+                    TipoAcopio: parseInt($('#tipoAcopio').val()) || 1,
+                    Codigo: $('#codigoAcopio').val() || '',
+                    FechaIngreso: $('#fechaIngresoAcopio').val() || null,
+                    IdCultivo: parseInt($('#idCultivoAcopio').val()) || 0,
+                    CantidadActualTn: parseFloat($('#cantidadActualTn').val()) || null,
                     CapacidadTotalTn: parseFloat($('#capacidadTotalTn').val()) || null,
                     HumedadGrano: parseFloat($('#humedadGrano').val()) || null,
-                    Costo: parseFloat($('#costoSiloBolsaTotal').val()) || 0,
-                    EsDolar: $('#switchMonedaCostoSiloBolsa').is(':checked')
+                    Estado: $('#estadoAcopio').val() || '',
+                    Ubicacion: $('#ubicacionAcopio').val() || '',
+                    Longitud: parseFloat($('#longitudAcopio').val()) || null,
+                    Diametro: parseFloat($('#diametroAcopio').val()) || null,
+                    FechaEmbolsado: $('#fechaEmbolsadoAcopio').val() || null,
+                    TipoSilo: $('#tipoSiloAcopio').val() || '',
+                    Aireacion: $('#aireacionAcopio').is(':checked'),
+                    TemperaturaGrano: parseFloat($('#temperaturaGranoAcopio').val()) || null,
+                    Empresa: $('#empresaAcopio').val() || '',
+                    NumeroContrato: $('#numeroContratoAcopio').val() || '',
+                    TarifaAlmacenaje: parseFloat($('#tarifaAlmacenajeAcopio').val()) || null,
+                    Costo: parseFloat($('#costoAcopioTotal').val()) || 0,
+                    EsDolar: $('#switchMonedaCostoAcopio').is(':checked')
                 };
                 break;
         }
@@ -1147,6 +1207,18 @@ $(document).ready(function () {
                 if ($cultivoCosechaSelect.length) {
                     $cultivoCosechaSelect.val(cicloSeleccionadoCultivoId).trigger('change');
                 }
+            } else if (tipoActividadNombre === 'Acopio') {
+                var $cultivoAcopioSelect = $('#idCultivoAcopio');
+                if ($cultivoAcopioSelect.length && !$cultivoAcopioSelect.prop('disabled')) {
+                    $cultivoAcopioSelect.val(cicloSeleccionadoCultivoId).trigger('change');
+                    $cultivoAcopioSelect.prop('disabled', true);
+                    // Mostrar hint
+                    if ($('#hintCultivoCicloAcopio').length === 0) {
+                        $('<small id="hintCultivoCicloAcopio" class="text-success d-block mt-1">' +
+                            '<i class="ph ph-seedling me-1"></i>Cultivo del ciclo activo</small>')
+                            .insertAfter($cultivoAcopioSelect.closest('.mb-3'));
+                    }
+                }
             } else if (tipoActividadNombre === 'Monitoreo') {
                 cargarEstadosFenologicos();
             }
@@ -1167,11 +1239,16 @@ function actualizarBotonesCiclo(hayCicloSeleccionado) {
 
 // FUNCIONES PARA GESTIÓN DE CICLOS DE CULTIVO
 function cargarCiclosPorLote(idLote, seleccionarId) {
+    // Quitar spinner de carga si existe (por si se llama múltiples veces)
+    $('#cicloLoadingSpinner').remove();
+
     $.ajax({
         url: '/CicloCultivo/GetByLote?idLote=' + idLote,
         type: 'GET',
         success: function (result) {
             var select = $('#idCicloCultivo');
+            // Quitar spinner de carga
+            $('#cicloLoadingSpinner').remove();
             select.empty();
             select.append($('<option>', { value: '', text: 'Seleccione un ciclo...' }));
 
@@ -1222,6 +1299,13 @@ function cargarCiclosPorLote(idLote, seleccionarId) {
             actualizarBotonesCiclo(selectedVal && selectedVal !== '');
         },
         error: function () {
+            // Quitar spinner de carga en caso de error
+            $('#cicloLoadingSpinner').remove();
+            var select = $('#idCicloCultivo');
+            select.empty().append($('<option>', {
+                value: '',
+                text: 'Error al cargar - Seleccione un ciclo...'
+            }));
             mostrarMensaje('Error al cargar ciclos de cultivo', 'error');
         }
     });
@@ -1349,4 +1433,74 @@ $('#modalClima').on('hidden.bs.modal', function () {
     $('#formClima')[0].reset();
     $('#campoClima').removeClass('is-invalid');
 });
+
+// FUNCIONES PARA ACOPIO
+function inicializarTipoAcopio() {
+    $('#tipoAcopio').on('change', function () {
+        var valor = parseInt($(this).val());
+        // Ocultar todas las secciones específicas
+        $('.acopio-seccion').hide();
+        // Mostrar la sección correspondiente
+        if (valor === 1) { // Silo Bolsa
+            $('#seccionSiloBolsa').show();
+        } else if (valor === 2) { // Silo
+            $('#seccionSilo').show();
+        } else if (valor === 3) { // Planta Externa
+            $('#seccionPlantaExterna').show();
+        }
+        // Para 'Otro' (99), no mostrar ninguna sección específica
+    });
+
+    // Auto-calcular Capacidad Total (Tn) y Cantidad Actual (Tn)
+    // desde las dimensiones de Silo Bolsa (Longitud y Diámetro)
+    function calcularCapacidadSiloBolsa() {
+        var tipo = parseInt($('#tipoAcopio').val());
+        if (tipo !== 1) return; // Solo para Silo Bolsa
+
+        var longitud = parseFloat($('#longitudAcopio').val());
+        var diametro = parseFloat($('#diametroAcopio').val());
+
+        if (longitud > 0 && diametro > 0) {
+            // Fórmula: Volumen = π * (diam/2)² * longitud
+            // Densidad de grano aprox: 0.75 Tn/m³
+            var radio = diametro / 2;
+            var capacidadEstimada = Math.PI * Math.pow(radio, 2) * longitud * 0.75;
+            capacidadEstimada = Math.round(capacidadEstimada * 100) / 100; // 2 decimales
+
+            $('#capacidadTotalTn').val(capacidadEstimada);
+            // Auto-cargar también Cantidad Actual con el mismo valor (asume lleno)
+            if (!$('#cantidadActualTn').val() || parseFloat($('#cantidadActualTn').val()) <= 0) {
+                $('#cantidadActualTn').val(capacidadEstimada);
+            }
+        }
+    }
+
+    // Vincular eventos a los campos de dimensión
+    $('#longitudAcopio, #diametroAcopio').on('input', function () {
+        calcularCapacidadSiloBolsa();
+    });
+}
+
+function cargarCultivosAcopio() {
+    $.ajax({
+        url: '/Cultivo/GetAll',
+        type: 'GET',
+        success: function (result) {
+            var select = $('#idCultivoAcopio');
+            select.empty();
+            select.append($('<option>', { value: '', text: 'Seleccionar cultivo...' }));
+            if (result.success && result.listObject && result.listObject.length > 0) {
+                $.each(result.listObject, function (i, cultivo) {
+                    select.append($('<option>', {
+                        value: cultivo.id,
+                        text: cultivo.nombre
+                    }));
+                });
+            }
+        },
+        error: function () {
+            console.error('Error al cargar cultivos para Acopio');
+        }
+    });
+}
 

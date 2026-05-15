@@ -2,6 +2,7 @@ using AgroForm.Business.Contracts;
 using AgroForm.Data.DBContext;
 using AgroForm.Data.Repository;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -102,6 +103,46 @@ namespace AgroForm.Business.Services
                 };
 
                 await userRepo.AddAsync(user);
+                await _unitOfWork.SaveAsync();
+
+                // 4. Poblar LicenciasCultivos con todos los cultivos globales (IdLicencia == null)
+                var cultivosGlobales = await _unitOfWork.Repository<Cultivo>()
+                    .Query()
+                    .Where(c => c.IdLicencia == null)
+                    .ToListAsync();
+
+                if (cultivosGlobales.Count > 0)
+                {
+                    var licenciasCultivos = cultivosGlobales.Select(c => new LicenciasCultivos
+                    {
+                        IdLicencia = licencia.Id,
+                        IdCultivo = c.Id,
+                        Activo = true,
+                        Orden = c.Orden
+                    }).ToList();
+
+                    await _unitOfWork.Repository<LicenciasCultivos>().AddRangeAsync(licenciasCultivos);
+                }
+
+                // 5. Poblar LicenciasCatalogos con todos los catálogos globales (IdLicencia == null)
+                var catalogosGlobales = await _unitOfWork.Repository<Catalogo>()
+                    .Query()
+                    .Where(c => c.IdLicencia == null)
+                    .ToListAsync();
+
+                if (catalogosGlobales.Count > 0)
+                {
+                    var licenciasCatalogos = catalogosGlobales.Select(c => new LicenciasCatalogos
+                    {
+                        IdLicencia = licencia.Id,
+                        IdCatalogo = c.Id,
+                        Activo = true
+                    }).ToList();
+
+                    await _unitOfWork.Repository<LicenciasCatalogos>().AddRangeAsync(licenciasCatalogos);
+                }
+
+                // 6. Guardar todas las relaciones
                 await _unitOfWork.SaveAsync();
 
                 return OperationResult<Licencia>.SuccessResult(licencia);

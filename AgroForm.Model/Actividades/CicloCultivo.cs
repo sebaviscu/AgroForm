@@ -31,6 +31,6 @@ namespace AgroForm.Model.Actividades
         public List<AnalisisSuelo> AnalisisSuelos { get; set; } = new();
         public List<Cosecha> Cosechas { get; set; } = new();
         public List<OtraLabor> OtrasLabores { get; set; } = new();
-        public List<SiloBolsa> SiloBolsas { get; set; } = new();
+        public List<Acopio> Acopios { get; set; } = new();
     }
 }

@@ -22,10 +22,10 @@ namespace AgroForm.Model
         public decimal ToneladasProducidas { get; set; }
         public decimal CostoTotalArs => AnalisisSueloArs+CostoSiembrasArs+CostoRiegosArs+CostoPulverizacionesArs+
                                        CostoCosechasArs+CostoMonitoreosArs+CostoFertilizantesArs+CostoOtrasLaboresArs+
-                                       CostoSiloBolsasArs;
+                                       CostoAcopiosArs;
         public decimal CostoTotalUsd => AnalisisSueloUsd+CostoSiembrasUsd+CostoRiegosUsd+CostoPulverizacionesUsd+
                                        CostoCosechasUsd+CostoMonitoreosUsd+CostoFertilizantesUsd+CostoOtrasLaboresUsd+
-                                       CostoSiloBolsasUsd;
+                                       CostoAcopiosUsd;
         
         public decimal CostoPorHaArs { get; set; }
         public decimal CostoPorToneladaArs { get; set; }
@@ -61,8 +61,8 @@ namespace AgroForm.Model
         public decimal CostoOtrasLaboresArs { get; set; }
         public decimal CostoOtrasLaboresUsd { get; set; }
 
-        public decimal CostoSiloBolsasArs { get; set; }
-        public decimal CostoSiloBolsasUsd { get; set; }
+        public decimal CostoAcopiosArs { get; set; }
+        public decimal CostoAcopiosUsd { get; set; }
 
         // Gastos
 

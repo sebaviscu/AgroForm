@@ -20,6 +20,7 @@ namespace AgroForm.Business.Contracts
         Task<object> GetLaboresByAsync(int idActividad, TipoActividadEnum idTipoActividad);
         Task<OperationResult<ILabor>> UpdateActividadAsync(ILabor actividad);
         Task<OperationResult<List<Siembra>>> GetSiembrasAsync();
+        Task<OperationResult<List<Acopio>>> GetAcopiosAsync();
 
     }
 }

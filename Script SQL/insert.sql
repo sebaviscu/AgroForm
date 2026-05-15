@@ -1,5 +1,7 @@
 
 
+USE AgroForm;
+
 
 INSERT INTO Usuarios 
 (IdLicencia, Nombre, Email, Rol, Activo, PasswordHash, PasswordSalt, EmailConfirmed, RegistrationDate, SuperAdmin, RegistrationUser)
@@ -34,7 +36,7 @@ VALUES
 ('Monitoreo', 'ph-magnifying-glass', '#795548'),
 ('Cosecha', 'ph-grains', '#FFC107'),
 ('Otras labores', 'ph-wrench', '#9E9E9E'),
-('Silo Bolsa', 'ph-package', '#8B5E3C');
+('Acopio', 'ph-warehouse', '#8B5E3C');
 
 
 -- Insertar Cultivos (sin IDs explícitos y sin Descripcion)

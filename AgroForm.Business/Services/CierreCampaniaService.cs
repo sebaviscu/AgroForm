@@ -61,7 +61,7 @@ namespace AgroForm.Business.Services
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.OtrasLabores)
                 .Include(c => c.Lotes)
-                    .ThenInclude(l => l.SiloBolsas)
+                    .ThenInclude(l => l.Acopios)
                 .Include(c => c.Lotes)
                     .ThenInclude(l => l.Siembras)
                         .ThenInclude(l => l.Cultivo)
@@ -148,9 +148,9 @@ namespace AgroForm.Business.Services
             reporte.CostoOtrasLaboresArs = OtrasLabores.Sum(_ => _.CostoARS.GetValueOrDefault());
             reporte.CostoOtrasLaboresUsd = OtrasLabores.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
-            var SiloBolsas = lotes.SelectMany(_ => _.SiloBolsas).ToList();
-            reporte.CostoSiloBolsasArs = SiloBolsas.Sum(_ => _.CostoARS.GetValueOrDefault());
-            reporte.CostoSiloBolsasUsd = SiloBolsas.Sum(_ => _.CostoUSD.GetValueOrDefault());
+            var acopios = lotes.SelectMany(_ => _.Acopios).ToList();
+            reporte.CostoAcopiosArs = acopios.Sum(_ => _.CostoARS.GetValueOrDefault());
+            reporte.CostoAcopiosUsd = acopios.Sum(_ => _.CostoUSD.GetValueOrDefault());
 
             var Pulverizaciones = lotes.SelectMany(_ => _.Pulverizaciones).ToList();
             reporte.CostoPulverizacionesArs = Pulverizaciones.Sum(_ => _.CostoARS.GetValueOrDefault());
@@ -266,7 +266,7 @@ namespace AgroForm.Business.Services
                                   + lote.Monitoreos.Where(m => m.IdCicloCultivo == ciclo.Id).Sum(m => m.CostoARS ?? 0)
                                   + lote.AnalisisSuelos.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoARS ?? 0)
                                   + lote.OtrasLabores.Where(o => o.IdCicloCultivo == ciclo.Id).Sum(o => o.CostoARS ?? 0)
-                                  + lote.SiloBolsas.Where(s => s.IdCicloCultivo == ciclo.Id).Sum(s => s.CostoARS ?? 0);
+                                  + lote.Acopios.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoARS ?? 0);
 
                     var costosUsd = cosechasCiclo.Sum(c => c.CostoUSD ?? 0)
                                   + siembrasCiclo.Sum(s => s.CostoUSD ?? 0)
@@ -276,7 +276,7 @@ namespace AgroForm.Business.Services
                                   + lote.Monitoreos.Where(m => m.IdCicloCultivo == ciclo.Id).Sum(m => m.CostoUSD ?? 0)
                                   + lote.AnalisisSuelos.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoUSD ?? 0)
                                   + lote.OtrasLabores.Where(o => o.IdCicloCultivo == ciclo.Id).Sum(o => o.CostoUSD ?? 0)
-                                  + lote.SiloBolsas.Where(s => s.IdCicloCultivo == ciclo.Id).Sum(s => s.CostoUSD ?? 0);
+                                  + lote.Acopios.Where(a => a.IdCicloCultivo == ciclo.Id).Sum(a => a.CostoUSD ?? 0);
 
                     var epocaDisplay = ciclo.Epoca != null ? ciclo.Epoca.GetDisplayName() : null;
 

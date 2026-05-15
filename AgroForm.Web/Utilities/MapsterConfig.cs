@@ -7,7 +7,7 @@ namespace AgroForm.Web.Utilities
 {
     public static class MapsterConfig
     {
-        public static DateTime DateTimeNowArg = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
+        public static DateTime DateTimeNowArg = TimeZoneInfo.ConvertTime(TimeHelper.GetArgentinaTime(), TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
 
         public static void Configure()
         {

@@ -737,56 +737,189 @@
         </div>
     </div>
 
-    <!-- SILO BOLSA -->
-    <div id="templateSiloBolsa">
+    <!-- ACOPIO -->
+    <div id="templateAcopio">
         <div class="card mb-3">
             <div class="card-header" style="background-color: #8B5E3C; color: white;">
                 <h6 class="card-title mb-0">
-                    <i class="ph ph-package me-1"></i>Datos de Silo Bolsa
+                    <i class="ph ph-warehouse me-1"></i>Datos de Acopio
                 </h6>
             </div>
             <div class="card-body">
+                <!-- Tipo de Acopio -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="tipoAcopio" class="form-label">Tipo de Acopio</label>
+                        <select class="form-select" id="tipoAcopio" name="TipoAcopio">
+                            <option value="1">Silo Bolsa</option>
+                            <option value="2">Silo</option>
+                            <option value="3">Planta Externa</option>
+                            <option value="99">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="codigoAcopio" class="form-label">Código</label>
+                            <input type="text" class="form-control" id="codigoAcopio" name="Codigo"
+                                   maxlength="50" placeholder="Ej: ACP-2025-001">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="fechaIngresoAcopio" class="form-label">Fecha de Ingreso</label>
+                            <input type="date" class="form-control" id="fechaIngresoAcopio" name="FechaIngreso">
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="codigoSiloBolsa" class="form-label">Código</label>
-                            <input type="text" class="form-control" id="codigoSiloBolsa" name="Codigo"
-                                   maxlength="50" placeholder="Ej: SB-2025-001">
+                            <label for="idCultivoAcopio" class="form-label">Cultivo</label>
+                            <select class="form-select" id="idCultivoAcopio" name="IdCultivo">
+                                <option value="">Seleccionar cultivo...</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label for="longitudSiloBolsa" class="form-label">Longitud (m)</label>
-                            <input type="number" class="form-control" id="longitudSiloBolsa" name="Longitud"
-                                   min="0.01" step="0.01">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="mb-3">
                             <label for="capacidadTotalTn" class="form-label">Capacidad Total (Tn)</label>
                             <input type="number" class="form-control" id="capacidadTotalTn" name="CapacidadTotalTn"
                                    min="0.01" step="0.01">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="cantidadActualTn" class="form-label">Cantidad Actual (Tn) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="cantidadActualTn" name="CantidadActualTn"
+                                   min="0" step="0.01" required>
+                            <div class="invalid-feedback">La Cantidad Actual (Tn) es obligatoria</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
                         <div class="mb-3">
                             <label for="humedadGrano" class="form-label">Humedad del Grano (%)</label>
                             <input type="number" class="form-control" id="humedadGrano" name="HumedadGrano"
                                    min="0" max="100" step="0.1">
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="estadoAcopio" class="form-label">Estado</label>
+                            <input type="text" class="form-control" id="estadoAcopio" name="Estado"
+                                   maxlength="50" placeholder="Ej: Activo, En observación">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="ubicacionAcopio" class="form-label">Ubicación</label>
+                            <input type="text" class="form-control" id="ubicacionAcopio" name="Ubicacion"
+                                   maxlength="200" placeholder="Ej: Campo Norte, Sector 3">
+                        </div>
+                    </div>
                 </div>
+
+                <!-- SECCIÓN: Silo Bolsa -->
+                <div id="seccionSiloBolsa" class="acopio-seccion" style="display:none;">
+                    <hr />
+                    <h6 class="text-muted"><i class="ph ph-package me-1"></i>Específicos de Silo Bolsa</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="longitudAcopio" class="form-label">Longitud (m)</label>
+                                <input type="number" class="form-control" id="longitudAcopio" name="Longitud"
+                                       min="0.01" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="diametroAcopio" class="form-label">Diámetro (m)</label>
+                                <input type="number" class="form-control" id="diametroAcopio" name="Diametro"
+                                       min="0.01" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="fechaEmbolsadoAcopio" class="form-label">Fecha de Embolsado</label>
+                                <input type="date" class="form-control" id="fechaEmbolsadoAcopio" name="FechaEmbolsado">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: Silo -->
+                <div id="seccionSilo" class="acopio-seccion" style="display:none;">
+                    <hr />
+                    <h6 class="text-muted"><i class="ph ph-silo me-1"></i>Específicos de Silo</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tipoSiloAcopio" class="form-label">Tipo de Silo</label>
+                                <input type="text" class="form-control" id="tipoSiloAcopio" name="TipoSilo"
+                                       maxlength="50" placeholder="Ej: Horizontal, Vertical, Torre">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="aireacionAcopio" class="form-label">Aireación</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="aireacionAcopio" name="Aireacion">
+                                    <label class="form-check-label" for="aireacionAcopio">Tiene aireación</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="temperaturaGranoAcopio" class="form-label">Temperatura del Grano (°C)</label>
+                                <input type="number" class="form-control" id="temperaturaGranoAcopio" name="TemperaturaGrano"
+                                       min="-10" max="60" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: Planta Externa -->
+                <div id="seccionPlantaExterna" class="acopio-seccion" style="display:none;">
+                    <hr />
+                    <h6 class="text-muted"><i class="ph ph-building me-1"></i>Específicos de Planta Externa</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="empresaAcopio" class="form-label">Empresa</label>
+                                <input type="text" class="form-control" id="empresaAcopio" name="Empresa"
+                                       maxlength="150" placeholder="Nombre de la empresa">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="numeroContratoAcopio" class="form-label">N° de Contrato</label>
+                                <input type="text" class="form-control" id="numeroContratoAcopio" name="NumeroContrato"
+                                       maxlength="50" placeholder="Ej: CT-2025-001">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tarifaAlmacenajeAcopio" class="form-label">Tarifa de Almacenaje</label>
+                                <input type="number" class="form-control" id="tarifaAlmacenajeAcopio" name="TarifaAlmacenaje"
+                                       min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="costoSiloBolsaTotal" class="form-label">Costo</label>
+                            <label for="costoAcopioTotal" class="form-label">Costo</label>
                             <div class="input-group">
-                                <span class="input-group-text" id="labelMonedaCostoSiloBolsa">$</span>
-                                <input type="number" class="form-control" id="costoSiloBolsaTotal"
+                                <span class="input-group-text" id="labelMonedaCostoAcopio">$</span>
+                                <input type="number" class="form-control" id="costoAcopioTotal"
                                        name="Costo" min="0.01" step="0.01">
                                 <div class="form-check form-switch ms-2">
-                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoSiloBolsa">
-                                    <label class="form-check-label" for="switchMonedaCostoSiloBolsa">ARS</label>
+                                    <input class="form-check-input" type="checkbox" id="switchMonedaCostoAcopio">
+                                    <label class="form-check-label" for="switchMonedaCostoAcopio">ARS</label>
                                 </div>
                             </div>
                         </div>

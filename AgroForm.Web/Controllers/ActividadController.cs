@@ -288,13 +288,27 @@ namespace AgroForm.Web.Controllers
                     };
                     break;
 
-                case TipoActividadEnum.SiloBolsa:
-                    actividad = new SiloBolsa
+                case TipoActividadEnum.Acopio:
+                    actividad = new Acopio
                     {
                         Codigo = model.DatosEspecificos?.Codigo ?? string.Empty,
-                        Longitud = model.DatosEspecificos?.Longitud,
+                        TipoAcopio = model.DatosEspecificos?.TipoAcopio ?? TipoAcopio.SiloBolsa,
+                        IdCultivo = model.DatosEspecificos?.IdCultivo ?? 0,
+                        FechaIngreso = model.DatosEspecificos?.FechaIngreso,
+                        CantidadActualTn = model.DatosEspecificos?.CantidadActualTn,
                         CapacidadTotalTn = model.DatosEspecificos?.CapacidadTotalTn,
                         HumedadGrano = model.DatosEspecificos?.HumedadGrano,
+                        Estado = model.DatosEspecificos?.Estado ?? string.Empty,
+                        Ubicacion = model.DatosEspecificos?.Ubicacion ?? string.Empty,
+                        Longitud = model.DatosEspecificos?.Longitud,
+                        Diametro = model.DatosEspecificos?.Diametro,
+                        FechaEmbolsado = model.DatosEspecificos?.FechaEmbolsado,
+                        TipoSilo = model.DatosEspecificos?.TipoSilo,
+                        Aireacion = model.DatosEspecificos?.Aireacion,
+                        TemperaturaGrano = model.DatosEspecificos?.TemperaturaGrano,
+                        Empresa = model.DatosEspecificos?.Empresa,
+                        NumeroContrato = model.DatosEspecificos?.NumeroContrato,
+                        TarifaAlmacenaje = model.DatosEspecificos?.TarifaAlmacenaje,
                     };
                     break;
             }

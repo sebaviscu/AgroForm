@@ -32,7 +32,7 @@ namespace AgroForm.Web.Controllers
             _env = env;
         }
 
-        protected UserAuth ValidarAutorizacion(Roles[]? rolesPermitidos = null)
+        protected async Task<UserAuth> ValidarAutorizacion(Roles[]? rolesPermitidos = null)
         {
             if (!HttpContext.User.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("El usuario no esta autenticado");
@@ -50,6 +50,34 @@ namespace AgroForm.Web.Controllers
                 IdRol = UtilidadService.GetClaimValue<Roles>(claimUser, ClaimTypes.Role),
                 Moneda = UtilidadService.GetClaimValue<Monedas>(claimUser, "Moneda")
             };
+
+            // Validar licencia (excepto para SuperAdmin)
+            if (userAuth.IdRol != Roles.SuperAdmin)
+            {
+                if (!userAuth.IdLicencia.HasValue)
+                {
+                    _logger.LogError($"Usuario {userName} sin licencia asignada");
+                    throw new UnauthorizedAccessException("Usuario sin licencia asignada. Contacte al administrador.");
+                }
+
+                var licenciaResult = await _licenciaService.GetByIdAsync(userAuth.IdLicencia.Value);
+
+                if (!licenciaResult.Success || licenciaResult.Data == null || !licenciaResult.Data.Activo)
+                {
+                    _logger.LogError($"Licencia {userAuth.IdLicencia} del usuario {userName} esta deshabilitada o no existe");
+                    throw new UnauthorizedAccessException("Su licencia está deshabilitada. Contacte al administrador.");
+                }
+
+                // Validar que la licencia de prueba no haya expirado
+                if (licenciaResult.Data.EsPrueba && licenciaResult.Data.FechaFinPrueba.HasValue)
+                {
+                    if (licenciaResult.Data.FechaFinPrueba.Value.Date <= TimeHelper.GetArgentinaTime().Date)
+                    {
+                        _logger.LogError($"Licencia de prueba {userAuth.IdLicencia} del usuario {userName} ha expirado el {licenciaResult.Data.FechaFinPrueba.Value:yyyy-MM-dd}");
+                        throw new UnauthorizedAccessException("Su licencia de prueba ha expirado. Contacte al administrador.");
+                    }
+                }
+            }
 
             if (rolesPermitidos != null)
             {
@@ -110,14 +138,14 @@ namespace AgroForm.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
             try
             {
                 ClaimsPrincipal claimuser = HttpContext.User;
                 if (claimuser.Identity.IsAuthenticated)
                 {
-                    var userAuth = ValidarAutorizacion();
+                    var userAuth = await ValidarAutorizacion();
                     
                     if (userAuth.IdRol == Roles.SuperAdmin)
                     {
@@ -175,6 +203,16 @@ namespace AgroForm.Web.Controllers
                 {
                     ViewBag.Error = "Su licencia está deshabilitada. Contacte al administrador.";
                     return View();
+                }
+
+                // Validar que la licencia de prueba no haya expirado
+                if (licenciaResult.Data.EsPrueba && licenciaResult.Data.FechaFinPrueba.HasValue)
+                {
+                    if (licenciaResult.Data.FechaFinPrueba.Value.Date <= TimeHelper.GetArgentinaTime().Date)
+                    {
+                        ViewBag.Error = "Su licencia de prueba ha expirado. Contacte al administrador.";
+                        return View();
+                    }
                 }
             }
             
@@ -246,7 +284,7 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                ValidarAutorizacion();
+                await ValidarAutorizacion();
                 
                 var result = await _userService.GetByIdAsync(id);
                 
@@ -281,7 +319,7 @@ namespace AgroForm.Web.Controllers
         {
             try
             {
-                ValidarAutorizacion();
+                await ValidarAutorizacion();
                 
                 int id = perfilData.id;
                 string nombre = perfilData.nombre;
@@ -302,6 +340,54 @@ namespace AgroForm.Web.Controllers
             catch (Exception ex)
             {
                 return HandleException(ex, "Error al actualizar el perfil del usuario");
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetTrialLicenseInfo()
+        {
+            try
+            {
+                var userAuth = await ValidarAutorizacion();
+
+                // SuperAdmin no tiene licencia de prueba
+                if (userAuth.IdRol == Roles.SuperAdmin)
+                {
+                    return Json(new { success = true, esPrueba = false });
+                }
+
+                if (!userAuth.IdLicencia.HasValue)
+                {
+                    return Json(new { success = true, esPrueba = false });
+                }
+
+                var licenciaResult = await _licenciaService.GetByIdAsync(userAuth.IdLicencia.Value);
+                if (!licenciaResult.Success || licenciaResult.Data == null)
+                {
+                    return Json(new { success = true, esPrueba = false });
+                }
+
+                var licencia = licenciaResult.Data;
+                var today = DateTime.Now.Date;
+                var result = new
+                {
+                    success = true,
+                    esPrueba = licencia.EsPrueba,
+                    fechaFinPrueba = licencia.FechaFinPrueba?.ToString("yyyy-MM-dd"),
+                    expirada = licencia.EsPrueba && licencia.FechaFinPrueba.HasValue
+                        ? licencia.FechaFinPrueba.Value.Date < today
+                        : false,
+                    diasRestantes = licencia.EsPrueba && licencia.FechaFinPrueba.HasValue
+                        ? (int)(licencia.FechaFinPrueba.Value.Date - today).TotalDays
+                        : 0
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al obtener información de licencia de prueba");
             }
         }
     }

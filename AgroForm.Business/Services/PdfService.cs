@@ -232,7 +232,7 @@ namespace AgroForm.Business.Services
                 new { Nombre = "Análisis de Suelo", Ars = reporte.AnalisisSueloArs, Usd = reporte.AnalisisSueloUsd },
                 new { Nombre = "Monitoreos", Ars = reporte.CostoMonitoreosArs, Usd = reporte.CostoMonitoreosUsd },
                 new { Nombre = "Otras Labores", Ars = reporte.CostoOtrasLaboresArs, Usd = reporte.CostoOtrasLaboresUsd },
-                new { Nombre = "Silo Bolsa", Ars = reporte.CostoSiloBolsasArs, Usd = reporte.CostoSiloBolsasUsd }
+                new { Nombre = "Acopio", Ars = reporte.CostoAcopiosArs, Usd = reporte.CostoAcopiosUsd }
             };
 
             foreach (var costo in costos)

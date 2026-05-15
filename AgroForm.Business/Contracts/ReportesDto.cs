@@ -92,6 +92,12 @@ namespace AgroForm.Business.Contracts
         public DateTime? FechaCosechaEstimada { get; set; }
         public string? UltimaLluvia { get; set; }
         public decimal? NDVIPromedio { get; set; }
+
+        /// <summary>NDWI promedio del período (índice de estrés hídrico)</summary>
+        public decimal? NDWIPromedio { get; set; }
+
+        /// <summary>Indica si el NDVI/NDWI proviene de datos satelitales reales o simulación</summary>
+        public bool EsSatelital { get; set; }
         public string EstadoGeneral { get; set; } = "Sin datos";
         public string RiesgoActual { get; set; } = "Bajo";
         public decimal? Latitud { get; set; }
@@ -151,9 +157,13 @@ namespace AgroForm.Business.Contracts
     {
         public DateTime Fecha { get; set; }
         public decimal? NDVI { get; set; }
+        public decimal? NDWI { get; set; }
         public decimal? Humedad { get; set; }
         public decimal? Temperatura { get; set; }
         public decimal? Precipitacion { get; set; }
+
+        /// <summary>Indica si los datos son de origen satelital real</summary>
+        public bool EsSatelital { get; set; }
     }
 
     public class ComparativaEvolucionDto
@@ -161,6 +171,8 @@ namespace AgroForm.Business.Contracts
         public string CampaniaAnterior { get; set; } = string.Empty;
         public decimal? NDVIPromedioAnterior { get; set; }
         public decimal? NDVIPromedioActual { get; set; }
+        public decimal? NDWIPromedioAnterior { get; set; }
+        public decimal? NDWIPromedioActual { get; set; }
         public decimal? RendimientoAnterior { get; set; }
         public decimal? RendimientoActual { get; set; }
     }
@@ -265,8 +277,8 @@ namespace AgroForm.Business.Contracts
         public decimal AnalisisSueloUSD { get; set; }
         public decimal OtrasLaboresARS { get; set; }
         public decimal OtrasLaboresUSD { get; set; }
-        public decimal SiloBolsasARS { get; set; }
-        public decimal SiloBolsasUSD { get; set; }
+        public decimal AcopiosARS { get; set; }
+        public decimal AcopiosUSD { get; set; }
     }
 
     /// <summary>

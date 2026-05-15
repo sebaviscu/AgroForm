@@ -407,13 +407,43 @@ function renderizarMapa(r) {
         // Add OSM as default
         osmLayer.addTo(map);
 
-        // --- Base map layer control (switcher) ---
+        // ==========================================
+        // FASE 0: Capas satelitales NDVI / NDWI
+        // ==========================================
+        // Usan el proxy de tiles de Sentinel Hub a través del backend
+        // Formato: /satelite/tiles/{z}/{x}/{y}.png?indice=NDVI&fecha=YYYY-MM-DD
+        // ==========================================
+
+        var sateliteFecha = obtenerFechaSateliteDefecto();
+
+        // Capa NDVI (índice de vegetación)
+        var ndviLayer = L.tileLayer('/satelite/tiles/{z}/{x}/{y}.png?indice=NDVI&fecha=' + sateliteFecha, {
+            maxZoom: 18,
+            opacity: 0.7,
+            attribution: 'NDVI &copy; <a href="https://dataspace.copernicus.eu">Copernicus EU</a>'
+        });
+
+        // Capa NDWI (índice de agua / estrés hídrico)
+        var ndwiLayer = L.tileLayer('/satelite/tiles/{z}/{x}/{y}.png?indice=NDWI&fecha=' + sateliteFecha, {
+            maxZoom: 18,
+            opacity: 0.7,
+            attribution: 'NDWI &copy; <a href="https://dataspace.copernicus.eu">Copernicus EU</a>'
+        });
+
+        // Grupo de capas base (cambiar entre callejero y satelital)
         var baseMaps = {
-            'Mapa': osmLayer,
-            'Satélite': satelliteLayer
+            '<span style="color:#666">●</span> Callejero': osmLayer,
+            '<span style="color:#333">●</span> Satelital': satelliteLayer
         };
 
-        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+        // Grupo de overlays NDVI/NDWI para el control de capas
+        var overlayMaps = {
+            '<span style="color:#28a745">●</span> NDVI (Vigor vegetal)': ndviLayer,
+            '<span style="color:#007bff">●</span> NDWI (Estrés hídrico)': ndwiLayer
+        };
+
+        // --- Control de capas Leaflet (base map switcher + overlays) ---
+        L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
 
         // --- Field polygon ---
         var polygonAdded = false;
@@ -1781,4 +1811,20 @@ function mostrarMensaje(mensaje, tipo) {
     } else {
         alert(mensaje);
     }
+}
+
+// ============================================================
+// Helper: Fecha por defecto para capas satelitales (FASE 0)
+// ============================================================
+// Devuelve la fecha actual en formato YYYY-MM-DD.
+// El frontend SIEMPRE debe pasar una fecha explícita al proxy.
+// Nunca se usa "latest" o valores dinámicos para asegurar
+// caché determinístico en disco y browser.
+// ============================================================
+function obtenerFechaSateliteDefecto() {
+    var hoy = new Date();
+    var year = hoy.getFullYear();
+    var month = String(hoy.getMonth() + 1).padStart(2, '0');
+    var day = String(hoy.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
 }

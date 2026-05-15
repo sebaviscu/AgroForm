@@ -96,9 +96,23 @@ namespace AgroForm.Web.Models.IndexVM
         public decimal? SuperficieCosechada { get; set; }
         public int? IdUnidadSuperficieCosechada { get; set; }
 
-        // Silo Bolsa
+        // Acopio
+        public TipoAcopio? TipoAcopio { get; set; }
         public string? Codigo { get; set; }
-        public decimal? Longitud { get; set; }
+        public DateTime? FechaIngreso { get; set; }
+        [Required(ErrorMessage = "La Cantidad Actual (Tn) es obligatoria")]
+        public decimal? CantidadActualTn { get; set; }
         public decimal? CapacidadTotalTn { get; set; }
+        public string? Estado { get; set; }
+        public string? Ubicacion { get; set; }
+        public decimal? Longitud { get; set; }
+        public decimal? Diametro { get; set; }
+        public DateTime? FechaEmbolsado { get; set; }
+        public string? TipoSilo { get; set; }
+        public bool? Aireacion { get; set; }
+        public decimal? TemperaturaGrano { get; set; }
+        public string? Empresa { get; set; }
+        public string? NumeroContrato { get; set; }
+        public decimal? TarifaAlmacenaje { get; set; }
     }
 }

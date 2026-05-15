@@ -136,6 +136,11 @@
                             Configuración
                         </a>
                     </li>
+                    <li>
+                        <a href="/Licencia/Index" class="sidebar-subitem">
+                            Licencia
+                        </a>
+                    </li>
                     <!-- <li>
                         <a href="/Usuario/Index" class="sidebar-subitem">
                             Usuarios
@@ -173,6 +178,12 @@
                 </ul>
             </li>
         </ul>
+
+        <!-- Trial License Banner (hidden by default) -->
+        <div id="trialBanner" class="trial-banner" style="display: none;  display: flex; flex-direction: column;">
+            <span id="trialBannerText"></span>
+            <span id="trialBannerSubText"></span>
+        </div>
     </div>
 
     <div class="sidebar-footer border-top">
@@ -202,7 +213,7 @@
                 <li>
                     <a class="dropdown-item d-flex align-items-center py-2" href="#" onclick="abrirModalConfiguracion(event)">
                         <i class="ph ph-gear me-2"></i>
-                        <span>Configuracion</span>
+                        <span>Preferencias</span>
                     </a>
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>

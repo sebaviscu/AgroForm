@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Polly;
 using Serilog;
 using System.Globalization;
 using System.Text.Json.Serialization;
@@ -46,9 +47,9 @@ public class Program
                     Path.Combine(logsDirectory, "logfile.txt"),
                     rollingInterval: RollingInterval.Month,
                     retainedFileCountLimit: 3,
-                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error
+                    restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning
                 )
-                .WriteTo.Console() // ← Agregar esto para ver logs en consola
+                .WriteTo.Console()
                 .CreateLogger();
 
             builder.Host.UseSerilog();
@@ -119,6 +120,32 @@ public class Program
             builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddApplicationServices();
 
+            // ==========================================
+            // Configuración de Copernicus Data Space Ecosystem (FASE 0)
+            // ==========================================
+            builder.Services.Configure<CopernicusConfig>(
+                builder.Configuration.GetSection("Copernicus"));
+
+            // HttpClient resiliente para Copernicus con Polly
+            // La Processing API puede tomar más tiempo que WMTS (hasta 60s)
+            // Estrategia: retry (3 intentos, backoff 2s/4s/8s) + circuit breaker (5 fallos, 30s)
+            builder.Services.AddHttpClient("Copernicus", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(60);
+            })
+            .AddTransientHttpErrorPolicy(p => p
+                .WaitAndRetryAsync(3, retryAttempt =>
+                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
+            .AddTransientHttpErrorPolicy(p => p
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
+            // Asegurar que el directorio de caché de tiles existe
+            var tilesCachePath = builder.Configuration.GetValue<string>("Copernicus:TileCacheRoot") ?? "satelite-tiles";
+            if (!Directory.Exists(tilesCachePath))
+            {
+                Directory.CreateDirectory(tilesCachePath);
+            }
+
             // Configuración cultural
             var cultureInfo = new CultureInfo("es-AR");
             cultureInfo.NumberFormat.NumberDecimalSeparator = ",";
@@ -134,6 +161,8 @@ public class Program
                 options.HeaderName = "X-CSRF-TOKEN";
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
+
+            builder.Services.AddResponseCaching(); // Requerido por [ResponseCache] con VaryByQueryKeys (tiles satelitales)
 
             builder.Services.AddResponseCompression(options =>
             {
@@ -192,8 +221,9 @@ public class Program
 
             // ✅ ORDEN CORRECTO: HttpsRedirection ANTES de StaticFiles
             app.UseHttpsRedirection();
-            app.UseResponseCompression();
             app.UseCors("NuevaPolitica");
+            app.UseResponseCaching(); // Requerido por [ResponseCache] con VaryByQueryKeys
+            app.UseResponseCompression();
 
             // ❌ ELIMINAR middleware de redirección a www (causa problemas con SSL)
             /*
@@ -275,7 +305,7 @@ public class Program
             app.MapRazorPages();
 
             // Endpoint de health check básico
-            app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+            app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = TimeHelper.GetArgentinaTime() }));
 
 
             app.Run();

@@ -37,7 +37,7 @@ namespace AgroForm.Business.Services
             var repoPulv = unitOfWork.Repository<Pulverizacion>();
             var repoRiego = unitOfWork.Repository<Riego>();
             var repoSiembra = unitOfWork.Repository<Siembra>();
-            var repoSiloBolsa = unitOfWork.Repository<SiloBolsa>();
+            var repoAcopio = unitOfWork.Repository<Acopio>();
 
             _reposPorTipo = new Dictionary<TipoActividadEnum, object>
             {
@@ -49,7 +49,7 @@ namespace AgroForm.Business.Services
                 { TipoActividadEnum.Pulverizacion, repoPulv },
                 { TipoActividadEnum.Riego, repoRiego },
                 { TipoActividadEnum.Siembra, repoSiembra },
-                { TipoActividadEnum.SiloBolsa, repoSiloBolsa }
+                { TipoActividadEnum.Acopio, repoAcopio }
             };
 
             _reposPorTipoClr = new Dictionary<Type, object>
@@ -62,7 +62,7 @@ namespace AgroForm.Business.Services
                 { typeof(Pulverizacion), repoPulv },
                 { typeof(Riego), repoRiego },
                 { typeof(Siembra), repoSiembra },
-                { typeof(SiloBolsa), repoSiloBolsa }
+                { typeof(Acopio), repoAcopio }
             };
         }
 
@@ -353,33 +353,33 @@ namespace AgroForm.Business.Services
 
             try
             {
-                var siloBolsas = await aplicarFiltros((_reposPorTipo[TipoActividadEnum.SiloBolsa] as IGenericRepository<SiloBolsa>).Query()).Select(sb => new LaborDTO
+                var acopios = await aplicarFiltros((_reposPorTipo[TipoActividadEnum.Acopio] as IGenericRepository<Acopio>).Query()).Select(a => new LaborDTO
                 {
-                    Id = sb.Id,
-                    IdTipoActividad = sb.TipoActividad.Id,
-                    TipoActividad = sb.TipoActividad.Nombre,
-                    IconoTipoActividad = sb.TipoActividad.Icono,
-                    IconoColorTipoActividad = sb.TipoActividad.ColorIcono,
-                    Fecha = sb.Fecha,
-                    Responsable = sb.RegistrationUser,
-                    RegistrationDate = sb.RegistrationDate,
-                    Detalle = $"Código: {sb.Codigo}, Longitud: {sb.Longitud}m, Capacidad: {sb.CapacidadTotalTn}tn, Humedad: {sb.HumedadGrano}%",
-                    Costo = sb.Costo,
-                    CostoUSD = sb.CostoUSD,
-                    CostoARS = sb.CostoARS,
-                    IdCampania = sb.IdCampania,
-                    Campania = sb.Campania.Nombre,
-                    Observacion = sb.Observacion,
-                    IdLote = sb.IdLote,
-                    Lote = sb.Lote.Nombre,
-                    Campo = sb.Lote.Campo.Nombre,
-                    EsDolar = sb.IdMoneda == (int)Monedas.DolarOficial
+                    Id = a.Id,
+                    IdTipoActividad = a.TipoActividad.Id,
+                    TipoActividad = a.TipoActividad.Nombre,
+                    IconoTipoActividad = a.TipoActividad.Icono,
+                    IconoColorTipoActividad = a.TipoActividad.ColorIcono,
+                    Fecha = a.Fecha,
+                    Responsable = a.RegistrationUser,
+                    RegistrationDate = a.RegistrationDate,
+                    Detalle = $"Código: {a.Codigo}, Capacidad: {a.CapacidadTotalTn}tn, Humedad: {a.HumedadGrano}%",
+                    Costo = a.Costo,
+                    CostoUSD = a.CostoUSD,
+                    CostoARS = a.CostoARS,
+                    IdCampania = a.IdCampania,
+                    Campania = a.Campania.Nombre,
+                    Observacion = a.Observacion,
+                    IdLote = a.IdLote,
+                    Lote = a.Lote.Nombre,
+                    Campo = a.Lote.Campo.Nombre,
+                    EsDolar = a.IdMoneda == (int)Monedas.DolarOficial
                 }).ToListAsync();
-                labores.AddRange(siloBolsas);
+                labores.AddRange(acopios);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error cargando silo bolsas");
+                _logger.LogError(ex, "Error cargando acopios");
             }
 
             return OperationResult<List<LaborDTO>>.SuccessResult(labores.OrderByDescending(l => l.RegistrationDate).ToList());
@@ -553,14 +553,14 @@ namespace AgroForm.Business.Services
                                 .ThenInclude(l => l.Campo)
                             .FirstOrDefaultAsync(o => o.Id == idActividad);
 
-                    case TipoActividadEnum.SiloBolsa:
-                        var repoSiloBolsa = repoObj as IGenericRepository<SiloBolsa>;
-                        return await repoSiloBolsa.Query()
+                    case TipoActividadEnum.Acopio:
+                        var repoAcopio = repoObj as IGenericRepository<Acopio>;
+                        return await repoAcopio.Query()
                             .Include(s => s.Moneda)
-                            .Include(sb => sb.TipoActividad)
-                            .Include(sb => sb.Lote)
+                            .Include(a => a.TipoActividad)
+                            .Include(a => a.Lote)
                                 .ThenInclude(l => l.Campo)
-                            .FirstOrDefaultAsync(sb => sb.Id == idActividad);
+                            .FirstOrDefaultAsync(a => a.Id == idActividad);
 
                     default:
                         return null;
@@ -639,6 +639,34 @@ namespace AgroForm.Business.Services
             catch (Exception e)
             {
                 return OperationResult<List<Siembra>>.Failure(e.Message, "DATABASE_ERROR");
+            }
+        }
+
+        public async Task<OperationResult<List<Acopio>>> GetAcopiosAsync()
+        {
+            try
+            {
+                var repo = _reposPorTipoClr[typeof(Acopio)] as IGenericRepository<Acopio>;
+
+                // Solo filtrar por campaña si el claim tiene un valor
+                if (_userContext.IdCampaña.HasValue)
+                {
+                    var list = await repo.Query()
+                        .Where(_ => _.IdCampania == _userContext.IdCampaña.Value)
+                        .Include(_ => _.Cultivo)
+                        .ToListAsync();
+
+                    return OperationResult<List<Acopio>>.SuccessResult(list);
+                }
+                else
+                {
+                    // Si no hay campaña activa, devolver lista vacía
+                    return OperationResult<List<Acopio>>.SuccessResult(new List<Acopio>());
+                }
+            }
+            catch (Exception e)
+            {
+                return OperationResult<List<Acopio>>.Failure(e.Message, "DATABASE_ERROR");
             }
         }
     }

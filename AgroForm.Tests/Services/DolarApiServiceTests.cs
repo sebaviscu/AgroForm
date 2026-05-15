@@ -5,6 +5,7 @@ using Moq;
 using Moq.Protected;
 using AgroForm.Business.Externos.DolarApi;
 using AgroForm.Business.Services;
+using AgroForm.Model;
 using Xunit;
 
 namespace AgroForm.Tests.Services
@@ -38,7 +39,7 @@ namespace AgroForm.Tests.Services
                     Nombre = "Dólar Oficial",
                     Compra = 1000.50m,
                     Venta = 1020.75m,
-                    FechaActualizacion = DateTime.UtcNow
+                    FechaActualizacion = TimeHelper.GetArgentinaTime()
                 },
                 new DolarInfo
                 {
@@ -47,7 +48,7 @@ namespace AgroForm.Tests.Services
                     Nombre = "Dólar Blue",
                     Compra = 1200.00m,
                     Venta = 1220.00m,
-                    FechaActualizacion = DateTime.UtcNow
+                    FechaActualizacion = TimeHelper.GetArgentinaTime()
                 }
             };
 

@@ -22,6 +22,10 @@ namespace AgroForm.Web.Models.IndexVM
 
         public List<GastoVM> DistribucionGastos { get; set; } = new();
 
+        // --- Acopio KPI ---
+        public string TotalAcopioTn { get; set; } = "-";
+        public List<AcopioResumenVM> AcopiosDetalle { get; set; } = new();
+
         public void CargarDistribucionGastos(List<Gasto> gastos)
         {
             var gastosAgrupados = gastos
@@ -56,5 +60,34 @@ namespace AgroForm.Web.Models.IndexVM
             Cultivos = cultivosAgrupados;
             HaSembradas = Cultivos.Any() ? Cultivos.Sum(s => s.SuperficieHa).ToString() : "-";
         }
+
+        public void CargarAcopiosDesdeDatos(List<Acopio> acopios)
+        {
+            var agrupados = acopios
+                .Where(a => a.CantidadActualTn.HasValue && a.CantidadActualTn > 0)
+                .GroupBy(a => new { a.TipoAcopio, CultivoNombre = a.Cultivo?.Nombre ?? "Sin cultivo" })
+                .Select(grupo => new AcopioResumenVM
+                {
+                    TipoAcopio = grupo.Key.TipoAcopio,
+                    TipoAcopioNombre = grupo.Key.TipoAcopio.GetDisplayName(),
+                    CultivoNombre = grupo.Key.CultivoNombre,
+                    CantidadTotalTn = grupo.Sum(a => a.CantidadActualTn ?? 0)
+                })
+                .OrderByDescending(a => a.CantidadTotalTn)
+                .ToList();
+
+            AcopiosDetalle = agrupados;
+            TotalAcopioTn = AcopiosDetalle.Any()
+                ? AcopiosDetalle.Sum(a => a.CantidadTotalTn).ToString("N1")
+                : "-";
+        }
+    }
+
+    public class AcopioResumenVM
+    {
+        public TipoAcopio TipoAcopio { get; set; }
+        public string TipoAcopioNombre { get; set; } = string.Empty;
+        public string CultivoNombre { get; set; } = string.Empty;
+        public decimal CantidadTotalTn { get; set; }
     }
 }

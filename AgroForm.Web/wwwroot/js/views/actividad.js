@@ -310,13 +310,27 @@ function cargarDatosEspecificosEditar(datosEspecificos, tipoActividadNombre) {
             if (datosEspecificos.esDolar != null) $('#switchMonedaCostoOtraLabor').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
 
-        case 9: // SiloBolsa
-            if (datosEspecificos.codigo != null) $('#codigoSiloBolsa').val(datosEspecificos.codigo);
-            if (datosEspecificos.longitud != null) $('#longitudSiloBolsa').val(datosEspecificos.longitud);
+        case 9: // Acopio
+            if (datosEspecificos.tipoAcopio != null) $('#tipoAcopio').val(datosEspecificos.tipoAcopio).trigger('change');
+            if (datosEspecificos.codigo != null) $('#codigoAcopio').val(datosEspecificos.codigo);
+            if (datosEspecificos.fechaIngreso != null) $('#fechaIngresoAcopio').val(datosEspecificos.fechaIngreso);
+            if (datosEspecificos.idCultivo != null) $('#idCultivoAcopio').val(datosEspecificos.idCultivo);
+            if (datosEspecificos.cantidadActualTn != null) $('#cantidadActualTn').val(datosEspecificos.cantidadActualTn);
             if (datosEspecificos.capacidadTotalTn != null) $('#capacidadTotalTn').val(datosEspecificos.capacidadTotalTn);
             if (datosEspecificos.humedadGrano != null) $('#humedadGrano').val(datosEspecificos.humedadGrano);
-            if (datosEspecificos.costo != null) $('#costoSiloBolsaTotal').val(datosEspecificos.costo);
-            if (datosEspecificos.esDolar != null) $('#switchMonedaCostoSiloBolsa').prop('checked', !!datosEspecificos.esDolar).trigger('change');
+            if (datosEspecificos.estado != null) $('#estadoAcopio').val(datosEspecificos.estado);
+            if (datosEspecificos.ubicacion != null) $('#ubicacionAcopio').val(datosEspecificos.ubicacion);
+            if (datosEspecificos.longitud != null) $('#longitudAcopio').val(datosEspecificos.longitud);
+            if (datosEspecificos.diametro != null) $('#diametroAcopio').val(datosEspecificos.diametro);
+            if (datosEspecificos.fechaEmbolsado != null) $('#fechaEmbolsadoAcopio').val(datosEspecificos.fechaEmbolsado);
+            if (datosEspecificos.tipoSilo != null) $('#tipoSiloAcopio').val(datosEspecificos.tipoSilo);
+            if (datosEspecificos.aireacion != null) $('#aireacionAcopio').prop('checked', !!datosEspecificos.aireacion);
+            if (datosEspecificos.temperaturaGrano != null) $('#temperaturaGranoAcopio').val(datosEspecificos.temperaturaGrano);
+            if (datosEspecificos.empresa != null) $('#empresaAcopio').val(datosEspecificos.empresa);
+            if (datosEspecificos.numeroContrato != null) $('#numeroContratoAcopio').val(datosEspecificos.numeroContrato);
+            if (datosEspecificos.tarifaAlmacenaje != null) $('#tarifaAlmacenajeAcopio').val(datosEspecificos.tarifaAlmacenaje);
+            if (datosEspecificos.costo != null) $('#costoAcopioTotal').val(datosEspecificos.costo);
+            if (datosEspecificos.esDolar != null) $('#switchMonedaCostoAcopio').prop('checked', !!datosEspecificos.esDolar).trigger('change');
             break;
     }
 }

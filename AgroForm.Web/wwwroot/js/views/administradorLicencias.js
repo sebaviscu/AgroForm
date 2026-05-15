@@ -180,6 +180,7 @@ function configurarEventos() {
         } else {
             $('#fechaPruebaGroup').hide();
             $('#fechaFinPrueba').removeAttr('required');
+            $('#diasPruebaTexto').hide();
         }
     });
 }
@@ -193,15 +194,17 @@ function abrirModalLicencia(id, accion) {
         case 'editar':
             titulo.html('<i class="ph ph-hash-straight me-2"></i>Editar Licencia');
             btnGuardar.html('<i class="ph ph-check-circle me-1"></i> Actualizar');
-            // Ocultar sección de usuario en edición
+            // Ocultar sección de usuario en edición y quitar required para no bloquear validación
             $('#usuarioSection').hide();
+            $('#nombreUsuario, #emailUsuario, #contrasenaUsuario, #repetirContrasenaUsuario').removeAttr('required');
             cargarDatosLicencia(id);
             break;
         case 'crear':
             titulo.html('<i class="ph ph-hash-straight me-2"></i>Nueva Licencia');
             btnGuardar.html('<i class="ph ph-check-circle me-1"></i> Guardar');
-            // Mostrar sección de usuario en creación
+            // Mostrar sección de usuario en creación y restaurar required
             $('#usuarioSection').show();
+            $('#nombreUsuario, #emailUsuario, #contrasenaUsuario, #repetirContrasenaUsuario').attr('required', 'required');
             limpiarFormulario();
             break;
     }
@@ -223,10 +226,15 @@ function cargarDatosLicencia(id) {
                 $('#numeroContacto').val(licencia.numeroContacto || '');
                 $('#tipoLicencia').val(licencia.tipoLicencia);
                 $('#esPrueba').prop('checked', licencia.esPrueba);
+                $('#activoLicencia').prop('checked', licencia.activo);
 
                 if (licencia.esPrueba && licencia.fechaFinPrueba) {
-                    $('#fechaFinPrueba').val(licencia.fechaFinPrueba.split('T')[0]);
+                    var dateValue = licencia.fechaFinPrueba.split('T')[0];
+                    $('#fechaFinPrueba').val(dateValue);
                     $('#fechaPruebaGroup').show();
+                    $('#fechaFinPrueba').attr('required', 'required');
+                    // Calcular y mostrar los días de prueba
+                    actualizarDiasPrueba(dateValue);
                 }
 
                 // Guardar ID en campo oculto
@@ -256,6 +264,8 @@ function limpiarFormulario() {
     $('#fechaPruebaGroup').hide();
     $('#fechaFinPrueba').removeAttr('required');
     $('#usuarioSection').show();
+    $('#nombreUsuario, #emailUsuario, #contrasenaUsuario, #repetirContrasenaUsuario').attr('required', 'required');
+    $('#diasPruebaTexto').hide().removeClass('text-danger').addClass('text-muted');
 }
 
 function guardarLicencia() {
@@ -274,8 +284,20 @@ function guardarLicencia() {
         NumeroContacto: $('#numeroContacto').val().trim() || null,
         TipoLicencia: parseInt($('#tipoLicencia').val()),
         EsPrueba: $('#esPrueba').is(':checked'),
-        FechaFinPrueba: $('#esPrueba').is(':checked') ? $('#fechaFinPrueba').val() : null
+        FechaFinPrueba: $('#esPrueba').is(':checked') ? $('#fechaFinPrueba').val() : null,
+        Activo: $('#activoLicencia').is(':checked')
     };
+
+    // Validar que la fecha de prueba no sea anterior a hoy
+    if (datos.EsPrueba && datos.FechaFinPrueba) {
+        var selectedDate = new Date(datos.FechaFinPrueba + 'T00:00:00');
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+            mostrarError('La fecha de fin de prueba no puede ser anterior a la fecha actual.');
+            return;
+        }
+    }
 
     // Solo incluir datos de usuario si es creación
     if (!datos.Id) {
@@ -305,7 +327,7 @@ function guardarLicencia() {
     var originalText = submitBtn.html();
     submitBtn.html('<i class="ph ph-hourglass me-1"></i>' + (datos.Id ? 'Actualizando...' : 'Guardando...')).prop('disabled', true);
 
-    var url = datos.Id ? '/Licencia/Update/' + datos.Id : '/Licencia/CreateWithAdmin';
+    var url = datos.Id ? '/Licencia/Update' : '/Licencia/CreateWithAdmin';
     var metodo = datos.Id ? 'PUT' : 'POST';
 
     $.ajax({
@@ -663,11 +685,58 @@ function configurarEventos() {
         if ($(this).is(':checked')) {
             $('#fechaPruebaGroup').show();
             $('#fechaFinPrueba').attr('required', 'required');
+            // Si no hay fecha seleccionada o la fecha es anterior a hoy, establecer fecha por defecto
+            var currentVal = $('#fechaFinPrueba').val();
+            var today = new Date();
+            var todayStr = today.toISOString().split('T')[0];
+            if (!currentVal || currentVal < todayStr) {
+                $('#fechaFinPrueba').val(todayStr);
+            }
+            actualizarDiasPrueba($('#fechaFinPrueba').val());
         } else {
             $('#fechaPruebaGroup').hide();
             $('#fechaFinPrueba').removeAttr('required');
+            $('#diasPruebaTexto').hide();
         }
     });
+
+    // Actualizar los días de prueba al cambiar la fecha
+    $('#fechaFinPrueba').change(function () {
+        actualizarDiasPrueba($(this).val());
+    });
+}
+
+/**
+ * Calcula y muestra la cantidad de días que durará la prueba
+ * basándose en la diferencia entre la fecha seleccionada y la fecha actual.
+ */
+function actualizarDiasPrueba(fechaFin) {
+    if (!fechaFin) {
+        $('#diasPruebaTexto').hide();
+        return;
+    }
+
+    var fechaFinDate = new Date(fechaFin + 'T00:00:00');
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (fechaFinDate < today) {
+        $('#diasPruebaTexto').text('⚠️ La fecha no puede ser anterior a hoy')
+            .removeClass('text-muted').addClass('text-danger').show();
+        return;
+    }
+
+    // Calcular diferencia en días
+    var diffTime = fechaFinDate.getTime() - today.getTime();
+    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        $('#diasPruebaTexto').text('📅 La prueba finaliza hoy')
+            .removeClass('text-danger').addClass('text-muted').show();
+    } else {
+        $('#diasPruebaTexto').text('📅 La prueba durará ' + diffDays + ' día' + (diffDays !== 1 ? 's' : ''))
+            .removeClass('text-danger').addClass('text-muted').show();
+    }
 }
 
 

@@ -52,6 +52,12 @@ public class HomeController : Controller
         if (siembraResult.Success)
             vm.CargarCultivosDesdeSiembras(siembraResult.Data);
 
+        // Acopio KPI: cargar datos desde la base usando la nueva entidad Acopio
+        var acopioResult = await _actividadService.GetAcopiosAsync();
+
+        if (acopioResult.Success)
+            vm.CargarAcopiosDesdeDatos(acopioResult.Data);
+
         return View(vm);
     }
 

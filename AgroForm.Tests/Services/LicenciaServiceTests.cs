@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using AgroForm.Business.Services;
 using AgroForm.Business.Contracts;
 using AgroForm.Model;
+using AgroForm.Model.Actividades;
 using Xunit;
+using static AgroForm.Model.EnumClass;
 
 namespace AgroForm.Tests.Services
 {
@@ -322,6 +324,88 @@ namespace AgroForm.Tests.Services
             // Verificar que el query incluye todas las licencias (sin filtro por licencia)
             var resultados = await query.ToListAsync();
             Assert.Equal(2, resultados.Count); // Todas las licencias (sin filtro por licencia)
+        }
+
+        [Fact]
+        public async Task CreateLicenseWithAdminAsync_DebeCrearRelacionesLicenciasCultivos()
+        {
+            // Arrange: crear cultivos globales (IdLicencia = null)
+            var cultivoGlobal1 = new Cultivo { Nombre = "Soja", IdLicencia = null, Orden = 1, Activo = true };
+            var cultivoGlobal2 = new Cultivo { Nombre = "Maíz", IdLicencia = null, Orden = 2, Activo = true };
+            await AddTestDataAsync(cultivoGlobal1);
+            await AddTestDataAsync(cultivoGlobal2);
+
+            var licencia = new Licencia
+            {
+                RazonSocial = "Empresa Test",
+                NombreContacto = "Contacto Test",
+                Activo = true
+            };
+
+            // Act
+            var result = await _licenciaService.CreateLicenseWithAdminAsync(
+                licencia,
+                "Admin Test",
+                "admin@test.com",
+                "Password123!");
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.True(result.Data.Id > 0);
+
+            // Verificar que se crearon las relaciones en LicenciasCultivos
+            var licenciasCultivos = await DbContext.Set<LicenciasCultivos>()
+                .Where(lc => lc.IdLicencia == result.Data.Id)
+                .ToListAsync();
+
+            Assert.Equal(2, licenciasCultivos.Count);
+            
+            var lcSoja = licenciasCultivos.First(lc => lc.IdCultivo == cultivoGlobal1.Id);
+            Assert.True(lcSoja.Activo);
+            Assert.Equal(1, lcSoja.Orden);
+
+            var lcMaiz = licenciasCultivos.First(lc => lc.IdCultivo == cultivoGlobal2.Id);
+            Assert.True(lcMaiz.Activo);
+            Assert.Equal(2, lcMaiz.Orden);
+        }
+
+        [Fact]
+        public async Task CreateLicenseWithAdminAsync_DebeCrearRelacionesLicenciasCatalogos()
+        {
+            // Arrange: crear catálogos globales (IdLicencia = null)
+            var catalogoGlobal1 = new Catalogo { Nombre = "Glifosato", IdLicencia = null, Tipo = TipoCatalogoEnum.ProductoAgroquimico, Activo = true };
+            var catalogoGlobal2 = new Catalogo { Nombre = "Urea", IdLicencia = null, Tipo = TipoCatalogoEnum.TipoFertilizante, Activo = true };
+            await AddTestDataAsync(catalogoGlobal1);
+            await AddTestDataAsync(catalogoGlobal2);
+
+            var licencia = new Licencia
+            {
+                RazonSocial = "Empresa Test 2",
+                NombreContacto = "Contacto Test 2",
+                Activo = true
+            };
+
+            // Act
+            var result = await _licenciaService.CreateLicenseWithAdminAsync(
+                licencia,
+                "Admin Test",
+                "admin2@test.com",
+                "Password123!");
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Data);
+            Assert.True(result.Data.Id > 0);
+
+            // Verificar que se crearon las relaciones en LicenciasCatalogos
+            var licenciasCatalogos = await DbContext.Set<LicenciasCatalogos>()
+                .Where(lc => lc.IdLicencia == result.Data.Id)
+                .ToListAsync();
+
+            Assert.Equal(2, licenciasCatalogos.Count);
+            Assert.Contains(licenciasCatalogos, lc => lc.IdCatalogo == catalogoGlobal1.Id && lc.Activo);
+            Assert.Contains(licenciasCatalogos, lc => lc.IdCatalogo == catalogoGlobal2.Id && lc.Activo);
         }
     }
 }

@@ -28,6 +28,55 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dark-theme.css" asp-append-version="true" />
     
+    <!-- Trial Banner Styles (sidebar) -->
+    <style>
+        .trial-banner {
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: #fff3cd;
+            color: #856404;
+            border-top: 1px solid #ffc107;
+            border-bottom: 1px solid #ffc107;
+            text-align: center;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .trial-banner-expired {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-top-color: #f5c6cb;
+            border-bottom-color: #f5c6cb;
+        }
+        /* Dark theme support */
+        [data-theme="dark"] .trial-banner {
+            background-color: rgba(61, 50, 0, 0.9);
+            color: #ffd700;
+            border-top-color: #6b5900;
+            border-bottom-color: #6b5900;
+        }
+        [data-theme="dark"] .trial-banner-expired {
+            background-color: rgba(61, 0, 0, 0.9);
+            color: #ff6b6b;
+            border-top-color: #6b0000;
+            border-bottom-color: #6b0000;
+        }
+        /* Sidebar collapsed: hide text span */
+        #sidebar.active .trial-banner span {
+            display: none !important;
+        }
+        /* Mobile */
+        @@media (max-width: 991.98px) {
+            .trial-banner {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+    
     <!-- Script para prevenir parpadeo de tema -->
     <script>
         (function() {
@@ -120,6 +169,7 @@
             
         </div>
     </div>
+
 
 
 
@@ -346,6 +396,36 @@
 </div>
 
 <script src="~/js/layout.js" asp-append-version="true"></script>
+
+<!-- Trial License Banner Script -->
+<script>
+$(document).ready(function () {
+    $.ajax({
+        url: '/Access/GetTrialLicenseInfo',
+        type: 'GET',
+        success: function (response) {
+            if (response.success && response.esPrueba) {
+                var $banner = $('#trialBanner');
+                var $bannerText = $('#trialBannerText');
+                var $bannerSubText = $('#trialBannerSubText');
+                if (response.expirada) {
+                    $bannerText.text('Licencia de prueba expirada');
+                    $banner.addClass('trial-banner-expired');
+                } else {
+                    var dias = response.diasRestantes;
+                    // var texto = 'Licencia de prueba - ' + dias + ' d\u00eda' + (dias !== 1 ? 's' : '') + ' restante' + (dias !== 1 ? 's' : '');
+                    $bannerText.text('Licencia de prueba');
+                    var subTexto = dias + ' d\u00eda' + (dias !== 1 ? 's' : '') + ' restante' + (dias !== 1 ? 's' : '');
+                    $bannerSubText.text(subTexto);
+                    $banner.removeClass('trial-banner-expired');
+                }
+                $banner.show();
+            }
+        },
+        error: function () { }
+    });
+});
+</script>
 
 </body>
 </html>

@@ -1,6 +1,8 @@
 ﻿using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
 using AgroForm.Model;
 using AgroForm.Web.Models;
+using AgroForm.Web.Utilities;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +20,52 @@ namespace AgroForm.Web.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        /// <summary>
+        /// Obtiene los datos de la licencia del usuario logueado actual, incluyendo pagos.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetMyLicencia()
+        {
+            try
+            {
+                // Obtener IdLicencia del usuario autenticado
+                var claimUser = HttpContext.User;
+                var idLicencia = UtilidadService.GetClaimValue<int?>(claimUser, "Licencia");
+
+                if (!idLicencia.HasValue)
+                {
+                    return Ok(new GenericResponse<LicenciaVM>
+                    {
+                        Success = false,
+                        Message = "No se encontró una licencia asociada a su usuario"
+                    });
+                }
+
+                var result = await _service.GetByIdAsync(idLicencia.Value);
+                if (!result.Success)
+                {
+                    return Ok(new GenericResponse<LicenciaVM>
+                    {
+                        Success = false,
+                        Message = result.ErrorMessage
+                    });
+                }
+
+                var licenciaVM = Map<Licencia, LicenciaVM>(result.Data);
+
+                return Ok(new GenericResponse<LicenciaVM>
+                {
+                    Success = true,
+                    Object = licenciaVM,
+                    Message = "Datos de licencia obtenidos correctamente"
+                });
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex, "Error al obtener datos de licencia", "GetMyLicencia");
+            }
         }
 
         [HttpPost]

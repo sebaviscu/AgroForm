@@ -17,17 +17,20 @@ namespace AgroForm.Business.Services
         private readonly ILogger<ReportService> _logger;
         private readonly IUserContext _userContext;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ISateliteService _sateliteService;
 
         public ReportService(
             IUnitOfWork unitOfWork,
             ILogger<ReportService> logger,
             IUserContext userContext,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            ISateliteService sateliteService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _userContext = userContext;
             _httpClientFactory = httpClientFactory;
+            _sateliteService = sateliteService;
         }
 
         public async Task<OperationResult<List<ReporteComparativaCampoDto>>> GetComparativaCamposAsync(
@@ -59,7 +62,7 @@ namespace AgroForm.Business.Services
                     .Include(l => l.CicloCultivos)
                         .ThenInclude(c => c.OtrasLabores)
                     .Include(l => l.CicloCultivos)
-                        .ThenInclude(c => c.SiloBolsas)
+                        .ThenInclude(c => c.Acopios)
                     .Where(l => l.IdLicencia == _userContext.IdLicencia)
                     .AsQueryable();
 
@@ -115,8 +118,8 @@ namespace AgroForm.Business.Services
                         .SelectMany(cc => cc.OtrasLabores)
                         .ToList();
 
-                    var todosLosSiloBolsas = todosLosCiclos
-                        .SelectMany(cc => cc.SiloBolsas)
+                    var todosLosAcopios = todosLosCiclos
+                        .SelectMany(cc => cc.Acopios)
                         .ToList();
 
                     var ultimaSiembra = todasLasSiembras
@@ -255,7 +258,7 @@ namespace AgroForm.Business.Services
                                 .ThenInclude(cc => cc.OtrasLabores)
                         .Include(c => c.Lotes)
                             .ThenInclude(l => l.CicloCultivos)
-                                .ThenInclude(cc => cc.SiloBolsas)
+                                .ThenInclude(cc => cc.Acopios)
                         .FirstOrDefaultAsync(c => c.Id == idCampo && c.IdLicencia == _userContext.IdLicencia);
 
                     if (campo == null) return null;
@@ -319,18 +322,18 @@ namespace AgroForm.Business.Services
                             desglose.OtrasLaboresARS += o.CostoARS.GetValueOrDefault();
                             desglose.OtrasLaboresUSD += o.CostoUSD.GetValueOrDefault();
                         }
-                        foreach (var sb in ciclo.SiloBolsas)
+                        foreach (var a in ciclo.Acopios)
                         {
-                            desglose.SiloBolsasARS += sb.CostoARS.GetValueOrDefault();
-                            desglose.SiloBolsasUSD += sb.CostoUSD.GetValueOrDefault();
+                            desglose.AcopiosARS += a.CostoARS.GetValueOrDefault();
+                            desglose.AcopiosUSD += a.CostoUSD.GetValueOrDefault();
                         }
                     }
                     totalARS = desglose.SiembraARS + desglose.FertilizacionARS + desglose.PulverizacionARS +
                                desglose.RiegoARS + desglose.CosechaARS + desglose.MonitoreoARS +
-                               desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.SiloBolsasARS;
+                               desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.AcopiosARS;
                     totalUSD = desglose.SiembraUSD + desglose.FertilizacionUSD + desglose.PulverizacionUSD +
                                desglose.RiegoUSD + desglose.CosechaUSD + desglose.MonitoreoUSD +
-                               desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.SiloBolsasUSD;
+                               desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.AcopiosUSD;
 
                     var costoPorHaARS = superficieHa > 0 ? totalARS / superficieHa : 0;
 
@@ -338,7 +341,7 @@ namespace AgroForm.Business.Services
                     var cantidadLabores = ciclos.Sum(cc =>
                         cc.Siembras.Count + cc.Cosechas.Count + cc.Fertilizaciones.Count +
                         cc.Pulverizaciones.Count + cc.Riegos.Count + cc.Monitoreos.Count +
-                        cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.SiloBolsas.Count);
+                        cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.Acopios.Count);
 
                     // Count alerts from data
                     var cantidadAlertas = 0;
@@ -371,7 +374,7 @@ namespace AgroForm.Business.Services
                     var estadoGeneral = "Sin datos";
                     if (todasLasSiembras.Any())
                     {
-                        var diasDesdeSiembra = (int)(DateTime.UtcNow.Date - ultimaSiembra!.Fecha.Date).TotalDays;
+                        var diasDesdeSiembra = (int)(TimeHelper.GetArgentinaTime().Date - ultimaSiembra!.Fecha.Date).TotalDays;
                         if (diasDesdeSiembra < 30) estadoGeneral = "Implantación";
                         else if (diasDesdeSiembra < 90) estadoGeneral = "Crecimiento";
                         else if (diasDesdeSiembra < 150) estadoGeneral = "Maduración";
@@ -465,7 +468,7 @@ namespace AgroForm.Business.Services
                             .ThenInclude(cc => cc.OtrasLabores)
                     .Include(c => c.Lotes)
                         .ThenInclude(l => l.CicloCultivos)
-                            .ThenInclude(cc => cc.SiloBolsas)
+                            .ThenInclude(cc => cc.Acopios)
                     .Include(c => c.RegistrosClima)
                     .FirstOrDefaultAsync(c => c.Id == idCampo && c.IdLicencia == _userContext.IdLicencia);
 
@@ -551,6 +554,86 @@ namespace AgroForm.Business.Services
                 reporte.NombreCampaniaSeleccionada = campaniaSeleccionada?.Nombre;
                 reporte.EsCampaniaActual = !idCampania.HasValue || idCampania == _userContext.IdCampaña;
 
+                // ============================================================
+                // ENRIQUECER CON DATOS SATELITALES REALES (FASE 1)
+                // Si existen datos satelitales persistidos, reemplazan la simulación
+                // ============================================================
+                try
+                {
+                    var indicesSatelitales = await _sateliteService.GetIndicesCampoAsync(idCampo, idCampaniaEfectiva);
+                    if (indicesSatelitales?.EsSatelital == true)
+                    {
+                        // 1. Resumen Ejecutivo: reemplazar NDVI simulado por real + agregar NDWI
+                        if (indicesSatelitales.NDVIPromedio.HasValue)
+                            reporte.ResumenEjecutivo.NDVIPromedio = indicesSatelitales.NDVIPromedio;
+                        if (indicesSatelitales.NDWIPromedio.HasValue)
+                            reporte.ResumenEjecutivo.NDWIPromedio = indicesSatelitales.NDWIPromedio;
+                        reporte.ResumenEjecutivo.EsSatelital = true;
+
+                        // 2. Evolución del Cultivo: reemplazar curva simulada con datos reales
+                        if (indicesSatelitales.SerieTemporal.Count > 0)
+                        {
+                            var evolucionSatelital = indicesSatelitales.SerieTemporal
+                                .Select(d => new DatoEvolucion
+                                {
+                                    Fecha = d.Fecha,
+                                    NDVI = d.NDVI,
+                                    NDWI = d.NDWI,
+                                    EsSatelital = true,
+                                    Humedad = null,
+                                    Temperatura = null,
+                                    Precipitacion = null
+                                })
+                                .OrderBy(d => d.Fecha)
+                                .ToList();
+
+                            // Reemplazar si hay al menos 2 puntos, si no fusionar
+                            if (evolucionSatelital.Count >= 2)
+                            {
+                                reporte.EvolucionCultivo.Evolucion = evolucionSatelital;
+                            }
+                            else
+                            {
+                                // Fusionar: actualizar NDVI/NDWI en puntos existentes donde coincida fecha
+                                var satelitalDict = evolucionSatelital.ToDictionary(d => d.Fecha.Date);
+                                foreach (var punto in reporte.EvolucionCultivo.Evolucion)
+                                {
+                                    if (satelitalDict.TryGetValue(punto.Fecha.Date, out var satelital))
+                                    {
+                                        punto.NDVI = satelital.NDVI;
+                                        punto.NDWI = satelital.NDWI;
+                                        punto.EsSatelital = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3. Reemplazar NDVI de comparativa entre campañas si hay datos
+                        if (indicesSatelitales.NDVIPromedio.HasValue &&
+                            reporte.EvolucionCultivo.Comparativa != null)
+                        {
+                            reporte.EvolucionCultivo.Comparativa.NDVIPromedioActual = indicesSatelitales.NDVIPromedio;
+                            if (indicesSatelitales.NDWIPromedio.HasValue)
+                                reporte.EvolucionCultivo.Comparativa.NDWIPromedioActual = indicesSatelitales.NDWIPromedio;
+                        }
+
+                        _logger.LogInformation(
+                            "Reporte enriquecido con datos satelitales reales para campo {IdCampo}: " +
+                            "NDVI={Ndvip}, NDWI={Ndwip}, puntos={Pts}",
+                            idCampo,
+                            indicesSatelitales.NDVIPromedio?.ToString("N4") ?? "N/A",
+                            indicesSatelitales.NDWIPromedio?.ToString("N4") ?? "N/A",
+                            indicesSatelitales.SerieTemporal.Count);
+                    }
+                }
+                catch (Exception exSat)
+                {
+                    // No bloquear el reporte si falla la carga satelital
+                    _logger.LogWarning(exSat,
+                        "No se pudieron obtener datos satelitales para campo {IdCampo}. " +
+                        "Se mantienen valores simulados.", idCampo);
+                }
+
                 return OperationResult<ReporteCampoIntegralDto>.SuccessResult(reporte);
             }
             catch (Exception ex)
@@ -589,15 +672,15 @@ namespace AgroForm.Business.Services
                 if (!ciclosLote.Any())
                 {
                     // No active cycles in this lot
-                    resumen.Cultivos.Add(new CultivoResumenDto
-                    {
-                        Lote = lote.Nombre,
-                        Nombre = "Sin cultivo",
-                        SuperficieHa = lote.SuperficieHectareas ?? 0,
-                        CantidadCiclos = 0,
-                        CantidadInactivos = 0,
-                        IsActivo = false
-                    });
+                    //resumen.Cultivos.Add(new CultivoResumenDto
+                    //{
+                    //    Lote = lote.Nombre,
+                    //    Nombre = "Sin cultivo",
+                    //    SuperficieHa = lote.SuperficieHectareas ?? 0,
+                    //    CantidadCiclos = 0,
+                    //    CantidadInactivos = 0,
+                    //    IsActivo = false
+                    //});
                     continue;
                 }
 
@@ -633,7 +716,7 @@ namespace AgroForm.Business.Services
             {
                 resumen.FechaSiembra = ultimaSiembra.Fecha;
                 // Usar FechaFin de la campaña si es histórica, si no UtcNow
-                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? DateTime.UtcNow.Date;
+                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? TimeHelper.GetArgentinaTime().Date;
                 resumen.DiasDesdeSiembra = (int)(fechaReferencia - ultimaSiembra.Fecha.Date).TotalDays;
             }
 
@@ -645,7 +728,7 @@ namespace AgroForm.Business.Services
 
             if (ultimaLluvia != null)
             {
-                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? DateTime.UtcNow.Date;
+                var fechaReferencia = campaniaSeleccionada?.FechaFin?.Date ?? TimeHelper.GetArgentinaTime().Date;
                 var diasSinLluvia = (int)(fechaReferencia - ultimaLluvia.Fecha.Date).TotalDays;
                 resumen.UltimaLluvia = diasSinLluvia <= 1
                     ? "Hoy"
@@ -748,7 +831,7 @@ namespace AgroForm.Business.Services
             {
                 // Campaña actual o "Todas": últimos 30 días (comportamiento original)
                 var lluviasRecientes = registrosClima
-                    .Where(r => r.TipoClima == TipoClima.Lluvia && r.Fecha >= DateTime.UtcNow.Date.AddDays(-30))
+                    .Where(r => r.TipoClima == TipoClima.Lluvia && r.Fecha >= TimeHelper.GetArgentinaTime().Date.AddDays(-30))
                     .Sum(r => r.Milimetros);
                 if (lluviasRecientes >= 80)
                     resumen.ScoreHidrico = 90;
@@ -924,19 +1007,19 @@ namespace AgroForm.Business.Services
                 }
             }
 
-            void AddSiloBolsas(CicloCultivo ciclo, string tipo, string defaultIcono, string defaultColor)
+            void AddAcopios(CicloCultivo ciclo, string tipo, string defaultIcono, string defaultColor)
             {
                 var (icono, color) = GetIconoYColor(tipo, defaultIcono, defaultColor);
-                foreach (var sb in ciclo.SiloBolsas)
+                foreach (var a in ciclo.Acopios)
                 {
                     eventos.Add(new TimelineEventoDto
                     {
                         Id = eventId++,
-                        Fecha = sb.Fecha,
+                        Fecha = a.Fecha,
                         TipoActividad = tipo,
                         Icono = icono,
                         Color = color,
-                        Descripcion = $"Código: {sb.Codigo}, Longitud: {sb.Longitud}m, Capacidad: {sb.CapacidadTotalTn}tn",
+                        Descripcion = $"Código: {a.Codigo}, Capacidad: {a.CapacidadTotalTn}tn",
                         Lote = ciclo.Lote?.Nombre,
                         CicloCultivo = $"{ciclo.Cultivo?.Nombre} {ciclo.Campania?.Nombre}",
                     });
@@ -957,7 +1040,7 @@ namespace AgroForm.Business.Services
                 AddMonitoreos(ciclo, "Monitoreo", "ph-eye", "#ffc107");
                 AddCosechas(ciclo, "Cosecha", "ph-trend-up", "#fd7e14");
                 AddOtrasLabores(ciclo, "Otra Labor", "ph-wrench", "#6c757d");
-                AddSiloBolsas(ciclo, "Silo Bolsa", "ph-package", "#8B5E3C");
+                AddAcopios(ciclo, "Acopio", "ph-warehouse", "#8B5E3C");
 
                 // Agregar análisis de suelo
                 var (analisisIcono, analisisColor) = GetIconoYColor("Análisis de Suelo", "ph-magnifying-glass", "#20c997");
@@ -1006,7 +1089,7 @@ namespace AgroForm.Business.Services
                 // Usar FechaFin de campaña o fecha de última cosecha, nunca UtcNow para campañas históricas
                 var ultimaFecha = cosechas.Any()
                     ? cosechas.Last().Fecha
-                    : (campaniaSeleccionada?.FechaFin ?? DateTime.UtcNow);
+                    : (campaniaSeleccionada?.FechaFin ?? TimeHelper.GetArgentinaTime());
                 var totalDias = (int)(ultimaFecha - primeraSiembra).TotalDays;
 
                 if (totalDias > 0)
@@ -1087,7 +1170,7 @@ namespace AgroForm.Business.Services
             var valores = new List<decimal>();
             foreach (var siembra in siembras)
             {
-                var dias = (int)(DateTime.UtcNow.Date - siembra.Fecha.Date).TotalDays;
+                var dias = (int)(TimeHelper.GetArgentinaTime().Date - siembra.Fecha.Date).TotalDays;
                 if (dias < 0) continue;
 
                 decimal ndvi;
@@ -1116,7 +1199,7 @@ namespace AgroForm.Business.Services
             // Si es una campaña histórica, marcar que los datos meteorológicos actuales no corresponden
             analisis.EsHistorico = campaniaSeleccionada != null
                 && campaniaSeleccionada.FechaFin.HasValue
-                && campaniaSeleccionada.FechaFin.Value < DateTime.UtcNow;
+                && campaniaSeleccionada.FechaFin.Value < TimeHelper.GetArgentinaTime();
 
             // Open-Meteo: current conditions + daily forecast
             if (openMeteoData?.Current != null)
@@ -1174,7 +1257,7 @@ namespace AgroForm.Business.Services
             else
             {
                 // Campaña actual o "Todas": últimos 30 días (comportamiento original)
-                var ultimos30Dias = DateTime.UtcNow.Date.AddDays(-30);
+                var ultimos30Dias = TimeHelper.GetArgentinaTime().Date.AddDays(-30);
                 analisis.LluviaAcumulada = lluvias
                     .Where(r => r.Fecha >= ultimos30Dias)
                     .Sum(r => r.Milimetros);
@@ -1185,7 +1268,7 @@ namespace AgroForm.Business.Services
                     .OrderByDescending(r => r.Fecha)
                     .FirstOrDefault();
                 analisis.DiasSinLluvia = ultimaLluvia != null
-                    ? (int)(DateTime.UtcNow.Date - ultimaLluvia.Fecha.Date).TotalDays
+                    ? (int)(TimeHelper.GetArgentinaTime().Date - ultimaLluvia.Fecha.Date).TotalDays
                     : 999;
 
                 // Heladas (granizo)
@@ -1376,20 +1459,20 @@ namespace AgroForm.Business.Services
                     desglose.OtrasLaboresARS += o.CostoARS.GetValueOrDefault();
                     desglose.OtrasLaboresUSD += o.CostoUSD.GetValueOrDefault();
                 }
-                foreach (var sb in ciclo.SiloBolsas)
+                foreach (var a in ciclo.Acopios)
                 {
-                    desglose.SiloBolsasARS += sb.CostoARS.GetValueOrDefault();
-                    desglose.SiloBolsasUSD += sb.CostoUSD.GetValueOrDefault();
+                    desglose.AcopiosARS += a.CostoARS.GetValueOrDefault();
+                    desglose.AcopiosUSD += a.CostoUSD.GetValueOrDefault();
                 }
             }
 
             totalARS = desglose.SiembraARS + desglose.FertilizacionARS + desglose.PulverizacionARS
                      + desglose.RiegoARS + desglose.CosechaARS + desglose.MonitoreoARS
-                     + desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.SiloBolsasARS;
+                     + desglose.AnalisisSueloARS + desglose.OtrasLaboresARS + desglose.AcopiosARS;
 
             totalUSD = desglose.SiembraUSD + desglose.FertilizacionUSD + desglose.PulverizacionUSD
                      + desglose.RiegoUSD + desglose.CosechaUSD + desglose.MonitoreoUSD
-                     + desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.SiloBolsasUSD;
+                     + desglose.AnalisisSueloUSD + desglose.OtrasLaboresUSD + desglose.AcopiosUSD;
 
             // Agregar gastos generales si coinciden con la Campaña
             var gastosFiltrados = idCampaniaEfectiva.HasValue
@@ -1504,7 +1587,7 @@ namespace AgroForm.Business.Services
                     Tipo = "Falta de lluvia",
                     Severidad = clima.DiasSinLluvia.Value > 14 ? "Alta" : "Media",
                     Mensaje = $"{clima.DiasSinLluvia} días sin precipitaciones significativas (>5mm)",
-                    Fecha = DateTime.UtcNow,
+                    Fecha = TimeHelper.GetArgentinaTime(),
                     Recomendacion = "Evaluar necesidad de riego complementario. Monitorear estrés hídrico en el cultivo.",
                     Icono = "ph-warning-circle"
                 });
@@ -1518,7 +1601,7 @@ namespace AgroForm.Business.Services
                     Tipo = "Exceso hídrico",
                     Severidad = "Alta",
                     Mensaje = $"Lluvia acumulada de {clima.LluviaAcumulada.Value}mm en los últimos 30 días",
-                    Fecha = DateTime.UtcNow,
+                    Fecha = TimeHelper.GetArgentinaTime(),
                     Recomendacion = "Verificar drenaje del lote. Monitorear aparición de enfermedades fúngicas.",
                     Icono = "ph-warning"
                 });
@@ -1532,7 +1615,7 @@ namespace AgroForm.Business.Services
                     Tipo = "NDVI crítico",
                     Severidad = "Alta",
                     Mensaje = $"NDVI estimado en {resumen.NDVIPromedio.Value}, indica baja vitalidad del cultivo",
-                    Fecha = DateTime.UtcNow,
+                    Fecha = TimeHelper.GetArgentinaTime(),
                     Recomendacion = "Evaluar causa: déficit hídrico, plaga, enfermedad o deficiencia nutricional.",
                     Icono = "ph-flask"
                 });
@@ -1546,7 +1629,7 @@ namespace AgroForm.Business.Services
                     Tipo = "Heladas registradas",
                     Severidad = "Alta",
                     Mensaje = $"Se registraron {clima.CantidadHeladas} eventos de granizo/helada",
-                    Fecha = DateTime.UtcNow,
+                    Fecha = TimeHelper.GetArgentinaTime(),
                     Recomendacion = "Evaluar daños en el cultivo. Considerar seguros agrícolas para próxima campaña.",
                     Icono = "ph-snowflake"
                 });
@@ -1567,7 +1650,7 @@ namespace AgroForm.Business.Services
                         Tipo = "Bajo rendimiento",
                         Severidad = "Media",
                         Mensaje = $"Rendimiento actual ({rendimiento.RendimientoTonHa} tn/ha) está por debajo del 70% del histórico ({promedioHistorico:N2} tn/ha)",
-                        Fecha = DateTime.UtcNow,
+                        Fecha = TimeHelper.GetArgentinaTime(),
                         Recomendacion = "Analizar causas del bajo rendimiento: calidad de semilla, manejo, clima o suelo.",
                         Icono = "ph-trend-down"
                     });
@@ -1642,7 +1725,7 @@ namespace AgroForm.Business.Services
                     CantidadLabores = grupo.Sum(cc =>
                         cc.Siembras.Count + cc.Cosechas.Count + cc.Fertilizaciones.Count
                         + cc.Pulverizaciones.Count + cc.Riegos.Count + cc.Monitoreos.Count
-                        + cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.SiloBolsas.Count),
+                        + cc.AnalisisSuelos.Count + cc.OtrasLabores.Count + cc.Acopios.Count),
                     RendimientoTonHa = todasLasCosechas
                         .Where(c => c.Rendimiento.HasValue)
                         .DefaultIfEmpty()
@@ -1693,10 +1776,10 @@ namespace AgroForm.Business.Services
                         costosARS += o.CostoARS.GetValueOrDefault();
                         costosUSD += o.CostoUSD.GetValueOrDefault();
                     }
-                    foreach (var sb in ciclo.SiloBolsas)
+                    foreach (var a in ciclo.Acopios)
                     {
-                        costosARS += sb.CostoARS.GetValueOrDefault();
-                        costosUSD += sb.CostoUSD.GetValueOrDefault();
+                        costosARS += a.CostoARS.GetValueOrDefault();
+                        costosUSD += a.CostoUSD.GetValueOrDefault();
                     }
                 }
                 entry.CostoTotalARS = costosARS;
@@ -1728,7 +1811,7 @@ namespace AgroForm.Business.Services
                 foreach (var m in ciclo.Monitoreos) total += m.CostoARS.GetValueOrDefault();
                 foreach (var a in ciclo.AnalisisSuelos) total += a.CostoARS.GetValueOrDefault();
                 foreach (var o in ciclo.OtrasLabores) total += o.CostoARS.GetValueOrDefault();
-                foreach (var sb in ciclo.SiloBolsas) total += sb.CostoARS.GetValueOrDefault();
+                foreach (var a in ciclo.Acopios) total += a.CostoARS.GetValueOrDefault();
             }
 
             return total;
@@ -1750,7 +1833,7 @@ namespace AgroForm.Business.Services
                 foreach (var m in ciclo.Monitoreos) total += m.CostoUSD.GetValueOrDefault();
                 foreach (var a in ciclo.AnalisisSuelos) total += a.CostoUSD.GetValueOrDefault();
                 foreach (var o in ciclo.OtrasLabores) total += o.CostoUSD.GetValueOrDefault();
-                foreach (var sb in ciclo.SiloBolsas) total += sb.CostoUSD.GetValueOrDefault();
+                foreach (var a in ciclo.Acopios) total += a.CostoUSD.GetValueOrDefault();
             }
 
             return total;

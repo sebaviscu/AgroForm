@@ -452,32 +452,34 @@ BEGIN
     UNION ALL
 
     -- ==============================
-    -- S I L O   B O L S A
+    -- A C O P I O
     -- ==============================
     SELECT
-        sb.Id,
-        sb.IdTipoActividad,
+        a.Id,
+        a.IdTipoActividad,
         ta.Nombre,
         ta.Icono,
         ta.ColorIcono,
-        sb.Fecha,
-        sb.RegistrationUser,
-        sb.RegistrationDate,
-        CONCAT('Código: ', sb.Codigo,
-               CASE WHEN sb.Longitud IS NOT NULL THEN CONCAT(', Longitud: ', FORMAT(sb.Longitud, 'N1'), ' m') ELSE '' END,
-               CASE WHEN sb.CapacidadTotalTn IS NOT NULL THEN CONCAT(', Capacidad: ', FORMAT(sb.CapacidadTotalTn, 'N1'), ' tn') ELSE '' END,
-               CASE WHEN sb.HumedadGrano IS NOT NULL THEN CONCAT(', Humedad: ', FORMAT(sb.HumedadGrano, 'N1'), '%') ELSE '' END),
-        sb.Costo,
-        sb.CostoUSD,
-        sb.CostoARS,
-        sb.IdCampania,
+        a.Fecha,
+        a.RegistrationUser,
+        a.RegistrationDate,
+        CONCAT('Código: ', a.Codigo,
+               CASE WHEN a.TipoAcopio = 1 THEN ', Tipo: Silo Bolsa' ELSE '' END,
+               CASE WHEN a.TipoAcopio = 2 THEN ', Tipo: Silo' ELSE '' END,
+               CASE WHEN a.TipoAcopio = 3 THEN ', Tipo: Planta Externa' ELSE '' END,
+               CASE WHEN a.CapacidadTotalTn IS NOT NULL THEN CONCAT(', Capacidad: ', FORMAT(a.CapacidadTotalTn, 'N1'), ' tn') ELSE '' END,
+               CASE WHEN a.HumedadGrano IS NOT NULL THEN CONCAT(', Humedad: ', FORMAT(a.HumedadGrano, 'N1'), '%') ELSE '' END),
+        a.Costo,
+        a.CostoUSD,
+        a.CostoARS,
+        a.IdCampania,
         camp.Nombre,
-        sb.Observacion,
-        sb.IdLote,
+        a.Observacion,
+        a.IdLote,
         l.Nombre,
         campo.Nombre,
-        CAST(CASE WHEN sb.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
-        sb.IdCicloCultivo,
+        CAST(CASE WHEN a.IdMoneda = 2 THEN 1 ELSE 0 END AS BIT),
+        a.IdCicloCultivo,
         c2.Nombre AS CicloCultivoNombre,
         CAST(CASE WHEN cc.FechaFin IS NULL THEN 0 ELSE 1 END AS BIT) AS EstaCerrado,
         NULL AS IdUnidadVolumenAgua,
@@ -487,17 +489,17 @@ BEGIN
         NULL AS IdUnidadDensidad,
         NULL AS IdUnidadRendimiento,
         NULL AS IdUnidadSuperficieCosechada
-    FROM SiloBolsas sb
-    INNER JOIN Lotes l ON l.Id = sb.IdLote
+    FROM Acopios a
+    INNER JOIN Lotes l ON l.Id = a.IdLote
     INNER JOIN Campos campo ON campo.Id = l.IdCampo
-    INNER JOIN Campanias camp ON camp.Id = sb.IdCampania
-    INNER JOIN TiposActividad ta ON ta.Id = sb.IdTipoActividad
-    INNER JOIN CicloCultivos cc ON cc.Id = sb.IdCicloCultivo
+    INNER JOIN Campanias camp ON camp.Id = a.IdCampania
+    INNER JOIN TiposActividad ta ON ta.Id = a.IdTipoActividad
+    INNER JOIN CicloCultivos cc ON cc.Id = a.IdCicloCultivo
     INNER JOIN Cultivos c2 ON c2.Id = cc.IdCultivo
-    WHERE sb.IdLicencia = @IdLicencia
-      AND (@IdCampaniaFilter IS NULL OR sb.IdCampania = @IdCampaniaFilter)
-      AND (@IdLoteFilter IS NULL OR sb.IdLote = @IdLoteFilter)
-      AND (@IdsLotes IS NULL OR sb.IdLote IN (SELECT Id FROM @LotesFilter))
+    WHERE a.IdLicencia = @IdLicencia
+      AND (@IdCampaniaFilter IS NULL OR a.IdCampania = @IdCampaniaFilter)
+      AND (@IdLoteFilter IS NULL OR a.IdLote = @IdLoteFilter)
+      AND (@IdsLotes IS NULL OR a.IdLote IN (SELECT Id FROM @LotesFilter))
 
     -- ==============================
     -- O R D E N A M I E N T O

@@ -1,11 +1,13 @@
 using AgroForm.Business.Contracts;
+using AgroForm.Business.Services;
+using AgroForm.Data;
 using AgroForm.Model;
+using AgroForm.Model.Configuracion;
 using AgroForm.Web.Controllers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using AgroForm.Data;
-using AgroForm.Model.Configuracion;
 
 namespace AgroForm.Tests.Services
 {
@@ -15,6 +17,8 @@ namespace AgroForm.Tests.Services
         private readonly Mock<IUsuarioService> _mockUserService;
         private readonly Mock<ICampaniaService> _mockCampaniaService;
         private readonly Mock<ILicenciaService> _mockLicenciaService;
+        private readonly Mock<IUserContext> _mockUserContext;
+
         private readonly AccessController _controller;
 
         public AccessControllerLoginTests()
@@ -23,13 +27,16 @@ namespace AgroForm.Tests.Services
             _mockUserService = new Mock<IUsuarioService>();
             _mockCampaniaService = new Mock<ICampaniaService>();
             _mockLicenciaService = new Mock<ILicenciaService>();
+            _mockUserContext = new Mock<IUserContext>();
 
-            var mockWebHostEnv = new Mock<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+            var mockWebHostEnv = new Mock<IWebHostEnvironment>();
+
             _controller = new AccessController(
                 _mockLogger.Object,
                 _mockUserService.Object,
                 _mockCampaniaService.Object,
                 _mockLicenciaService.Object,
+                _mockUserContext.Object,
                 mockWebHostEnv.Object
             );
         }
