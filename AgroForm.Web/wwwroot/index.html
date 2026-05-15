@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgroLab - Sistema de Gestión Agrícola</title>
+
+    <!-- Meta SEO -->
+    <meta name="description" content="AgroLab es un sistema de gestión agrícola 100% web: campos, cultivos, monitoreo satelital y más. Accedé desde cualquier dispositivo. Rápido, fácil y seguro.">
+    <meta name="keywords" content="sistema de gestión agrícola, software de campos, monitoreo satelital, agricultura de precisión, gestión ganadera, AgroLab, sistema web agro">
+    <meta name="author" content="AgroLab">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.agrolab.com/" />
+
+    <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
+    <meta property="og:title" content="AgroLab - Sistema de Gestión Agrícola 100% Web" />
+    <meta property="og:description" content="Gestioná tus campos, cultivos y ganadería desde cualquier lugar. Sistema 100% web con monitoreo satelital." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200" />
+    <meta property="og:url" content="https://www.agrolab.com/" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AgroLab - Sistema de Gestión Agrícola" />
+    <meta name="twitter:description" content="Gestión de campos, cultivos y ganadería desde la nube. Rápido, seguro y accesible desde tu celular." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/images/android-launchericon-180x180.png" />
+
+    <!-- Bootstrap 5.3.3 (misma versión que el sistema) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Phosphor Icons (mismo CDN que el sistema) -->
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web" />
+
+    <!-- Estilos propios de la landing -->
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+
+    <!-- ============================================================
+         NAVBAR - Menú Fijo con anclas
+         ============================================================ -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top landing-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                <img src="/images/logo.png" alt="Logo AgroLab" height="35" class="me-2">
+                AgroLab
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav flex-column flex-lg-row gap-2 gap-lg-4 align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#caracteristicas">Características</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#demo">Tutoriales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#prueba">Prueba Gratis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#precios">Precios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-success rounded-pill px-4" href="/Access/Login">
+                            <i class="ph ph-sign-in me-1"></i> Iniciar sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Espaciador para compensar la barra fija -->
+    <div style="height: 70px;"></div>
+
+    <!-- ============================================================
+         HERO SECTION
+         ============================================================ -->
+    <section class="hero-section text-white text-center d-flex align-items-center justify-content-center"
+             style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80'); background-size: cover; background-position: center; height: 60vh; min-height: 350px;">
+        <div class="container py-5 hero-overlay">
+            <h1 class="display-4 fw-bold mb-4">El Futuro de la Gestión Agrícola</h1>
+            <p class="lead mb-3">
+                Con <strong>AgroLab</strong>, gestioná tus campos, cultivos y ganadería desde cualquier lugar y dispositivo, incluso desde tu celular.
+            </p>
+            <p class="lead">
+                Sistema 100% web, rápido, seguro y pensado para el productor agropecuario.
+            </p>
+            <a href="#prueba" class="btn btn-success btn-lg rounded-pill px-5 mt-3">
+                <i class="ph ph-rocket-launch me-2"></i> Probar gratis
+            </a>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         CARACTERÍSTICAS
+         ============================================================ -->
+    <section class="container py-2" id="caracteristicas">
+        <div class="container py-5">
+            <h1 class="text-center mb-4">Características Principales</h1>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 text-center g-4">
+
+                <!-- Característica 1: Gestión de Campos -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-map-trifold feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Gestión de Campos</h5>
+                                <p class="feature-description">Administrá múltiples campos con datos detallados de ubicación, superficie y lotes georreferenciados.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 2: Ciclo de Cultivos -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-plant feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Ciclo de Cultivos</h5>
+                                <p class="feature-description">Seguimiento completo desde siembra hasta cosecha con registros fenológicos y variedades.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 3: Monitoreo Satelital -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-globe-hemisphere-west feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Monitoreo Satelital</h5>
+                                <p class="feature-description">Imágenes satelitales NDVI, NDWI y más para evaluar salud de cultivos en tiempo real.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 4: Control de Gastos -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-currency-circle-dollar feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Control de Gastos</h5>
+                                <p class="feature-description">Registrá y clasificá gastos por campo, cultivo y categoría con reportes detallados.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 5: Clima en Tiempo Real -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-cloud-sun feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Clima en Tiempo Real</h5>
+                                <p class="feature-description">Datos meteorológicos históricos y actualizados para tomar decisiones informadas en tus cultivos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 6: Mapas Interactivos -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-map-pin feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Mapas Interactivos</h5>
+                                <p class="feature-description">Visualización georreferenciada de lotes con índices de vegetación y límites precisos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 7: Reportes PDF -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-file-pdf feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Reportes PDF</h5>
+                                <p class="feature-description">Generación automática de informes de cierre de campaña y reportes de productividad.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 8: Acopio -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-warehouse feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Acopio</h5>
+                                <p class="feature-description">Control de producción almacenada por tipo de grano, calidad y trazabilidad completa.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 9: Alertas Inteligentes -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-bell feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Alertas Inteligentes</h5>
+                                <p class="feature-description">Notificaciones sobre eventos críticos en tus cultivos: heladas, lluvias, índices de vegetación.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 10: Multi-Usuario -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-users feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Multi-Usuario</h5>
+                                <p class="feature-description">Acceso para todo tu equipo técnico con roles y permisos diferenciados por campo y función.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 11: App Móvil PWA -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-device-mobile feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">App Móvil PWA</h5>
+                                <p class="feature-description">Accedé desde el celular como una app nativa, sin necesidad de descargar de tiendas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Característica 12: Dashboard en Tiempo Real -->
+                <div class="col">
+                    <div class="card bg-white shadow-sm landing-card">
+                        <div class="card-body">
+                            <i class="ph ph-chart-bar feature-icon"></i>
+                            <div>
+                                <h5 class="feature-title">Dashboard en Tiempo Real</h5>
+                                <p class="feature-description">Visualizá indicadores clave de todas tus operaciones: gastos, hectáreas, producción y más.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-success rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#featuresModal">
+                    <i class="ph ph-list-checks me-2"></i>Ver todas las características
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         TUTORIALES / DEMO
+         ============================================================ -->
+    <section class="container py-2" id="demo">
+        <div class="container py-5">
+            <h1 class="text-center mb-4">Cómo Usar el Sistema</h1>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="ratio ratio-16x9 mb-3">
+                        <iframe id="videoPrincipal"
+                                src="https://www.youtube.com/embed/shNt1NClpBA"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         CTA - LICENCIA DE PRUEBA GRATIS
+         ============================================================ -->
+    <section class="container py-5" id="prueba">
+        <div class="text-center text-white p-5 rounded-4 shadow cta-prueba">
+            <i class="ph ph-rocket-launch display-3 mb-3 d-block"></i>
+            <h2 class="fw-bold" id="trialTitle">Probá AgroLab gratis por 30 días</h2>
+            <p class="lead mb-4" id="trialSubtitle">Sin compromiso. Acceso completo a todas las funcionalidades.</p>
+            <a href="#contacto" class="btn btn-light btn-lg rounded-pill px-5 fw-bold">
+                <i class="ph ph-rocket-launch me-2"></i>
+                <span id="trialButtonText">Solicitar licencia de prueba de 30 días</span>
+            </a>
+            <p class="mt-3 small opacity-75">Sin tarjeta de crédito. Sin compromiso.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         MÓDULOS Y SIMULADOR DE COSTOS
+         ============================================================ -->
+    <section class="container py-5" id="precios">
+        <h1 class="text-center mb-4">Nuestros Módulos</h1>
+
+        <div class="d-flex flex-column flex-md-row justify-content-center align-items-start gap-4 text-center">
+            <!-- Módulos Principales -->
+            <div class="grupo-modulo flex-fill">
+                <h5 class="mb-3">Módulos Principales</h5>
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    <div class="col">
+                        <div class="card modulo-principal h-100 landing-card">
+                            <div class="card-body">
+                                <i class="ph ph-squares-four display-5"></i>
+                                <h5 class="card-title mt-2" id="moduloBaseTitle">Base</h5>
+                                <div class="precio" id="moduloBasePrice">Cargando...</div>
+                                <div class="precio-anual" id="moduloBaseAnnual">Cargando...</div>
+                                <ul class="list-unstyled mt-3">
+                                    <li>✔ Hasta 3 campos</li>
+                                    <li>✔ 5 usuarios</li>
+                                    <li>✔ Monitoreo básico</li>
+                                    <li>✔ Reportes simples</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card modulo-principal h-100 landing-card">
+                            <div class="card-body">
+                                <i class="ph ph-crown display-5"></i>
+                                <h5 class="card-title mt-2" id="moduloPremiumTitle">Premium</h5>
+                                <div class="precio" id="moduloPremiumPrice">Cargando...</div>
+                                <div class="precio-anual" id="moduloPremiumAnnual">Cargando...</div>
+                                <ul class="list-unstyled mt-3">
+                                    <li>✔ Campos ilimitados</li>
+                                    <li>✔ Usuarios ilimitados</li>
+                                    <li>✔ Monitoreo satelital</li>
+                                    <li>✔ Clima en tiempo real</li>
+                                    <li>✔ Alertas inteligentes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulos Adicionales -->
+            <div class="grupo-modulo flex-fill">
+                <h5 class="mb-3">Módulos Adicionales</h5>
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    <div class="col">
+                        <div class="card modulo-agro h-100 landing-card">
+                            <div class="card-body">
+                                <i class="ph ph-plant display-5"></i>
+                                <h5 class="card-title mt-2" id="moduloAgroTitle">Agro</h5>
+                                <div class="precio" id="moduloAgroPrice">Cargando...</div>
+                                <div class="precio-anual" id="moduloAgroAnnual">Cargando...</div>
+                                <ul class="list-unstyled mt-3">
+                                    <li>✔ Agricultura de precisión</li>
+                                    <li>✔ Mapas de rendimiento</li>
+                                    <li>✔ Análisis de suelos</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card modulo-ganadero h-100 landing-card">
+                            <div class="card-body">
+                                <i class="ph ph-cow display-5"></i>
+                                <h5 class="card-title mt-2" id="moduloGanaderoTitle">Ganadero</h5>
+                                <div class="precio" id="moduloGanaderoPrice">Cargando...</div>
+                                <div class="precio-anual" id="moduloGanaderoAnnual">Cargando...</div>
+                                <ul class="list-unstyled mt-3">
+                                    <li>✔ Gestión de rodeo</li>
+                                    <li>✔ Sanidad animal</li>
+                                    <li>✔ Pasturas y producción</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulador de Costos -->
+        <div class="mt-5">
+            <h4>Simulador de Costos</h4>
+            <div class="card p-4 shadow-sm">
+                <form class="row g-3">
+                    <div class="col-md-4">
+                        <label for="moduloBase" class="form-label">
+                            <i class="ph ph-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Elegí el plan principal según tus necesidades"></i>
+                            Módulo Principal
+                        </label>
+                        <select class="form-select" id="moduloBaseSelect" onchange="calcularTotal()">
+                            <option value="15000-150000">Base - $15.000/mes o $150.000/año</option>
+                            <option value="25000-250000" selected>Premium - $25.000/mes o $250.000/año <span class="badge bg-success ms-2">Más popular</span></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="ph ph-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Agregá funcionalidades específicas a tu plan"></i>
+                            Módulos Adicionales
+                        </label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="addAgro" data-valores="8000-80000" onchange="calcularTotal()">
+                            <label class="form-check-label" for="addAgro">
+                                Agro ($8.000/mes o $80.000/año)
+                                <i class="ph ph-question" data-bs-toggle="tooltip" data-bs-placement="right" title="Agricultura de precisión, mapas de rendimiento, análisis de suelos"></i>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="addGanadero" data-valores="8000-80000" onchange="calcularTotal()">
+                            <label class="form-check-label" for="addGanadero">
+                                Ganadero ($8.000/mes o $80.000/año)
+                                <i class="ph ph-question" data-bs-toggle="tooltip" data-bs-placement="right" title="Gestión de rodeo, sanidad animal, pasturas"></i>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex flex-column align-items-start">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="toggleModo" onchange="calcularTotal()">
+                            <label class="form-check-label" for="toggleModo">Calcular en base a precios anuales</label>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary w-100" onclick="resetSimulador()">
+                            <i class="ph ph-arrow-clockwise me-2"></i>Limpiar
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4">
+                    <div class="bg-light p-3 rounded-3 transition-all" id="resumenCard">
+                        <h5 class="text-center mb-3" id="resumenTitulo">Resumen de Costos</h5>
+
+                        <!-- Detalle de productos seleccionados -->
+                        <div class="mb-3" id="detalleProductos">
+                            <div class="fw-bold">Productos seleccionados:</div>
+                            <div id="moduloSeleccionado" class="small"></div>
+                            <div id="modulosAdicionales" class="small"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-success" id="filaAhorro">
+                            <span>Ahorrado:</span>
+                            <div>
+                                <strong><span id="porcentajeAhorro"></span></strong>
+                                <span id="ahorrado">-$0 </span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold fs-5" id="totalRow">
+                            <span>Total:</span>
+                            <span id="totalResultado" class="text-primary">$0</span>
+                        </div>
+                        <div class="text-center mt-2 small text-muted" id="equivalenteMensual">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Mercado Pago Suscripción -->
+            <div class="text-center mt-4 p-3 bg-light rounded-3">
+                <p class="mb-2">
+                    <i class="ph ph-credit-card me-2 text-success"></i>
+                    Todos los pagos se procesan de forma segura a través de
+                    <strong>Mercado Pago Suscripción</strong>.
+                </p>
+                <a href="https://www.mercadopago.com.ar/suscriptions" target="_blank" rel="noopener" class="text-success fw-medium">
+                    Más información <i class="ph ph-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         CONTACTO
+         ============================================================ -->
+    <section class="container py-5" id="contacto">
+        <h1 class="text-center mb-4">Contacto</h1>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-6 col-lg-5 text-center">
+                <p class="text-center">Envianos un mensaje y te responderemos al instante.</p>
+
+                <a href="https://wa.me/549XXXXXXXXX?text=Hola%2C%20quisiera%20recibir%20m%C3%A1s%20informaci%C3%B3n%20sobre%20AgroLab"
+                   class="btn btn-success btn-lg w-100"
+                   target="_blank"
+                   rel="noopener">
+                    <i class="ph ph-whatsapp-logo me-2"></i>
+                    Consultar por WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer class="bg-dark text-white pt-4 pb-3 mt-5 landing-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="text-center">
+                        <h4>
+                            <a class="navbar-brand fw-bold text-white" href="#">
+                                <img src="/images/logo.png" alt="Logo AgroLab" height="30" class="me-2">
+                                AgroLab
+                            </a>
+                        </h4>
+                        <p>El Futuro de la Gestión Agrícola.</p>
+                    </div>
+                </div>
+
+                <div class="offset-md-2 col-md-4">
+                    <div class="text-start ms-5">
+                        <p><i class="ph ph-whatsapp-logo me-2"></i><a href="https://wa.me/549XXXXXXXXX" class="text-white text-decoration-none" target="_blank">WhatsApp</a></p>
+                        <p><i class="ph ph-envelope me-2"></i>info@agrolab.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center border-top border-secondary pt-3 mt-3">
+                <small>&copy; 2026 AgroLab. Todos los derechos reservados.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+         MODAL - Todas las características
+         ============================================================ -->
+    <div class="modal fade" id="featuresModal" tabindex="-1" aria-labelledby="featuresModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%); color: white;">
+                    <h2 class="modal-title fs-3" id="featuresModalLabel">
+                        <i class="ph ph-list-checks me-2"></i>Todas las características del sistema
+                    </h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <!-- Columna 1: Gestión de Campos y Cultivos -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-0 h-100">
+                                <div class="card-body">
+                                    <h3 class="h5 mb-4 border-bottom pb-2" style="color: #198754;">
+                                        <i class="ph ph-map-trifold me-2"></i>Gestión de Campos y Cultivos
+                                    </h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Campos y Lotes</h4>
+                                                <p class="small text-muted mb-0">Administración de múltiples campos con datos de ubicación, superficie y georreferenciación de lotes.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Ciclo de Cultivos</h4>
+                                                <p class="small text-muted mb-0">Seguimiento desde siembra hasta cosecha con registro de variedades, fechas y estados fenológicos.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Labores Agrícolas</h4>
+                                                <p class="small text-muted mb-0">Registro de siembra, fertilización, pulverización, riego, cosecha y monitoreo con detalle por lote.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Variedades</h4>
+                                                <p class="small text-muted mb-0">Gestión de variedades de cultivos con seguimiento de rendimiento por variedad.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna 2: Monitoreo y Satélite -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-0 h-100">
+                                <div class="card-body">
+                                    <h3 class="h5 mb-4 border-bottom pb-2" style="color: #198754;">
+                                        <i class="ph ph-satellite me-2"></i>Monitoreo y Satélite
+                                    </h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Índices Satelitales</h4>
+                                                <p class="small text-muted mb-0">NDVI, NDWI y más índices de vegetación actualizados periódicamente para cada lote.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Mapas Interactivos</h4>
+                                                <p class="small text-muted mb-0">Visualización georreferenciada de lotes con capas de índices satelitales y límites precisos.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Clima en Tiempo Real</h4>
+                                                <p class="small text-muted mb-0">Datos meteorológicos históricos y actualizados para la toma de decisiones.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Alertas Inteligentes</h4>
+                                                <p class="small text-muted mb-0">Notificaciones sobre eventos críticos: heladas, lluvias intensas, cambios en índices de vegetación.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna 3: Gestión Económica y Operaciones -->
+                        <div class="col-md-4 mb-4">
+                            <div class="card border-0 h-100">
+                                <div class="card-body">
+                                    <h3 class="h5 mb-4 border-bottom pb-2" style="color: #198754;">
+                                        <i class="ph ph-currency-circle-dollar me-2"></i>Gestión Económica
+                                    </h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Gastos</h4>
+                                                <p class="small text-muted mb-0">Registro y clasificación de gastos por campo, cultivo y categoría con reportes detallados.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Acopio</h4>
+                                                <p class="small text-muted mb-0">Control de producción almacenada por tipo de grano con trazabilidad completa.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Reportes PDF</h4>
+                                                <p class="small text-muted mb-0">Informes automáticos de cierre de campaña y reportes de productividad exportables.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+
+                                    <h3 class="h5 mb-4 border-bottom pb-2 mt-4" style="color: #198754;">
+                                        <i class="ph ph-gear me-2"></i>Operaciones y Configuración
+                                    </h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Roles y Permisos</h4>
+                                                <p class="small text-muted mb-0">Administrador, técnico y consultor, cada uno con permisos específicos.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">App Móvil PWA</h4>
+                                                <p class="small text-muted mb-0">Accedé desde cualquier dispositivo como una app nativa, funciona offline parcial.</p>
+                                            </div>
+                                        </li>
+                                        <li class="mb-3 d-flex">
+                                            <i class="ph ph-check-circle feature-detail-icon text-success me-2 mt-1"></i>
+                                            <div>
+                                                <h4 class="h6 mb-1">Dashboard</h4>
+                                                <p class="small text-muted mb-0">Indicadores clave en tiempo real: gastos, hectáreas sembradas, producción y cotización de moneda.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CDN SCRIPTS
+         ============================================================ -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ============================================================
+         CONFIGURACIÓN CENTRALIZADA - Todo parametrizable desde acá
+         ============================================================ -->
+    <script>
+        // ============================================================
+        // AGROFORM CONFIG - Cambiá estos valores y se actualiza todo
+        // ============================================================
+        const AGROFORM_CONFIG = {
+            // Marca
+            brand: {
+                name: 'AgroLab',
+                slogan: 'El Futuro de la Gestión Agrícola'
+            },
+
+            // Precios de módulos (cambiá acá y se refleja en toda la página)
+            modules: {
+                base:      { monthly: 15000, annual: 150000, name: 'Base' },
+                premium:   { monthly: 25000, annual: 250000, name: 'Premium' },
+                agro:      { monthly: 8000,  annual: 80000,  name: 'Agro' },
+                ganadero:  { monthly: 8000,  annual: 80000,  name: 'Ganadero' }
+            },
+
+            // Plan recomendado (aparece como "Más popular")
+            recommendedPlan: 'premium',
+
+            // Licencia de prueba (cambiá días, textos, URL)
+            trial: {
+                days: 30,
+                enabled: true,
+                buttonText: 'Solicitar licencia de prueba de 30 días',
+                buttonUrl: '#contacto',
+                sectionTitle: 'Probá AgroLab gratis por {days} días',
+                sectionSubtitle: 'Sin compromiso. Acceso completo a todas las funcionalidades.'
+            },
+
+            // Mercado Pago
+            payment: {
+                provider: 'Mercado Pago Suscripción',
+                infoUrl: 'https://www.mercadopago.com.ar/suscriptions',
+                message: 'Todos los pagos se procesan de forma segura a través de {provider}.'
+            },
+
+            // Contacto (cambiá acá)
+            contact: {
+                whatsapp: '549XXXXXXXXX',
+                email: 'info@agrolab.com',
+                whatsappMessage: 'Hola%2C%20quisiera%20recibir%20m%C3%A1s%20informaci%C3%B3n%20sobre%20AgroLab'
+            }
+        };
+    </script>
+
+    <!-- ============================================================
+         LÓGICA DEL SIMULADOR Y PRECIOS
+         ============================================================ -->
+    <script>
+        // === FUNCIONES DE FORMATEO ===
+        function formatARS(amount) {
+            if (amount === null || amount === undefined || isNaN(amount)) {
+                return '$0';
+            }
+            return '$' + Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // === GENERAR VALORES PARA SELECTS Y CHECKBOXES ===
+        function generatePricingValues() {
+            const m = AGROFORM_CONFIG.modules;
+            return {
+                base:      `${m.base.monthly}-${m.base.annual}`,
+                premium:   `${m.premium.monthly}-${m.premium.annual}`,
+                agro:      `${m.agro.monthly}-${m.agro.annual}`,
+                ganadero:  `${m.ganadero.monthly}-${m.ganadero.annual}`
+            };
+        }
+
+        // === ACTUALIZAR VISUALIZACIÓN DE PRECIOS ===
+        function updatePricingDisplay() {
+            const m = AGROFORM_CONFIG.modules;
+            const pv = generatePricingValues();
+
+            // Módulos principales
+            const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+            setText('moduloBaseTitle', m.base.name);
+            setText('moduloBasePrice', `${formatARS(m.base.monthly)}/mes`);
+            setText('moduloBaseAnnual', `${formatARS(m.base.annual)}/año`);
+
+            setText('moduloPremiumTitle', m.premium.name);
+            setText('moduloPremiumPrice', `${formatARS(m.premium.monthly)}/mes`);
+            setText('moduloPremiumAnnual', `o ${formatARS(m.premium.annual)}/año`);
+
+            setText('moduloAgroTitle', m.agro.name);
+            setText('moduloAgroPrice', `${formatARS(m.agro.monthly)}/mes`);
+            setText('moduloAgroAnnual', `o ${formatARS(m.agro.annual)}/año`);
+
+            setText('moduloGanaderoTitle', m.ganadero.name);
+            setText('moduloGanaderoPrice', `${formatARS(m.ganadero.monthly)}/mes`);
+            setText('moduloGanaderoAnnual', `o ${formatARS(m.ganadero.annual)}/año`);
+
+            // Actualizar select del módulo base
+            const select = document.getElementById('moduloBaseSelect');
+            if (select) {
+                select.innerHTML = `
+                    <option value="${pv.base}">${m.base.name} - ${formatARS(m.base.monthly)}/mes o ${formatARS(m.base.annual)}/año</option>
+                    <option value="${pv.premium}" ${AGROFORM_CONFIG.recommendedPlan === 'premium' ? 'selected' : ''}>${m.premium.name} - ${formatARS(m.premium.monthly)}/mes o ${formatARS(m.premium.annual)}/año <span class="badge bg-success ms-2">Más popular</span></option>
+                `;
+            }
+
+            // Actualizar checkboxes
+            const addAgro = document.getElementById('addAgro');
+            const addGanadero = document.getElementById('addGanadero');
+            if (addAgro) addAgro.setAttribute('data-valores', pv.agro);
+            if (addGanadero) addGanadero.setAttribute('data-valores', pv.ganadero);
+
+            // Actualizar etiquetas de checkboxes
+            const agroLabel = document.querySelector('label[for="addAgro"]');
+            const ganaderoLabel = document.querySelector('label[for="addGanadero"]');
+
+            if (agroLabel) {
+                agroLabel.innerHTML = `${m.agro.name} (${formatARS(m.agro.monthly)}/mes o ${formatARS(m.agro.annual)}/año) <i class="ph ph-question" data-bs-toggle="tooltip" data-bs-placement="right" title="Agricultura de precisión, mapas de rendimiento, análisis de suelos"></i>`;
+            }
+            if (ganaderoLabel) {
+                ganaderoLabel.innerHTML = `${m.ganadero.name} (${formatARS(m.ganadero.monthly)}/mes o ${formatARS(m.ganadero.annual)}/año) <i class="ph ph-question" data-bs-toggle="tooltip" data-bs-placement="right" title="Gestión de rodeo, sanidad animal, pasturas"></i>`;
+            }
+
+            // Actualizar sección de prueba
+            const trial = AGROFORM_CONFIG.trial;
+            const titleEl = document.getElementById('trialTitle');
+            const subtitleEl = document.getElementById('trialSubtitle');
+            const btnTextEl = document.getElementById('trialButtonText');
+
+            if (titleEl) titleEl.textContent = trial.sectionTitle.replace('{days}', trial.days);
+            if (subtitleEl) subtitleEl.textContent = trial.sectionSubtitle;
+            if (btnTextEl) btnTextEl.textContent = trial.buttonText;
+
+            // Actualizar información de Mercado Pago
+            const paymentMsg = document.querySelector('.bg-light.rounded-3 p');
+            if (paymentMsg) {
+                paymentMsg.innerHTML = `<i class="ph ph-credit-card me-2 text-success"></i> Todos los pagos se procesan de forma segura a través de <strong>${AGROFORM_CONFIG.payment.provider}</strong>.`;
+            }
+        }
+
+        // === SIMULADOR DE COSTOS ===
+        function calcularTotal() {
+            const usarAnual = document.getElementById("toggleModo").checked;
+            const pricingValues = generatePricingValues();
+
+            const getValor = (valoresStr) => {
+                const valores = valoresStr.split("-");
+                return {
+                    mensual: parseFloat(valores[0]),
+                    anual: parseFloat(valores[1]),
+                    ahorro: parseFloat(valores[0]) * 12 - parseFloat(valores[1])
+                };
+            };
+
+            // Nombres de productos seleccionados
+            const select = document.getElementById("moduloBaseSelect");
+            const moduloBaseText = select.options[select.selectedIndex].text.split(" - ")[0];
+
+            let modulosAdicionales = [];
+            if (document.getElementById("addAgro").checked) modulosAdicionales.push(AGROFORM_CONFIG.modules.agro.name);
+            if (document.getElementById("addGanadero").checked) modulosAdicionales.push(AGROFORM_CONFIG.modules.ganadero.name);
+
+            document.getElementById("moduloSeleccionado").textContent = `• ${moduloBaseText}`;
+            document.getElementById("modulosAdicionales").innerHTML = modulosAdicionales.length > 0
+                ? modulosAdicionales.map(m => `• ${m}`).join("<br>")
+                : "• Ningún módulo adicional";
+
+            // Cálculos
+            let subtotalMensual = 0;
+            let total = 0;
+            let ahorroTotal = 0;
+
+            // Módulo base
+            const moduloBase = getValor(select.value);
+            subtotalMensual += moduloBase.mensual;
+            total += usarAnual ? moduloBase.anual : moduloBase.mensual;
+            ahorroTotal += moduloBase.ahorro;
+
+            // Módulos adicionales
+            const addAgro = document.getElementById("addAgro");
+            if (addAgro.checked) {
+                const valores = getValor(addAgro.getAttribute("data-valores"));
+                subtotalMensual += valores.mensual;
+                total += usarAnual ? valores.anual : valores.mensual;
+                ahorroTotal += valores.ahorro;
+            }
+
+            const addGanadero = document.getElementById("addGanadero");
+            if (addGanadero.checked) {
+                const valores = getValor(addGanadero.getAttribute("data-valores"));
+                subtotalMensual += valores.mensual;
+                total += usarAnual ? valores.anual : valores.mensual;
+                ahorroTotal += valores.ahorro;
+            }
+
+            const subtotalNum = Number(subtotalMensual);
+            const ahorroNum = Number(ahorroTotal);
+            const totalNum = Number(total);
+            const porcentajeAhorro = usarAnual ? Math.round((ahorroNum / (subtotalNum * 12)) * 100) : 0;
+
+            document.getElementById("subtotal").textContent = formatARS(usarAnual ? subtotalNum * 12 : subtotalNum);
+            document.getElementById("ahorrado").textContent = usarAnual ? `-${formatARS(ahorroNum)}` : '-$0';
+            document.getElementById("totalResultado").textContent = formatARS(totalNum);
+
+            const porcentajeElement = document.getElementById("porcentajeAhorro");
+            if (porcentajeElement) {
+                porcentajeElement.textContent = usarAnual ? `(${porcentajeAhorro}%)` : '';
+            }
+
+            const equivalenteMensualElement = document.getElementById("equivalenteMensual");
+            equivalenteMensualElement.textContent = usarAnual
+                ? `Equivalente a ${formatARS(totalNum / 12)}/mes`
+                : '';
+
+            const periodo = usarAnual ? 'anual' : 'mensual';
+            document.getElementById("resumenTitulo").textContent = `Resumen de Costos (${periodo})`;
+
+            // Resaltar fila de ahorro
+            const filaAhorro = document.getElementById("filaAhorro");
+            if (usarAnual && ahorroNum > 0) {
+                filaAhorro.classList.add('fw-bold');
+            } else {
+                filaAhorro.classList.remove('fw-bold');
+            }
+        }
+
+        function resetSimulador() {
+            document.getElementById("moduloBaseSelect").selectedIndex = AGROFORM_CONFIG.recommendedPlan === 'premium' ? 1 : 0;
+            document.getElementById("addAgro").checked = false;
+            document.getElementById("addGanadero").checked = false;
+            document.getElementById("toggleModo").checked = false;
+            calcularTotal();
+        }
+
+        // === INICIALIZACIÓN ===
+        document.addEventListener('DOMContentLoaded', function () {
+            // Actualizar precios desde la config
+            updatePricingDisplay();
+
+            // Inicializar tooltips de Bootstrap
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Calcular simulador al cargar
+            calcularTotal();
+        });
+    </script>
+
+</body>
+</html>

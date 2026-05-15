@@ -1144,9 +1144,9 @@ namespace AgroForm.Data.DBContext
             modelBuilder.Entity<LaborDTO>(entity =>
             {
                 entity.HasNoKey();
-                entity.Property(e => e.Costo).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoARS).HasColumnType("decimal(18,4)");
-                entity.Property(e => e.CostoUSD).HasColumnType("decimal(18,4)");
+                entity.Property(e => e.Costo).HasPrecision(18, 4);
+                entity.Property(e => e.CostoARS).HasPrecision(18, 4);
+                entity.Property(e => e.CostoUSD).HasPrecision(18, 4);
             });
         }
 

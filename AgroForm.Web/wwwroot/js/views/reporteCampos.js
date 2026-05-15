@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // reporteCampos.js - Informe Integral del Campo
 // ============================================================
 
@@ -342,7 +342,20 @@ function renderizarResumenEjecutivo(r) {
             </div>
             <!-- Map -->
             <div class="col-lg-4">
-                ${hasMapData ? '<div id="reportMapContainer" class="report-map-container" style="min-height:280px;"></div>' : '<div class="card border h-100 d-flex align-items-center justify-content-center"><div class="card-body text-center text-muted"><i class="ph ph-map-pin display-4 mb-2 d-block"></i>Sin datos de ubicación</div></div>'}
+                ${hasMapData ? `
+                    <div class="card border h-100">
+                        <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between p-2">
+                            <h6 class="mb-0 ms-1 fw-semibold fs-sm">Capas Satelitales</h6>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" id="btnToggleNDVI" class="btn btn-outline-success active" title="Vigor vegetal">NDVI</button>
+                                <button type="button" id="btnToggleNDWI" class="btn btn-outline-primary" title="Estrés hídrico">NDWI</button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="reportMapContainer" class="report-map-container" style="height:100%; min-height:280px; position:relative; z-index:1;"></div>
+                        </div>
+                    </div>
+                ` : '<div class="card border h-100 d-flex align-items-center justify-content-center"><div class="card-body text-center text-muted"><i class="ph ph-map-pin display-4 mb-2 d-block"></i>Sin datos de ubicación</div></div>'}
             </div>
         </div>
     `;
@@ -436,14 +449,36 @@ function renderizarMapa(r) {
             '<span style="color:#333">●</span> Satelital': satelliteLayer
         };
 
-        // Grupo de overlays NDVI/NDWI para el control de capas
-        var overlayMaps = {
-            '<span style="color:#28a745">●</span> NDVI (Vigor vegetal)': ndviLayer,
-            '<span style="color:#007bff">●</span> NDWI (Estrés hídrico)': ndwiLayer
-        };
+        // --- Control de capas Leaflet (solo base map switcher) ---
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
-        // --- Control de capas Leaflet (base map switcher + overlays) ---
-        L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
+        // --- Control personalizado de botones externos ---
+        // Por defecto activamos NDVI
+        ndviLayer.addTo(map);
+
+        $('#btnToggleNDVI').off('click').on('click', function() {
+            if ($(this).hasClass('active')) {
+                map.removeLayer(ndviLayer);
+                $(this).removeClass('active');
+            } else {
+                map.addLayer(ndviLayer);
+                map.removeLayer(ndwiLayer); // mutually exclusive
+                $(this).addClass('active');
+                $('#btnToggleNDWI').removeClass('active');
+            }
+        });
+
+        $('#btnToggleNDWI').off('click').on('click', function() {
+            if ($(this).hasClass('active')) {
+                map.removeLayer(ndwiLayer);
+                $(this).removeClass('active');
+            } else {
+                map.addLayer(ndwiLayer);
+                map.removeLayer(ndviLayer); // mutually exclusive
+                $(this).addClass('active');
+                $('#btnToggleNDVI').removeClass('active');
+            }
+        });
 
         // --- Field polygon ---
         var polygonAdded = false;

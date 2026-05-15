@@ -1,0 +1,55 @@
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=0, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=1, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=1, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG RegistroClima DeleteAsync: Success=True, ErrorCode=, ErrorMessage=
+DEBUG DbSet().ToListAsync() Count=2
+DEBUG DbSet().Where(IdLicencia==1) Count=1
+DEBUG RegistroClima GetAllWithDetails: Success=True, DataCount=1, ErrorCode=, ErrorMessage=
+DEBUG CierreCampania DeleteAsync: Success=True, ErrorCode=, ErrorMessage=

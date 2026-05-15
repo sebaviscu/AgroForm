@@ -764,7 +764,7 @@ namespace AgroForm.Business.Services
                 // 2. Convertir coordenadas de tile (z/x/y) a bounding box geográfico (EPSG:3857)
                 var bbox = TileXYToBBox(x, y, z);
 
-                var evalscript = GetEvalScript(indice);
+                var evalscript = GetEvalScript(indice, isVisual: true);
 
                 // 3. Construir payload para Processing API
                 // Documentación: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/ApiReference.html
@@ -786,7 +786,7 @@ namespace AgroForm.Business.Services
                                 {
                                     timeRange = new
                                     {
-                                        from = $"{fecha}T00:00:00Z",
+                                        from = DateTime.Parse(fecha).AddDays(-15).ToString("yyyy-MM-dd") + "T00:00:00Z",
                                         to = $"{fecha}T23:59:59Z"
                                     },
                                     maxCloudCoverage = 80
@@ -825,6 +825,7 @@ namespace AgroForm.Business.Services
                 {
                     Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
                 };
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/png"));
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 using var response = await client.SendAsync(request);
@@ -864,7 +865,7 @@ namespace AgroForm.Business.Services
         {
             try
             {
-                var evalscript = GetEvalScript(indice);
+                var evalscript = GetEvalScript(indice, isVisual: false);
 
                 var payload = new
                 {
@@ -944,9 +945,67 @@ namespace AgroForm.Business.Services
         /// <summary>
         /// Obtiene el evalscript para calcular un índice específico.
         /// Los evalscripts son compatibles tanto con Sentinel Hub como con Copernicus Processing API.
+        /// Si isVisual es true, retorna un evalscript que mapea el índice a colores RGBA,
+        /// necesario para que Processing API genere un PNG (image/png no soporta FLOAT32).
         /// </summary>
-        private static string GetEvalScript(string indice)
+        private static string GetEvalScript(string indice, bool isVisual = false)
         {
+            if (isVisual)
+            {
+                return indice switch
+                {
+                    "NDVI" => """
+                        //VERSION=3
+                        function setup() {
+                            return {
+                                input: ["B04", "B08", "dataMask"],
+                                output: { bands: 4, sampleType: "AUTO8" }
+                            };
+                        }
+                        function evaluatePixel(sample) {
+                            if (sample.dataMask !== 1) return [0, 0, 0, 0];
+                            let denom = sample.B08 + sample.B04;
+                            if (denom === 0) return [0, 0, 0, 0];
+                            let ndvi = (sample.B08 - sample.B04) / denom;
+                            
+                            if (ndvi < -0.2) return [0.75, 0.75, 0.75, 1];
+                            if (ndvi < 0) return [0.86, 0.86, 0.86, 1];
+                            if (ndvi < 0.1) return [1, 1, 0.8, 1];
+                            if (ndvi < 0.2) return [0.73, 0.82, 0.56, 1];
+                            if (ndvi < 0.3) return [0.5, 0.7, 0.38, 1];
+                            if (ndvi < 0.4) return [0.35, 0.6, 0.25, 1];
+                            if (ndvi < 0.5) return [0.25, 0.53, 0.2, 1];
+                            if (ndvi < 0.6) return [0.16, 0.44, 0.13, 1];
+                            if (ndvi < 0.7) return [0.12, 0.36, 0.11, 1];
+                            if (ndvi < 0.8) return [0.07, 0.28, 0.08, 1];
+                            return [0.04, 0.2, 0.05, 1];
+                        }
+                        """,
+                    "NDWI" => """
+                        //VERSION=3
+                        function setup() {
+                            return {
+                                input: ["B03", "B08", "dataMask"],
+                                output: { bands: 4, sampleType: "AUTO8" }
+                            };
+                        }
+                        function evaluatePixel(sample) {
+                            if (sample.dataMask !== 1) return [0, 0, 0, 0];
+                            let denom = sample.B03 + sample.B08;
+                            if (denom === 0) return [0, 0, 0, 0];
+                            let ndwi = (sample.B03 - sample.B08) / denom;
+                            
+                            if (ndwi < -0.3) return [0.2, 0.6, 0.2, 1]; 
+                            if (ndwi < 0) return [0.6, 0.8, 0.4, 1];
+                            if (ndwi < 0.2) return [0.6, 0.8, 0.8, 1]; 
+                            if (ndwi < 0.4) return [0.4, 0.6, 0.8, 1]; 
+                            return [0, 0, 0.8, 1];
+                        }
+                        """,
+                    _ => throw new ArgumentException($"Índice no soportado para visualización: {indice}")
+                };
+            }
+
             return indice switch
             {
                 "NDVI" => """

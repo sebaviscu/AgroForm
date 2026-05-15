@@ -273,6 +273,12 @@ public class Program
             app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
             // 3. Middlewares de rutas estáticas
+            // En producción: la raíz / sirve la landing page (wwwroot/index.html)
+            // En desarrollo: se mantiene el comportamiento actual (redirige al login)
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseDefaultFiles();
+            }
             app.UseStaticFiles(new StaticFileOptions
             {
                 OnPrepareResponse = ctx =>

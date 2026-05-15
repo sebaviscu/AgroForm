@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AgroForm.Tests.Services
 {
@@ -41,37 +45,56 @@ namespace AgroForm.Tests.Services
             );
         }
 
+        private void SetupHttpContextForLogin()
+        {
+            var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+
+            var authServiceMock = new Mock<IAuthenticationService>();
+            authServiceMock
+                .Setup(_ => _.SignInAsync(It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<ClaimsPrincipal>(), It.IsAny<AuthenticationProperties>()))
+                .Returns(Task.CompletedTask);
+
+            services.AddSingleton<IAuthenticationService>(authServiceMock.Object);
+            services.AddLogging();
+            services.AddMvc();
+            services.AddSingleton<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataDictionaryFactory, Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionaryFactory>();
+            
+            var serviceProvider = services.BuildServiceProvider();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = serviceProvider;
+
+            var sessionMock = new Mock<ISession>();
+            byte[] value;
+            sessionMock.Setup(s => s.TryGetValue(It.IsAny<string>(), out value)).Returns(false);
+            httpContext.Session = sessionMock.Object;
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+            
+            var urlHelperMock = new Mock<Microsoft.AspNetCore.Mvc.IUrlHelper>();
+            _controller.Url = urlHelperMock.Object;
+        }
+
         [Fact]
         public async Task Login_UsuarioConLicenciaInactiva_RetornaError()
         {
-            // Arrange
+            SetupHttpContextForLogin();
             var email = "test@example.com";
             var password = "password123";
             var user = new Usuario
             {
-                Id = 1,
-                Email = email,
-                Nombre = "Test User",
-                IdLicencia = 1,
-                SuperAdmin = false
+                Id = 1, Email = email, Nombre = "Test User", IdLicencia = 1, SuperAdmin = false
             };
+            var licenciaInactiva = new Licencia { Id = 1, Activo = false };
 
-            var licenciaInactiva = new Licencia
-            {
-                Id = 1,
-                Activo = false
-            };
+            _mockUserService.Setup(x => x.GetUserByEmailAsync(email)).ReturnsAsync(user);
+            _mockLicenciaService.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(OperationResult<Licencia>.SuccessResult(licenciaInactiva));
 
-            _mockUserService.Setup(x => x.GetUserByEmailAsync(email))
-                .ReturnsAsync(user);
-
-            _mockLicenciaService.Setup(x => x.GetByIdAsync(1))
-                .ReturnsAsync(OperationResult<Licencia>.SuccessResult(licenciaInactiva));
-
-            // Act
             var result = await _controller.Login(email, password, false);
 
-            // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.True(viewResult.ViewData.ContainsKey("Error"));
             Assert.Equal("Su licencia está deshabilitada. Contacte al administrador.", viewResult.ViewData["Error"]);
@@ -80,28 +103,19 @@ namespace AgroForm.Tests.Services
         [Fact]
         public async Task Login_SuperAdminConLicenciaInactiva_PermiteAcceso()
         {
-            // Arrange
+            SetupHttpContextForLogin();
             var email = "admin@example.com";
             var password = "password123";
             var user = new Usuario
             {
-                Id = 1,
-                Email = email,
-                Nombre = "Admin User",
-                IdLicencia = 1,
-                SuperAdmin = true
+                Id = 1, Email = email, Nombre = "Admin User", IdLicencia = 1, SuperAdmin = true
             };
 
-            _mockUserService.Setup(x => x.GetUserByEmailAsync(email))
-                .ReturnsAsync(user);
+            _mockUserService.Setup(x => x.GetUserByEmailAsync(email)).ReturnsAsync(user);
+            _mockCampaniaService.Setup(x => x.GetCurrentByLicencia(1)).ReturnsAsync(OperationResult<Campania>.Failure("No hay campaña"));
 
-            _mockCampaniaService.Setup(x => x.GetCurrentByLicencia(1))
-                .ReturnsAsync(OperationResult<Campania>.Failure("No hay campaña"));
-
-            // Act
             var result = await _controller.Login(email, password, false);
 
-            // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirectResult.ActionName);
             Assert.Equal("Administrador", redirectResult.ControllerName);
@@ -110,37 +124,21 @@ namespace AgroForm.Tests.Services
         [Fact]
         public async Task Login_UsuarioConLicenciaActiva_PermiteAcceso()
         {
-            // Arrange
+            SetupHttpContextForLogin();
             var email = "test@example.com";
             var password = "password123";
             var user = new Usuario
             {
-                Id = 1,
-                Email = email,
-                Nombre = "Test User",
-                IdLicencia = 1,
-                SuperAdmin = false
+                Id = 1, Email = email, Nombre = "Test User", IdLicencia = 1, SuperAdmin = false
             };
+            var licenciaActiva = new Licencia { Id = 1, Activo = true };
 
-            var licenciaActiva = new Licencia
-            {
-                Id = 1,
-                Activo = true
-            };
+            _mockUserService.Setup(x => x.GetUserByEmailAsync(email)).ReturnsAsync(user);
+            _mockLicenciaService.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(OperationResult<Licencia>.SuccessResult(licenciaActiva));
+            _mockCampaniaService.Setup(x => x.GetCurrentByLicencia(1)).ReturnsAsync(OperationResult<Campania>.Failure("No hay campaña"));
 
-            _mockUserService.Setup(x => x.GetUserByEmailAsync(email))
-                .ReturnsAsync(user);
-
-            _mockLicenciaService.Setup(x => x.GetByIdAsync(1))
-                .ReturnsAsync(OperationResult<Licencia>.SuccessResult(licenciaActiva));
-
-            _mockCampaniaService.Setup(x => x.GetCurrentByLicencia(1))
-                .ReturnsAsync(OperationResult<Campania>.Failure("No hay campaña"));
-
-            // Act
             var result = await _controller.Login(email, password, false);
 
-            // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirectResult.ActionName);
             Assert.Equal("Home", redirectResult.ControllerName);
@@ -149,25 +147,18 @@ namespace AgroForm.Tests.Services
         [Fact]
         public async Task Login_UsuarioSinLicencia_RetornaError()
         {
-            // Arrange
+            SetupHttpContextForLogin();
             var email = "test@example.com";
             var password = "password123";
             var user = new Usuario
             {
-                Id = 1,
-                Email = email,
-                Nombre = "Test User",
-                IdLicencia = null,
-                SuperAdmin = false
+                Id = 1, Email = email, Nombre = "Test User", IdLicencia = null, SuperAdmin = false
             };
 
-            _mockUserService.Setup(x => x.GetUserByEmailAsync(email))
-                .ReturnsAsync(user);
+            _mockUserService.Setup(x => x.GetUserByEmailAsync(email)).ReturnsAsync(user);
 
-            // Act
             var result = await _controller.Login(email, password, false);
 
-            // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.True(viewResult.ViewData.ContainsKey("Error"));
             Assert.Equal("Usuario sin licencia asignada. Contacte al administrador.", viewResult.ViewData["Error"]);

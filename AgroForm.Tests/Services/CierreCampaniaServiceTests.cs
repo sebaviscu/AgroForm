@@ -304,6 +304,9 @@ namespace AgroForm.Tests.Services
             await AddTestDataAsync(reporteMismaLicencia);
             await AddTestDataAsync(reporteOtraLicencia);
 
+            // Clear change tracker to avoid EF tracking conflict
+            DbContext.ChangeTracker.Clear();
+
             // Act
             var result = await _cierreCampaniaService.DeleteAsync(1);
             System.IO.File.AppendAllText("d:\\Repositorios\\AgroForm\\debug_log.txt",

@@ -180,6 +180,7 @@ function configurarEventos() {
         } else {
             $('#fechaPruebaGroup').hide();
             $('#fechaFinPrueba').removeAttr('required');
+            $('#fechaFinPrueba').val('');
             $('#diasPruebaTexto').hide();
         }
     });

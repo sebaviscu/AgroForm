@@ -136,6 +136,10 @@ namespace AgroForm.Tests.Services
             services.AddScoped<IUsuarioService, UsuarioService>();
             services.AddScoped<ICicloCultivoService, CicloCultivoService>();
             services.AddScoped<IReportService, ReportService>();
+            services.AddScoped<ISateliteService, SateliteService>();
+            
+            services.AddHttpClient();
+            services.AddMemoryCache();
 
             ServiceProvider = services.BuildServiceProvider();
             DbContext = ServiceProvider.GetRequiredService<AppDbContext>();

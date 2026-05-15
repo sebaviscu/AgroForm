@@ -89,6 +89,14 @@ namespace AgroForm.Tests.Services
         public async Task GetAllWithDetailsAsync_DebeRetornarSoloLicenciaActual()
         {
             // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
             var registro1 = new RegistroClima 
             { 
                 Id = 1, 
@@ -112,6 +120,7 @@ namespace AgroForm.Tests.Services
                 IdCampania = 1
             };
 
+            await AddTestDataAsync(campo);
             await AddTestDataAsync(registro1);
             await AddTestDataAsync(registroOtraLicencia);
 
@@ -340,6 +349,9 @@ namespace AgroForm.Tests.Services
             };
             await AddTestDataAsync(registroMismaLicencia);
             await AddTestDataAsync(registroOtraLicencia);
+
+            // Clear change tracker to avoid EF tracking conflict when DeleteAsync does get + remove
+            DbContext.ChangeTracker.Clear();
 
             // Act
             var result = await _registroClimaService.DeleteAsync(1);

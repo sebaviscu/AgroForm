@@ -404,8 +404,8 @@ $(document).ready(function () {
         url: '/Access/GetTrialLicenseInfo',
         type: 'GET',
         success: function (response) {
+            var $banner = $('#trialBanner');
             if (response.success && response.esPrueba) {
-                var $banner = $('#trialBanner');
                 var $bannerText = $('#trialBannerText');
                 var $bannerSubText = $('#trialBannerSubText');
                 if (response.expirada) {
@@ -413,13 +413,14 @@ $(document).ready(function () {
                     $banner.addClass('trial-banner-expired');
                 } else {
                     var dias = response.diasRestantes;
-                    // var texto = 'Licencia de prueba - ' + dias + ' d\u00eda' + (dias !== 1 ? 's' : '') + ' restante' + (dias !== 1 ? 's' : '');
                     $bannerText.text('Licencia de prueba');
                     var subTexto = dias + ' d\u00eda' + (dias !== 1 ? 's' : '') + ' restante' + (dias !== 1 ? 's' : '');
                     $bannerSubText.text(subTexto);
                     $banner.removeClass('trial-banner-expired');
                 }
                 $banner.show();
+            } else {
+                $banner.hide();
             }
         },
         error: function () { }

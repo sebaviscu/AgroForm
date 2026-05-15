@@ -836,6 +836,14 @@ namespace AgroForm.Tests.Services
         public async Task GetAllByCamapniaAsync_DebeRetornarCiclos_DeLaCampaniaActual()
         {
             // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
             var lote = new Lote
             {
                 Id = 1,
@@ -861,6 +869,7 @@ namespace AgroForm.Tests.Services
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
                 RegistrationUser = TestUserAuth.UserName
             };
+            await AddTestDataAsync(campo);
             await AddTestDataAsync(lote);
             await AddTestDataAsync(cultivo);
             await AddTestDataAsync(campania);
@@ -893,6 +902,14 @@ namespace AgroForm.Tests.Services
         public async Task GetByIdWithDetailsAsync_DebeRetornarCicloConDetalles_CuandoExiste()
         {
             // Arrange
+            var campo = new Campo
+            {
+                Id = 1,
+                Nombre = "Campo Test",
+                IdLicencia = 1,
+                RegistrationDate = TimeHelper.GetArgentinaTime(),
+                RegistrationUser = TestUserAuth.UserName
+            };
             var lote = new Lote
             {
                 Id = 1,
@@ -918,6 +935,7 @@ namespace AgroForm.Tests.Services
                 RegistrationDate = TimeHelper.GetArgentinaTime(),
                 RegistrationUser = TestUserAuth.UserName
             };
+            await AddTestDataAsync(campo);
             await AddTestDataAsync(lote);
             await AddTestDataAsync(cultivo);
             await AddTestDataAsync(campania);
